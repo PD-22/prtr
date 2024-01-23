@@ -22,6 +22,26 @@ const config = {
     await worker.terminate();
 })(); */
 
-document.querySelector('button').addEventListener('click', () => {
-    window.electronAPI.saveClipboardImage();
-});
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d');
+
+const shortcuts = {
+    s: () => {
+        console.log(`s was pressed`);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        window.electronAPI.saveCanvas(imageData);
+    },
+    v: async () => {
+        console.log(`v was pressed`);
+        const { buffer, width, height } = await window.electronAPI.getClipboardImage();
+
+        const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+        
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.putImageData(imageData, 0, 0);
+    }
+};
+
+document.addEventListener('keydown', ({ key }) => { shortcuts[key]?.(); });

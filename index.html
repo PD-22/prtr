@@ -6,11 +6,12 @@
     <title>Hello World!</title>
     <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <link rel="stylesheet" href="styles.css">
     <script src="./node_modules/tesseract.js/dist/tesseract.min.js"></script>
 </head>
 
 <body>
-    <button>Save Clipboard Image</button>
+    <canvas></canvas>
     
     <script src="./renderer.js"></script>
 </body>

@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    saveClipboardImage: title => ipcRenderer.send('save-clipboard-image', title)
-})
+    getClipboardImage: () => ipcRenderer.invoke('get-clipboard-image'),
+    saveCanvas: (imageData) => ipcRenderer.send('save-canvas', imageData)
+});

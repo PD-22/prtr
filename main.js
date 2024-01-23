@@ -29,21 +29,25 @@ function createWindow() {
     });
 }
 
-function handleSaveClipboardImage() {
-    const image = clipboard.readImage();
-    if (image.isEmpty()) return console.log('Clipboard image is empty');
-    
-    const output = path.join(__dirname, 'output.png');
-    console.log(`Writing to "${output}"...`);
-    writeFileSync(output, image.toPNG());
-    console.log('Done');
-}
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-    ipcMain.on('save-clipboard-image', handleSaveClipboardImage);
+    ipcMain.handle('get-clipboard-image', () => {
+        const image = clipboard.readImage();
+        const { width, height } = image.getSize();
+        const buffer = image.getBitmap();
+        return { buffer, width, height };
+    });
+
+    // FIX
+    ipcMain.on('save-canvas', (e, imageData) => {
+        const output = path.join(__dirname, 'output.png');
+        console.log(`Writing to "${output}"...`);
+        writeFileSync(output, Buffer.from(imageData));
+        console.log('Done');
+    });
+
     createWindow();
 })
 
