@@ -15,9 +15,13 @@ const config = {
 };
 
 
-(async () => {
+/* (async () => {
     const worker = await Tesseract.createWorker("eng", undefined, options, config);
     const { data: { text } } = await worker.recognize("./squad.png");
     console.log(text);
     await worker.terminate();
-})();
+})(); */
+
+document.querySelector('button').addEventListener('click', () => {
+    window.electronAPI.saveClipboardImage();
+});
