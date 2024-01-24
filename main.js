@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, ipcMain, dialog, nativeImage } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
 const { writeFileSync } = require('fs');
 const path = require('path');
 
