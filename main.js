@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, ipcMain } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain, dialog, nativeImage } = require('electron');
 const { writeFileSync } = require('fs');
 const path = require('path');
 
@@ -41,11 +41,20 @@ app.whenReady().then(() => {
     });
 
     ipcMain.on('save-canvas', (e, dataURL) => {
-        const output = path.join(__dirname, 'output.png');
-        console.log(`Writing to "${output}"...`);
         const base64Data = dataURL.replace(/^data:image\/png;base64,/, '');
-        writeFileSync(output, base64Data, 'base64');
-        console.log('Done');
+
+        dialog.showSaveDialog({
+            title: 'Save Image',
+            filters: [{
+                name: 'Images',
+                extensions: ['png']
+            }],
+            defaultPath: "output"
+        }).then(({ canceled, filePath }) => {
+            if (canceled) return console.log('Save canceled');;
+            writeFileSync(filePath, base64Data, 'base64');
+            console.log(`Saved to "${filePath}"`);
+        });
     });
 
     createWindow();
