@@ -6,11 +6,13 @@ const ctx = canvas.getContext('2d');
 /** @type {HTMLCanvasElement} */
 const overlayCanvas = document.querySelector('.overlay-canvas');
 const octx = overlayCanvas.getContext('2d');
-
 const clearOverlay = () => octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
+resizeCanvas(screen.width, screen.height);
+
 // rect
-let rect = { x: 0, y: 0, w: 0, h: 0 };
+let rect;
+fitRectToCanvas();
 function updateRect(newRect) {
     let { x, y, w, h } = newRect;
     x = Math.floor(x);
@@ -35,7 +37,6 @@ function drawCrop() {
 function resizeCanvas(w, h) {
     overlayCanvas.width = canvas.width = w;
     overlayCanvas.height = canvas.height = h;
-    fitRectToCanvas();
 }
 function fitRectToCanvas() {
     updateRect({ x: 0, y: 0, w: overlayCanvas.width, h: overlayCanvas.height });
@@ -71,21 +72,21 @@ const shortcuts = {
         await new Promise(resolve => { img.onload = resolve });
 
         resizeCanvas(width, height);
+        fitRectToCanvas();
         ctx.drawImage(img, 0, 0);
     },
-    Escape: () => {
+    escape: () => {
         fitRectToCanvas();
         isMouseDown = false;
     },
-    t: async () => {
+    enter: async () => {
         const dataURL = canvas.toDataURL('image/png');
         const result = await window.electronAPI.tesseractCanvas(dataURL);
         console.log(result);
     }
 };
 document.addEventListener('keydown', e => {
-    // if (!e.ctrlKey) return;
-    const shortcut = shortcuts[e.key];
+    const shortcut = shortcuts[e.key.toLowerCase()];
     if (!shortcut) return;
     console.log(`shortcut: "${e.key}"`);
     e.preventDefault();
@@ -107,6 +108,7 @@ function cropCanvas() {
     tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
 
     resizeCanvas(w, h);
+    fitRectToCanvas();
     ctx.drawImage(tempCanvas, 0, 0);
 }
 function getCanvasMousePos(e) {
