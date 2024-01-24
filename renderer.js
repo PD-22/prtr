@@ -87,9 +87,10 @@ const shortcuts = {
 
         resizeCanvas(w, h);
         ctx.drawImage(tempCanvas, 0, 0);
-    }
+    },
+    Escape: fitRectToCanvas
 };
-document.addEventListener('keydown', ({ key }) => { shortcuts[key]?.(); });
+document.addEventListener('keydown', ({ key }) => { console.log(key); shortcuts[key]?.(); });
 
 // mouse
 function getCanvasMousePos(e) {
