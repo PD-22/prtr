@@ -27,15 +27,22 @@ const ctx = canvas.getContext('2d');
 
 const overlayCanvas = document.querySelector('.overlay-canvas');
 const octx = overlayCanvas.getContext('2d');
-const overlayRect = { x: 0, y: 0, w: 0, h: 0 };
+const clearOverlay = () => octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-function resizeCanvas(width, height) {
-    overlayRect.w = overlayCanvas.width = canvas.width = width;
-    overlayRect.h = overlayCanvas.height = canvas.height = height;
+let isMouseDown = false;
 
-    // octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.width);
-    overlayRect.x = 0;
-    overlayRect.y = 0;
+let rect = { x: 0, y: 0, w: 0, h: 0 };
+function updateRect(newRect) {
+    rect = newRect;
+    octx.strokeStyle = "white";
+    clearOverlay();
+    octx.strokeRect(rect.x, rect.y, rect.w, rect.h)
+}
+
+function resizeCanvas(w, h) {
+    overlayCanvas.width = canvas.width = w;
+    overlayCanvas.height = canvas.height = h;
+    updateRect({ x: 0, y: 0, w, h });
 }
 
 const shortcuts = {
@@ -65,6 +72,19 @@ function getCanvasMousePos(e) {
 }
 
 document.addEventListener('mousedown', e => {
+    isMouseDown = true;
     const [x, y] = getCanvasMousePos(e);
-    console.log(`mousedown\t${x} ${y}`);
+    updateRect({ x, y, w: 0, h: 0 });
+});
+
+document.addEventListener('mousemove', e => {
+    if (!isMouseDown) return;
+    const [x, y] = getCanvasMousePos(e);
+    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
+});
+
+document.addEventListener('mouseup', e => {
+    isMouseDown = false;
+    const [x, y] = getCanvasMousePos(e);
+    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
 });
