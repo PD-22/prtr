@@ -1,4 +1,4 @@
-const options = {
+/* const options = {
     workerPath: "./node_modules/tesseract.js/dist/worker.min.js",
     // Unlike when used in a browser, corePath and langPath are resolved relative the worker using Electron.
     corePath: "../../../node_modules/tesseract.js-core/",
@@ -12,7 +12,7 @@ const options = {
 const config = {
     load_system_dawg: false,
     load_freq_dawg: false
-};
+}; */
 
 
 /* (async () => {
@@ -22,8 +22,17 @@ const config = {
     await worker.terminate();
 })(); */
 
-const canvas = document.querySelector('canvas');
+const canvas = document.querySelector('.main-canvas');
 const ctx = canvas.getContext('2d');
+
+const overlayCanvas = document.querySelector('.overlay-canvas');
+const octx = overlayCanvas.getContext('2d');
+
+function resizeCanvas(width, height) {
+    overlayCanvas.width = canvas.width = width;
+    overlayCanvas.height = canvas.height = height;
+    // octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.width);
+}
 
 const shortcuts = {
     s: () => {
@@ -36,11 +45,8 @@ const shortcuts = {
         const { buffer, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
         if (isEmpty) return alert('Clipboard image not found');
 
+        resizeCanvas(width, height);
         const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-
-        canvas.width = width;
-        canvas.height = height;
-
         ctx.putImageData(imageData, 0, 0);
     }
 };

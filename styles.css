@@ -1,4 +1,4 @@
-body{
+body {
     margin: 0;
     height: 100vh;
     padding: 0;
@@ -8,6 +8,12 @@ body{
     background: #000;
 }
 
-canvas {
+.canvas-container {
+    position: relative;
     border: 1px solid #fff;
+    display: flex;
+}
+
+.overlay-canvas {
+    position: absolute;
 }
