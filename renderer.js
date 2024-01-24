@@ -17,13 +17,18 @@ function updateRect(newRect) {
     w = Math.floor(w);
     h = Math.floor(h);
     rect = { x, y, w, h };
-    drawRect();
+    drawCrop();
 }
-function drawRect() {
+function drawCrop() {
     let { x, y, w, h } = rect;
     octx.lineWidth = "1px";
     octx.strokeStyle = "#FFF";
     clearOverlay();
+    octx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    octx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    octx.clearRect(x, y, w, h);
+    octx.strokeStyle = '#FFF';
+    octx.lineWidth = 1;
     octx.strokeRect(x, y, w, h);
 }
 function resizeCanvas(w, h) {
