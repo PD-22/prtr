@@ -37,8 +37,8 @@ app.whenReady().then(() => {
         const image = clipboard.readImage();
         if (image.isEmpty()) return { isEmpty: true };
         const { width, height } = image.getSize();
-        const buffer = image.getBitmap();
-        return { buffer, width, height };
+        const dataURL = image.toDataURL();
+        return { dataURL, width, height };
     });
 
     ipcMain.on('save-canvas', (e, dataURL) => {

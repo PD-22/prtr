@@ -73,12 +73,15 @@ const shortcuts = {
     },
     v: async () => {
         console.log(`v was pressed`);
-        const { buffer, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
+        const { dataURL, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
         if (isEmpty) return alert('Clipboard image not found');
 
+        const img = new Image();
+        img.src = dataURL;
+        await new Promise(resolve => { img.onload = resolve });
+        
         resizeCanvas(width, height);
-        const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-        ctx.putImageData(imageData, 0, 0);
+        ctx.drawImage(img, 0, 0);
     },
     Enter: () => {
         console.log(`Enter was pressed`);
