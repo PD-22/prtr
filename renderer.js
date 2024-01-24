@@ -28,15 +28,15 @@ const ctx = canvas.getContext('2d');
 const shortcuts = {
     s: () => {
         console.log(`s was pressed`);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        window.electronAPI.saveCanvas(imageData);
+        const dataURL = canvas.toDataURL('image/png');
+        window.electronAPI.saveCanvas(dataURL);
     },
     v: async () => {
         console.log(`v was pressed`);
         const { buffer, width, height } = await window.electronAPI.getClipboardImage();
 
         const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
-        
+
         canvas.width = width;
         canvas.height = height;
 

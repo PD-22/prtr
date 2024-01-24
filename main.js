@@ -40,11 +40,11 @@ app.whenReady().then(() => {
         return { buffer, width, height };
     });
 
-    // FIX
-    ipcMain.on('save-canvas', (e, imageData) => {
+    ipcMain.on('save-canvas', (e, dataURL) => {
         const output = path.join(__dirname, 'output.png');
         console.log(`Writing to "${output}"...`);
-        writeFileSync(output, Buffer.from(imageData));
+        const base64Data = dataURL.replace(/^data:image\/png;base64,/, '');
+        writeFileSync(output, base64Data, 'base64');
         console.log('Done');
     });
 
