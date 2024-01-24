@@ -27,11 +27,15 @@ const ctx = canvas.getContext('2d');
 
 const overlayCanvas = document.querySelector('.overlay-canvas');
 const octx = overlayCanvas.getContext('2d');
+const overlayRect = { x: 0, y: 0, w: 0, h: 0 };
 
 function resizeCanvas(width, height) {
-    overlayCanvas.width = canvas.width = width;
-    overlayCanvas.height = canvas.height = height;
+    overlayRect.w = overlayCanvas.width = canvas.width = width;
+    overlayRect.h = overlayCanvas.height = canvas.height = height;
+
     // octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.width);
+    overlayRect.x = 0;
+    overlayRect.y = 0;
 }
 
 const shortcuts = {
@@ -52,3 +56,15 @@ const shortcuts = {
 };
 
 document.addEventListener('keydown', ({ key }) => { shortcuts[key]?.(); });
+
+function getCanvasMousePos(e) {
+    const bcr = overlayCanvas.getBoundingClientRect();
+    const x = Math.min(bcr.width, Math.max(0, e.x - bcr.x));
+    const y = Math.min(bcr.height, Math.max(0, e.y - bcr.y));
+    return [x, y];
+}
+
+document.addEventListener('mousedown', e => {
+    const [x, y] = getCanvasMousePos(e);
+    console.log(`mousedown\t${x} ${y}`);
+});
