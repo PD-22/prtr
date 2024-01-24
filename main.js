@@ -35,6 +35,7 @@ function createWindow() {
 app.whenReady().then(() => {
     ipcMain.handle('get-clipboard-image', () => {
         const image = clipboard.readImage();
+        if (image.isEmpty()) return { isEmpty: true };
         const { width, height } = image.getSize();
         const buffer = image.getBitmap();
         return { buffer, width, height };

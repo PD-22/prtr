@@ -33,7 +33,8 @@ const shortcuts = {
     },
     v: async () => {
         console.log(`v was pressed`);
-        const { buffer, width, height } = await window.electronAPI.getClipboardImage();
+        const { buffer, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
+        if (isEmpty) return alert('Clipboard image not found');
 
         const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
 
