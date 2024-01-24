@@ -64,16 +64,16 @@ const shortcuts = {
         window.electronAPI.saveCanvas(dataURL);
     },
     v: async () => {
-        const { dataURL, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
-        if (isEmpty) return console.error('Clipboard image not found');
+        const dataURL = await window.electronAPI.getClipboardImage();
+        if (!dataURL) return console.error('Clipboard image not found');
 
-        const img = new Image();
-        img.src = dataURL;
-        await new Promise(resolve => { img.onload = resolve });
+        const image = new Image();
+        image.src = dataURL;
+        await new Promise(resolve => { image.onload = resolve });
 
-        resizeCanvas(width, height);
+        resizeCanvas(image.width, image.height);
         fitRectToCanvas();
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(image, 0, 0);
     },
     escape: () => {
         fitRectToCanvas();
