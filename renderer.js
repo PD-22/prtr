@@ -73,7 +73,10 @@ const shortcuts = {
         resizeCanvas(width, height);
         ctx.drawImage(img, 0, 0);
     },
-    Escape: fitRectToCanvas,
+    Escape: () => {
+        fitRectToCanvas();
+        isMouseDown = false;
+    },
     t: async () => {
         const dataURL = canvas.toDataURL('image/png');
         const result = await window.electronAPI.tesseractCanvas(dataURL);
@@ -92,7 +95,10 @@ document.addEventListener('keydown', e => {
 // mouse
 function cropCanvas() {
     const { x, y, w, h } = getNormalRect();
-    if (w < 1 || h < 1) return console.error('Rectangle too small');
+    if (w < 1 || h < 1) {
+        console.error('Rectangle too small');
+        return fitRectToCanvas();
+    }
 
     const tempCanvas = document.createElement('canvas');
     const tctx = tempCanvas.getContext('2d');
@@ -126,6 +132,7 @@ document.addEventListener('mousemove', e => {
     setRectEnd(x, y);
 });
 document.addEventListener('mouseup', e => {
+    if (!isMouseDown) return;
     isMouseDown = false;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
