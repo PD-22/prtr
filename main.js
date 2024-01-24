@@ -1,11 +1,12 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
-const { writeFileSync } = require('fs');
+const { writeFileSync, readFileSync } = require('fs');
 const path = require('path');
 const { createWorker } = require('tesseract.js');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win
+/** @type {BrowserWindow | undefined} */
+let win;
 
 function createWindow() {
     // Create the browser window.
@@ -29,10 +30,26 @@ function createWindow() {
     });
 }
 
+const INIT_IMAGE_PATH = path.join(__dirname, 'init.png');
+function getInitImage() {
+    let buffer;
+    try {
+        buffer = readFileSync(INIT_IMAGE_PATH);
+    } catch (error) {
+        console.error('Failed to load initial image');
+        return;
+    }
+    const base64 = buffer.toString('base64');
+    win.webContents.send('get-init-image', `data:image/png;base64,${base64}`);
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    createWindow();
+    win.webContents.on('did-finish-load', () => { getInitImage(); });
+
     ipcMain.handle('get-clipboard-image', () => {
         const image = clipboard.readImage();
         if (image.isEmpty()) return null;
@@ -63,8 +80,6 @@ app.whenReady().then(() => {
         await worker.terminate();
         return data;
     });
-
-    createWindow();
 })
 
 // Quit when all windows are closed.

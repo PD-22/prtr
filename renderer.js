@@ -57,6 +57,18 @@ function getNormalRect() {
     };
 }
 
+async function loadImageOnCanvas(dataURL) {
+    const image = new Image();
+    image.src = dataURL;
+    await new Promise(resolve => { image.onload = resolve; });
+
+    resizeCanvas(image.width, image.height);
+    fitRectToCanvas();
+    ctx.drawImage(image, 0, 0);
+}
+
+window.electronAPI.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
+
 // keyboard
 const shortcuts = {
     s: () => {
@@ -66,14 +78,7 @@ const shortcuts = {
     v: async () => {
         const dataURL = await window.electronAPI.getClipboardImage();
         if (!dataURL) return console.error('Clipboard image not found');
-
-        const image = new Image();
-        image.src = dataURL;
-        await new Promise(resolve => { image.onload = resolve });
-
-        resizeCanvas(image.width, image.height);
-        fitRectToCanvas();
-        ctx.drawImage(image, 0, 0);
+        await loadImageOnCanvas(dataURL);
     },
     escape: () => {
         fitRectToCanvas();
