@@ -1,14 +1,13 @@
-/** @type {HTMLCanvasElement} */
+// canvas
 const canvas = document.querySelector('.main-canvas');
 const ctx = canvas.getContext('2d');
 
-/** @type {HTMLCanvasElement} */
 const overlayCanvas = document.querySelector('.overlay-canvas');
 const octx = overlayCanvas.getContext('2d');
+
 const clearOverlay = () => octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-let isMouseDown = false;
-
+// rect
 let rect = { x: 0, y: 0, w: 0, h: 0 };
 function updateRect(newRect) {
     let { x, y, w, h } = newRect;
@@ -34,7 +33,16 @@ function drawCrop() {
 function resizeCanvas(w, h) {
     overlayCanvas.width = canvas.width = w;
     overlayCanvas.height = canvas.height = h;
-    updateRect({ x: 0, y: 0, w, h });
+    fitRectToCanvas();
+}
+function fitRectToCanvas() {
+    updateRect({ x: 0, y: 0, w: overlayCanvas.width, h: overlayCanvas.height });
+}
+function setRectEnd(x, y) {
+    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
+}
+function setRectStart(x, y) {
+    updateRect({ x, y, w: 0, h: 0 });
 }
 function getNormalRect() {
     const { x, y, w, h } = rect;
@@ -46,6 +54,7 @@ function getNormalRect() {
     };
 }
 
+// keyboard
 const shortcuts = {
     s: () => {
         console.log(`s was pressed`);
@@ -80,9 +89,9 @@ const shortcuts = {
         ctx.drawImage(tempCanvas, 0, 0);
     }
 };
-
 document.addEventListener('keydown', ({ key }) => { shortcuts[key]?.(); });
 
+// mouse
 function getCanvasMousePos(e) {
     const bcr = overlayCanvas.getBoundingClientRect();
 
@@ -94,21 +103,19 @@ function getCanvasMousePos(e) {
 
     return [x, y];
 }
-
+let isMouseDown = false;
 document.addEventListener('mousedown', e => {
     isMouseDown = true;
     const [x, y] = getCanvasMousePos(e);
-    updateRect({ x, y, w: 0, h: 0 });
+    setRectStart(x, y);
 });
-
 document.addEventListener('mousemove', e => {
     if (!isMouseDown) return;
     const [x, y] = getCanvasMousePos(e);
-    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
+    setRectEnd(x, y);
 });
-
 document.addEventListener('mouseup', e => {
     isMouseDown = false;
     const [x, y] = getCanvasMousePos(e);
-    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
+    setRectEnd(x, y);
 });
