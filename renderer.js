@@ -55,7 +55,7 @@ const shortcuts = {
         const img = new Image();
         img.src = dataURL;
         await new Promise(resolve => { img.onload = resolve });
-        
+
         resizeCanvas(width, height);
         ctx.drawImage(img, 0, 0);
     },
@@ -80,8 +80,13 @@ document.addEventListener('keydown', ({ key }) => { shortcuts[key]?.(); });
 
 function getCanvasMousePos(e) {
     const bcr = overlayCanvas.getBoundingClientRect();
-    const x = Math.min(bcr.width, Math.max(0, e.x - bcr.x));
-    const y = Math.min(bcr.height, Math.max(0, e.y - bcr.y));
+
+    const scaleX = overlayCanvas.width / bcr.width;
+    const scaleY = overlayCanvas.height / bcr.height;
+
+    const x = Math.min(overlayCanvas.width, Math.max(0, (e.clientX - bcr.left) * scaleX));
+    const y = Math.min(overlayCanvas.height, Math.max(0, (e.clientY - bcr.top) * scaleY));
+
     return [x, y];
 }
 
