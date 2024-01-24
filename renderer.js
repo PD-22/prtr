@@ -1,7 +1,9 @@
 // canvas
+/** @type {HTMLCanvasElement} */
 const canvas = document.querySelector('.main-canvas');
 const ctx = canvas.getContext('2d');
 
+/** @type {HTMLCanvasElement} */
 const overlayCanvas = document.querySelector('.overlay-canvas');
 const octx = overlayCanvas.getContext('2d');
 
@@ -57,12 +59,10 @@ function getNormalRect() {
 // keyboard
 const shortcuts = {
     s: () => {
-        console.log(`s was pressed`);
         const dataURL = canvas.toDataURL('image/png');
         window.electronAPI.saveCanvas(dataURL);
     },
     v: async () => {
-        console.log(`v was pressed`);
         const { dataURL, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
         if (isEmpty) return alert('Clipboard image not found');
 
@@ -74,8 +74,6 @@ const shortcuts = {
         ctx.drawImage(img, 0, 0);
     },
     Enter: () => {
-        console.log(`Enter was pressed`);
-
         const { x, y, w, h } = getNormalRect();
         if (w < 1 || h < 1) return alert('Rectangle too small');
 
@@ -88,9 +86,21 @@ const shortcuts = {
         resizeCanvas(w, h);
         ctx.drawImage(tempCanvas, 0, 0);
     },
-    Escape: fitRectToCanvas
+    Escape: fitRectToCanvas,
+    t: async () => {
+        const dataURL = canvas.toDataURL('image/png');
+        const result = await window.electronAPI.tesseractCanvas(dataURL);
+        console.log(result);
+    }
 };
-document.addEventListener('keydown', ({ key }) => { console.log(key); shortcuts[key]?.(); });
+document.addEventListener('keydown', e => {
+    // if (!e.ctrlKey) return;
+    const shortcut = shortcuts[e.key];
+    if (!shortcut) return;
+    console.log(`shortcut: "${e.key}"`);
+    e.preventDefault();
+    shortcut();
+});
 
 // mouse
 function getCanvasMousePos(e) {

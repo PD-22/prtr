@@ -1,6 +1,7 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
 const { writeFileSync } = require('fs');
 const path = require('path');
+const { createWorker } = require('tesseract.js');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -55,6 +56,14 @@ app.whenReady().then(() => {
             writeFileSync(filePath, base64Data, 'base64');
             console.log(`Saved to "${filePath}"`);
         });
+    });
+
+    ipcMain.handle('tesseract-canvas', async (e, dataURL) => {
+        const config = { load_system_dawg: false, load_freq_dawg: false };
+        const worker = await createWorker('eng', undefined, undefined, config);
+        const { data } = await worker.recognize(dataURL);
+        await worker.terminate();
+        return data;
     });
 
     createWindow();
