@@ -64,7 +64,7 @@ const shortcuts = {
     },
     v: async () => {
         const { dataURL, width, height, isEmpty } = await window.electronAPI.getClipboardImage();
-        if (isEmpty) return alert('Clipboard image not found');
+        if (isEmpty) return console.error('Clipboard image not found');
 
         const img = new Image();
         img.src = dataURL;
@@ -72,19 +72,6 @@ const shortcuts = {
 
         resizeCanvas(width, height);
         ctx.drawImage(img, 0, 0);
-    },
-    Enter: () => {
-        const { x, y, w, h } = getNormalRect();
-        if (w < 1 || h < 1) return alert('Rectangle too small');
-
-        const tempCanvas = document.createElement('canvas');
-        const tctx = tempCanvas.getContext('2d');
-        tempCanvas.width = w;
-        tempCanvas.height = h;
-        tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-
-        resizeCanvas(w, h);
-        ctx.drawImage(tempCanvas, 0, 0);
     },
     Escape: fitRectToCanvas,
     t: async () => {
@@ -103,6 +90,19 @@ document.addEventListener('keydown', e => {
 });
 
 // mouse
+function cropCanvas() {
+    const { x, y, w, h } = getNormalRect();
+    if (w < 1 || h < 1) return console.error('Rectangle too small');
+
+    const tempCanvas = document.createElement('canvas');
+    const tctx = tempCanvas.getContext('2d');
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+    tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+
+    resizeCanvas(w, h);
+    ctx.drawImage(tempCanvas, 0, 0);
+}
 function getCanvasMousePos(e) {
     const bcr = overlayCanvas.getBoundingClientRect();
 
@@ -129,4 +129,5 @@ document.addEventListener('mouseup', e => {
     isMouseDown = false;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
+    cropCanvas();
 });
