@@ -69,6 +69,13 @@ async function loadImageOnCanvas(dataURL) {
 
 window.electronAPI.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
+window.electronAPI.onExtractHTML(html => {
+    console.log('extract html given by child window');
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const userAgent = document.querySelector('.value a').textContent;
+    console.log('userAgent', userAgent);
+});
+
 // keyboard
 const shortcuts = {
     s: () => {
@@ -88,7 +95,11 @@ const shortcuts = {
         const dataURL = canvas.toDataURL('image/png');
         const result = await window.electronAPI.tesseractCanvas(dataURL);
         console.log(result);
-    }
+    },
+    u: async () => {
+        const URL = `https://www.whatismybrowser.com/detect/what-is-my-user-agent`;
+        window.electronAPI.scrapeURL(URL);
+    },
 };
 document.addEventListener('keydown', e => {
     const shortcut = shortcuts[e.key.toLowerCase()];
