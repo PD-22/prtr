@@ -69,7 +69,7 @@ async function loadImageOnCanvas(dataURL) {
 
 window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
-window.electron.onExtractHTML(html => {
+window.electron.scrape.onExtractHTML(html => {
     const document = new DOMParser().parseFromString(html, "text/html");
     const userAgent = document.querySelector('.value a').textContent;
     console.log('userAgent', userAgent);
@@ -97,7 +97,7 @@ const shortcuts = {
     },
     u: async function scrape() {
         const URL = `https://www.whatismybrowser.com/detect/what-is-my-user-agent`;
-        window.electron.scrapeURL(URL);
+        window.electron.scrape.loadURL(URL);
     },
 };
 console.log(`Shortcut keys:\n${Object.entries(shortcuts).map(

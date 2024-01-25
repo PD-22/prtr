@@ -26,7 +26,7 @@ function createWindow() {
         }
     });
     childWindow.webContents.on('dom-ready', () => {
-        childWindow.send('send-back-html');
+        childWindow.send('scrape:send-html');
     });
     childWindow.on('closed', () => { childWindow = null; });
 }
@@ -77,12 +77,12 @@ app.whenReady().then(() => {
         return data;
     });
 
-    ipcMain.on('scrape-url', (_, url) => {
+    ipcMain.on('scrape:load-url', (_, url) => {
         childWindow.loadURL(url, { userAgent: 'Temporary user agent' });
     });
 
-    ipcMain.on('here-is-html', (_, html) => {
-        mainWindow.send('extract-html', html);
+    ipcMain.on('scrape:recieve-html', (_, html) => {
+        mainWindow.send('scrape:extract-html', html);
     });
 });
 

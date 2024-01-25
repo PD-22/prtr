@@ -2,6 +2,6 @@ console.log('preload-child.js loaded');
 
 const { ipcRenderer } = require("electron");
 
-ipcRenderer.on('send-back-html', () =>
-    ipcRenderer.send('here-is-html', document.documentElement.innerHTML)
+ipcRenderer.on('scrape:send-html', () =>
+    ipcRenderer.send('scrape:recieve-html', document.documentElement.innerHTML)
 );
