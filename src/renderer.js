@@ -71,8 +71,20 @@ window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
 window.electron.scrape.onExtractHTML(html => {
     const document = new DOMParser().parseFromString(html, "text/html");
-    const userAgent = document.querySelector('.value a').textContent;
-    console.log('userAgent', userAgent);
+    const allElements = Array.from(document.getElementsByTagName("*"));
+
+    const details = allElements
+        .find(e => e.textContent.trimStart().startsWith('Most kills in '))
+        .parentElement
+        .querySelector('.desc .details');
+
+    const nickname = Array.from(details.querySelectorAll('a'))
+        .map(e => e.textContent)
+        .join(' ');
+
+    const killCount = parseInt(details.querySelector('em').textContent);
+
+    console.log(`Scrape result: "${nickname}" - ${killCount} kills`);
 });
 
 // keyboard
@@ -95,8 +107,8 @@ const shortcuts = {
         const result = await window.electron.tesseractCanvas(dataURL);
         console.log(`tesseract:\n${result.text}`);
     },
-    u: async function scrape() {
-        const URL = `https://www.whatismybrowser.com/detect/what-is-my-user-agent`;
+    enter: async function scrape() {
+        const URL = `http://prstats.tk`;
         window.electron.scrape.loadURL(URL);
     },
 };
