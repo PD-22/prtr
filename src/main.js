@@ -14,7 +14,7 @@ function createWindow() {
         fullscreen: true,
         frame: false
     })
-    mainWindow.loadFile('index.html')
+    mainWindow.loadFile(path.join(__dirname, 'index.html'))
     mainWindow.on('closed', () => { mainWindow = null });
 
     childWindow = new BrowserWindow({
@@ -61,7 +61,7 @@ app.whenReady().then(() => {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Save Image',
             filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: "output"
+            defaultPath: path.join(__dirname, "output")
         });
 
         if (canceled) return console.log('Save canceled');;
