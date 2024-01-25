@@ -67,10 +67,9 @@ async function loadImageOnCanvas(dataURL) {
     ctx.drawImage(image, 0, 0);
 }
 
-window.electronAPI.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
+window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
-window.electronAPI.onExtractHTML(html => {
-    console.log('extract html given by child window');
+window.electron.onExtractHTML(html => {
     const document = new DOMParser().parseFromString(html, "text/html");
     const userAgent = document.querySelector('.value a').textContent;
     console.log('userAgent', userAgent);
@@ -78,29 +77,32 @@ window.electronAPI.onExtractHTML(html => {
 
 // keyboard
 const shortcuts = {
-    s: () => {
-        const dataURL = canvas.toDataURL('image/png');
-        window.electronAPI.saveCanvas(dataURL);
-    },
-    v: async () => {
-        const dataURL = await window.electronAPI.getClipboardImage();
+    v: async function paste() {
+        const dataURL = await window.electron.getClipboardImage();
         if (!dataURL) return console.error('Clipboard image not found');
         await loadImageOnCanvas(dataURL);
     },
-    escape: () => {
+    escape: function cancel() {
         fitRectToCanvas();
         isMouseDown = false;
     },
-    enter: async () => {
+    s: function save() {
         const dataURL = canvas.toDataURL('image/png');
-        const result = await window.electronAPI.tesseractCanvas(dataURL);
-        console.log(result);
+        window.electron.saveCanvas(dataURL);
     },
-    u: async () => {
+    t: async function tesseract() {
+        const dataURL = canvas.toDataURL('image/png');
+        const result = await window.electron.tesseractCanvas(dataURL);
+        console.log(`tesseract:\n${result.text}`);
+    },
+    u: async function scrape() {
         const URL = `https://www.whatismybrowser.com/detect/what-is-my-user-agent`;
-        window.electronAPI.scrapeURL(URL);
+        window.electron.scrapeURL(URL);
     },
 };
+console.log(`Shortcut keys:\n${Object.entries(shortcuts).map(
+    ([k, f]) => `\t${k} - ${f.name}`
+).join('\n')}`);
 document.addEventListener('keydown', e => {
     const shortcut = shortcuts[e.key.toLowerCase()];
     if (!shortcut) return;
