@@ -1,7 +1,9 @@
 console.log('preload-child.js loaded');
 
-const { ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 
-ipcRenderer.on('scrape:send-html', () =>
-    ipcRenderer.send('scrape:receive-html', document.documentElement.innerHTML)
-);
+const api = {
+    receiveResult: result => ipcRenderer.send('scrape:receive-result', result)
+};
+
+contextBridge.exposeInMainWorld('electron', api);

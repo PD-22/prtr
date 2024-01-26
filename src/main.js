@@ -25,9 +25,6 @@ function createWindow() {
             preload: join(__dirname, 'preload-child.js')
         }
     });
-    childWindow.webContents.on('dom-ready', () => {
-        childWindow.webContents.send('scrape:send-html');
-    });
     childWindow.on('closed', () => { childWindow = null; });
 }
 
@@ -48,6 +45,12 @@ app.whenReady().then(() => {
     createWindow();
 
     mainWindow.webContents.on('did-finish-load', getInitImage);
+
+    childWindow.webContents.on('did-finish-load', () => {
+        const path = join(__dirname, 'postload-child.js');
+        const code = readFileSync(path, 'utf8');
+        childWindow.webContents.executeJavaScript(code);
+    });
 
     ipcMain.handle('get-clipboard-image', () => {
         const image = clipboard.readImage();
@@ -77,12 +80,12 @@ app.whenReady().then(() => {
         return data;
     });
 
-    ipcMain.on('scrape:load-url', (_, url) => {
-        childWindow.loadURL(url, { userAgent: 'Temporary user agent' });
+    ipcMain.on('scrape:start', (_, url) => {
+        childWindow.loadURL(url);
     });
 
-    ipcMain.on('scrape:receive-html', (_, html) => {
-        mainWindow.webContents.send('scrape:extract-html', html);
+    ipcMain.on('scrape:receive-result', (_, html) => {
+        mainWindow.webContents.send('scrape:result', html);
     });
 });
 

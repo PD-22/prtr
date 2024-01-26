@@ -69,22 +69,8 @@ async function loadImageOnCanvas(dataURL) {
 
 window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
-window.electron.scrape.onExtractHTML(html => {
-    const document = new DOMParser().parseFromString(html, "text/html");
-    const allElements = Array.from(document.getElementsByTagName("*"));
-
-    const details = allElements
-        .find(e => e.textContent.trimStart().startsWith('Most kills in '))
-        .parentElement
-        .querySelector('.desc .details');
-
-    const nickname = Array.from(details.querySelectorAll('a'))
-        .map(e => e.textContent)
-        .join(' ');
-
-    const killCount = parseInt(details.querySelector('em').textContent);
-
-    console.log(`Scrape: "${nickname}" - ${killCount} kills`);
+window.electron.scrape.onResult(result => {
+    console.log(`Scrape:\n${result}`);
 });
 
 // keyboard
@@ -115,7 +101,7 @@ const shortcuts = {
     },
     r: async function scrape() {
         const URL = `http://prstats.tk`;
-        window.electron.scrape.loadURL(URL);
+        window.electron.scrape.start(URL);
     },
 };
 console.log(formatShortcutDict());
