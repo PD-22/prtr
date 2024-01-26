@@ -81,7 +81,7 @@ app.whenReady().then(() => {
         childWindow.loadURL(url, { userAgent: 'Temporary user agent' });
     });
 
-    ipcMain.on('scrape:recieve-html', (_, html) => {
+    ipcMain.on('scrape:receive-html', (_, html) => {
         mainWindow.webContents.send('scrape:extract-html', html);
     });
 });
