@@ -79,7 +79,7 @@ async function searchUser(username, token) {
     const options = {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: createUrlSearchParams({ search: username, _token: token })
+        body: new URLSearchParams({ search: username, _token: token })
     };
     const response = await fetch("https://prstats.tk/json/search", options);
     return await response.json();
@@ -87,13 +87,6 @@ async function searchUser(username, token) {
 
 function removeClanTag(usernameWithClanTag) {
     return usernameWithClanTag.split(' ').slice(-1)[0];
-}
-
-function createUrlSearchParams(object) {
-    const result = new URLSearchParams();
-    for (const [name, value] of Object.entries(object))
-        result.append(name, value);
-    return result;
 }
 
 function sortBy(list, key) {
