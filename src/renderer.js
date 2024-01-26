@@ -84,10 +84,16 @@ window.electron.scrape.onExtractHTML(html => {
 
     const killCount = parseInt(details.querySelector('em').textContent);
 
-    console.log(`Scrape result: "${nickname}" - ${killCount} kills`);
+    console.log(`Scrape: "${nickname}" - ${killCount} kills`);
 });
 
 // keyboard
+function formatShortcut(key) {
+    return `"${key}" - ${shortcuts[key].name}`;
+}
+function formatShortcutDict() {
+    return Object.keys(shortcuts).map(formatShortcut).join('\n')
+}
 const shortcuts = {
     v: async function paste() {
         const dataURL = await window.electron.getClipboardImage();
@@ -105,20 +111,19 @@ const shortcuts = {
     t: async function tesseract() {
         const dataURL = canvas.toDataURL('image/png');
         const result = await window.electron.tesseractCanvas(dataURL);
-        console.log(`tesseract:\n${result.text}`);
+        console.log(`Tesseract:\n${result.text}`);
     },
     r: async function scrape() {
         const URL = `http://prstats.tk`;
         window.electron.scrape.loadURL(URL);
     },
 };
-console.log(`Shortcut keys:\n${Object.entries(shortcuts).map(
-    ([k, f]) => `\t${k} - ${f.name}`
-).join('\n')}`);
+console.log(formatShortcutDict());
 document.addEventListener('keydown', e => {
-    const shortcut = shortcuts[e.key.toLowerCase()];
+    const key = e.key.toLowerCase();
+    const shortcut = shortcuts[key];
     if (!shortcut) return;
-    console.log(`shortcut: "${e.key}"`);
+    console.log(formatShortcut(key));
     e.preventDefault();
     shortcut();
 });
