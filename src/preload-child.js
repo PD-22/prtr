@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 const api = {
-    status: message => ipcRenderer.send('status', message),
+    status: (...args) => ipcRenderer.send('status', ...args),
     receiveResult: result => ipcRenderer.send('scrape:receive-result', result)
 };
 

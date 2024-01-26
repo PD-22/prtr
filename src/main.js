@@ -31,7 +31,7 @@ function createWindow() {
 app.whenReady().then(() => {
     createWindow();
 
-    ipcMain.on('status', (_, message) => { status(message) });
+    ipcMain.on('status', (_, ...args) => { status(...args) });
 
     mainWindow.webContents.on('did-finish-load', getInitImage);
 
@@ -69,7 +69,7 @@ app.whenReady().then(() => {
         await worker.terminate();
 
         const usernames = lines.map(l => l.text.replaceAll('\n', ''));
-        status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`, false);
+        status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`);
 
         status('Load page');
         const baseUrl = 'http://prstats.tk';

@@ -15,9 +15,12 @@ function getUsernames(queryString) {
 }
 
 async function getPrTimeStats(usernameList, token, requestLimit) {
+    const formatUserTime = (username, time) => `${username}: ${time}`;
+
     const userTimeEntries = await runAsyncFuncsInParallel(
         usernameList.map(username => async () => {
             const time = await getUserTime(username, token);
+            window.electron.status(formatUserTime(username, time));
             return { username, time };
         }),
         requestLimit
@@ -25,7 +28,7 @@ async function getPrTimeStats(usernameList, token, requestLimit) {
 
     const sortedTimeDesc = sortBy(userTimeEntries, 'time');
 
-    return sortedTimeDesc.map(({ username, time }) => `${username}: ${time}`).join('\n');
+    return sortedTimeDesc.map(({ username, time }) => formatUserTime(username, time)).join('\n');
 }
 
 async function runAsyncFuncsInParallel(funcList = [], limit) {
@@ -56,7 +59,7 @@ async function getUserTime(username, token) {
         const userPageUrl = foundUser.value.replace('http', 'https');
         return await extractUserTime(userPageUrl);
     } catch (error) {
-        window.electron.status(`Failed to get user time for ${username}: ${error.message}`);
+        return null;
     }
 }
 
