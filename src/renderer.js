@@ -83,8 +83,7 @@ function formatShortcutDict() {
 const shortcuts = {
     v: async function paste() {
         const dataURL = await window.electron.getClipboardImage();
-        if (!dataURL) return console.error('Clipboard image not found');
-        await loadImageOnCanvas(dataURL);
+        if (dataURL) return loadImageOnCanvas(dataURL);
     },
     escape: function cancel() {
         fitRectToCanvas();
@@ -110,17 +109,13 @@ document.addEventListener('keydown', e => {
     const shortcut = shortcuts[key];
     if (!shortcut) return;
     console.log(formatShortcut(key));
-    e.preventDefault();
     shortcut();
 });
 
 // mouse
 function cropCanvas() {
     const { x, y, w, h } = getNormalRect();
-    if (w < 1 || h < 1) {
-        console.error('Rectangle too small');
-        return fitRectToCanvas();
-    }
+    if (w < 1 || h < 1) return fitRectToCanvas();
 
     const tempCanvas = document.createElement('canvas');
     const tctx = tempCanvas.getContext('2d');
