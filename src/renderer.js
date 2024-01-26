@@ -107,7 +107,7 @@ const shortcuts = {
         const result = await window.electron.tesseractCanvas(dataURL);
         console.log(`tesseract:\n${result.text}`);
     },
-    enter: async function scrape() {
+    r: async function scrape() {
         const URL = `http://prstats.tk`;
         window.electron.scrape.loadURL(URL);
     },

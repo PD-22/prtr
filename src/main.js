@@ -1,6 +1,6 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
 const { writeFileSync, readFileSync } = require('fs');
-const path = require('path');
+const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
@@ -9,12 +9,12 @@ const { createWorker } = require('tesseract.js');
 function createWindow() {
     mainWindow = new BrowserWindow({
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: join(__dirname, 'preload.js')
         },
         fullscreen: true,
         frame: false
     })
-    mainWindow.loadFile(path.join(__dirname, 'index.html'))
+    mainWindow.loadFile(join(__dirname, 'index.html'))
     mainWindow.on('closed', () => { mainWindow = null });
 
     childWindow = new BrowserWindow({
@@ -22,16 +22,16 @@ function createWindow() {
         show: false,
         webPreferences: {
             nodeIntegration: false,
-            preload: path.join(__dirname, 'preload-child.js')
+            preload: join(__dirname, 'preload-child.js')
         }
     });
     childWindow.webContents.on('dom-ready', () => {
-        childWindow.send('scrape:send-html');
+        childWindow.webContents.send('scrape:send-html');
     });
     childWindow.on('closed', () => { childWindow = null; });
 }
 
-const INIT_IMAGE_PATH = path.join(__dirname, 'init.png');
+const INIT_IMAGE_PATH = join(__dirname, 'init.png');
 function getInitImage() {
     let buffer;
     try {
@@ -61,7 +61,7 @@ app.whenReady().then(() => {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Save Image',
             filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: path.join(__dirname, "output")
+            defaultPath: join(__dirname, "output")
         });
 
         if (canceled) return console.log('Save canceled');;
@@ -82,7 +82,7 @@ app.whenReady().then(() => {
     });
 
     ipcMain.on('scrape:recieve-html', (_, html) => {
-        mainWindow.send('scrape:extract-html', html);
+        mainWindow.webContents.send('scrape:extract-html', html);
     });
 });
 
