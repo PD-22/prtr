@@ -1,11 +1,17 @@
-const token = 'Bl5D5LjEYdOXjDiZ72eLHtZH7zL4lMBHorU18Rml';
 (async () => {
     const usernames = getUsernames(window.location.search);
     window.electron.status('Get user time stats');
-    const result = await getPrTimeStats(usernames, token);
+    const result = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(result);
     window.electron.status(`Time stats:\n${result.split('\n').map(x => `\t${x}`).join('\n')}`);
 })();
+
+function getToken() {
+    for (const script of document.body.querySelectorAll('script')) {
+        const result = script.textContent.match(/"_token"\s*:\s*"(\w+)"/)?.[1];
+        if (result) return result;
+    }
+}
 
 function getUsernames(queryString) {
     const searchParams = new URLSearchParams(queryString);
