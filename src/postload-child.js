@@ -1,12 +1,18 @@
 console.log('postload-child.js loaded');
 
+const token = 'Bl5D5LjEYdOXjDiZ72eLHtZH7zL4lMBHorU18Rml';
 (async () => {
-    const usernameList = ['Unicode'];
-    const token = 'Bl5D5LjEYdOXjDiZ72eLHtZH7zL4lMBHorU18Rml';
+    const usernameList = getUsernameList(window.location.search);
     const result = await getPrTimeStats(usernameList, token);
-    console.log(result);
     window.electron.receiveResult(result);
 })()
+
+function getUsernameList(queryString) {
+    const searchParams = new URLSearchParams(queryString);
+    const paramName = 'scrape_usernames';
+    const param = searchParams.get(paramName);
+    return param.split(',').map(str => decodeURIComponent(str));
+}
 
 async function getPrTimeStats(usernameList, token, requestLimit) {
     const userTimeEntries = await runAsyncFuncsInParallel(
@@ -74,7 +80,7 @@ async function searchUser(username, token) {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body: createUrlSearchParams({ search: username, _token: token })
-    };  
+    };
     const response = await fetch("https://prstats.tk/json/search", options);
     return await response.json();
 }

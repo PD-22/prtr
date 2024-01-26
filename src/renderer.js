@@ -69,7 +69,7 @@ async function loadImageOnCanvas(dataURL) {
 
 window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
-window.electron.scrape.onResult(result => {
+window.electron.onScrapeResult(result => {
     console.log(`Scrape:\n${result}`);
 });
 
@@ -93,15 +93,10 @@ const shortcuts = {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.saveCanvas(dataURL);
     },
-    t: async function tesseract() {
+    enter: async function scrapeTesseract() {
         const dataURL = canvas.toDataURL('image/png');
-        const result = await window.electron.tesseractCanvas(dataURL);
-        console.log(`Tesseract:\n${result.text}`);
-    },
-    r: async function scrape() {
-        const URL = `http://prstats.tk`;
-        window.electron.scrape.start(URL);
-    },
+        window.electron.scrapeTesseract(dataURL);
+    }
 };
 console.log(formatShortcutDict());
 document.addEventListener('keydown', e => {

@@ -72,15 +72,17 @@ app.whenReady().then(() => {
         console.log(`Saved to "${filePath}"`);
     });
 
-    ipcMain.handle('tesseract-canvas', async (e, dataURL) => {
+    ipcMain.on('scrape:tesseract', async (e, dataURL) => {
         const config = { load_system_dawg: false, load_freq_dawg: false };
         const worker = await createWorker('eng', undefined, undefined, config);
         const { data } = await worker.recognize(dataURL);
         await worker.terminate();
-        return data;
-    });
 
-    ipcMain.on('scrape:start', (_, url) => {
+        const lines = data.lines.map(l => l.text.replaceAll('\n', ''));
+        const baseUrl = 'http://prstats.tk';
+        const paramName = 'scrape_usernames';
+        const url = `${baseUrl}?${paramName}=${encodeURIComponent(lines.join(','))}`;
+
         childWindow.loadURL(url);
     });
 
