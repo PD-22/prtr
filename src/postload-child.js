@@ -4,6 +4,7 @@ console.log('postload-child.js loaded');
     const usernameList = ['Unicode'];
     const token = 'Bl5D5LjEYdOXjDiZ72eLHtZH7zL4lMBHorU18Rml';
     const result = await getPrTimeStats(usernameList, token);
+    console.log(result);
     window.electron.receiveResult(result);
 })()
 
@@ -69,42 +70,12 @@ async function fetchPage(url) {
 }
 
 async function searchUser(username, token) {
-    const baseUrl = "https://prstats.tk/";
-    const url = `${baseUrl}json/search`;
-    const headers = {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "x-requested-with": "XMLHttpRequest"
-    };
     const options = {
-        headers: headers,
-        referrer: baseUrl,
-        referrerPolicy: "strict-origin-when-cross-origin",
-        body: `search=${username}&_token=${token}`,
         method: "POST",
-        mode: "cors",
-        credentials: "include"
-    };
-    const response = await fetch(url, options)
-    return await response.json();
-}
-
-async function searchUserOriginal(username, token) {
-    return await post(
-        "https://prstats.tk/json/search",
-        createFormData({ search: username, _token: token })
-    );
-}
-
-async function post(url, body) {
-    const response = await fetch(url, { method: "POST", body });
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: createUrlSearchParams({ search: username, _token: token })
+    };  
+    const response = await fetch("https://prstats.tk/json/search", options);
     return await response.json();
 }
 
@@ -112,8 +83,8 @@ function removeClanTag(usernameWithClanTag) {
     return usernameWithClanTag.split(' ').slice(-1)[0];
 }
 
-function createFormData(object) {
-    const result = new FormData();
+function createUrlSearchParams(object) {
+    const result = new URLSearchParams();
     for (const [name, value] of Object.entries(object))
         result.append(name, value);
     return result;
