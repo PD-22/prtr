@@ -70,15 +70,17 @@ async function loadImageOnCanvas(dataURL) {
 window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
 
 window.electron.onScrapeResult(result => {
-    console.log(`Scrape:\n${result}`);
+    // TODO:
 });
+
+window.electron.onStatus(console.log);
 
 // keyboard
 function formatShortcut(key) {
     return `"${key}" - ${shortcuts[key].name}`;
 }
 function formatShortcutDict() {
-    return Object.keys(shortcuts).map(formatShortcut).join('\n')
+    return `Shortcuts:\n${Object.keys(shortcuts).map(s => `\t${formatShortcut(s)}`).join('\n')}`;
 }
 const shortcuts = {
     v: async function paste() {
@@ -98,12 +100,12 @@ const shortcuts = {
         window.electron.scrapeTesseract(dataURL);
     }
 };
-console.log(formatShortcutDict());
+window.electron.status(formatShortcutDict());
 document.addEventListener('keydown', e => {
     const key = e.key.toLowerCase();
     const shortcut = shortcuts[key];
     if (!shortcut) return;
-    console.log(formatShortcut(key));
+    window.electron.status(`Shortcut ${formatShortcut(key)}`);
     shortcut();
 });
 

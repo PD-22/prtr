@@ -1,13 +1,13 @@
-console.log('postload-child.js loaded');
-
 const token = 'Bl5D5LjEYdOXjDiZ72eLHtZH7zL4lMBHorU18Rml';
 (async () => {
-    const usernameList = getUsernameList(window.location.search);
-    const result = await getPrTimeStats(usernameList, token);
+    const usernames = getUsernames(window.location.search);
+    window.electron.status('Get user time stats');
+    const result = await getPrTimeStats(usernames, token);
     window.electron.receiveResult(result);
-})()
+    window.electron.status(`Time stats:\n${result.split('\n').map(x => `\t${x}`).join('\n')}`);
+})();
 
-function getUsernameList(queryString) {
+function getUsernames(queryString) {
     const searchParams = new URLSearchParams(queryString);
     const paramName = 'scrape_usernames';
     const param = searchParams.get(paramName);
@@ -56,7 +56,7 @@ async function getUserTime(username, token) {
         const userPageUrl = foundUser.value.replace('http', 'https');
         return await extractUserTime(userPageUrl);
     } catch (error) {
-        console.error(`Failed to get user time for ${username}: ${error.message}`);
+        window.electron.status(`Failed to get user time for ${username}: ${error.message}`);
     }
 }
 

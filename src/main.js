@@ -28,21 +28,10 @@ function createWindow() {
     childWindow.on('closed', () => { childWindow = null; });
 }
 
-const INIT_IMAGE_PATH = join(__dirname, 'init.png');
-function getInitImage() {
-    let buffer;
-    try {
-        buffer = readFileSync(INIT_IMAGE_PATH);
-    } catch (error) {
-        console.error('Failed to load initial image');
-        return;
-    }
-    const base64 = buffer.toString('base64');
-    mainWindow.webContents.send('get-init-image', `data:image/png;base64,${base64}`);
-}
-
 app.whenReady().then(() => {
     createWindow();
+
+    ipcMain.on('status', (_, message) => { status(message) });
 
     mainWindow.webContents.on('did-finish-load', getInitImage);
 
@@ -67,22 +56,25 @@ app.whenReady().then(() => {
             defaultPath: join(__dirname, "output")
         });
 
-        if (canceled) return console.log('Save canceled');;
+        if (canceled) return status('Save canceled');;
         writeFileSync(filePath, base64Data, 'base64');
-        console.log(`Saved to "${filePath}"`);
+        status(`Saved to "${filePath}"`);
     });
 
-    ipcMain.on('scrape:tesseract', async (e, dataURL) => {
+    ipcMain.on('scrape:tesseract', async (_, dataURL) => {
+        status('Recognize image');
         const config = { load_system_dawg: false, load_freq_dawg: false };
         const worker = await createWorker('eng', undefined, undefined, config);
-        const { data } = await worker.recognize(dataURL);
+        const { data: { lines } } = await worker.recognize(dataURL);
         await worker.terminate();
 
-        const lines = data.lines.map(l => l.text.replaceAll('\n', ''));
+        const usernames = lines.map(l => l.text.replaceAll('\n', ''));
+        status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`, false);
+
+        status('Load page');
         const baseUrl = 'http://prstats.tk';
         const paramName = 'scrape_usernames';
-        const url = `${baseUrl}?${paramName}=${encodeURIComponent(lines.join(','))}`;
-
+        const url = `${baseUrl}?${paramName}=${encodeURIComponent(usernames.join(','))}`;
         childWindow.loadURL(url);
     });
 
@@ -93,3 +85,21 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (mainWindow === null) createWindow(); });
+
+const INIT_IMAGE_PATH = join(__dirname, 'init.png');
+function getInitImage() {
+    let buffer;
+    try {
+        buffer = readFileSync(INIT_IMAGE_PATH);
+    } catch (error) {
+        status('Initial image not loaded');
+        return;
+    }
+    const base64 = buffer.toString('base64');
+    mainWindow.webContents.send('get-init-image', `data:image/png;base64,${base64}`);
+}
+
+function status(message) {
+    console.log(message);
+    mainWindow.webContents.send('status', message);
+}
