@@ -103,7 +103,6 @@ const shortcuts = {
         window.electron.scrapeTesseract(dataURL);
     }
 };
-// FIX: not displayed in the main window
 window.electron.status(formatShortcutDict());
 document.addEventListener('keydown', e => {
     if (mainDisabled) return;

@@ -39,7 +39,7 @@ app.whenReady().then(() => {
     childWindow.webContents.on('did-finish-load', async () => {
         const path = join(__dirname, 'postload-child.js');
         const code = readFileSync(path, 'utf8');
-        await childWindow.webContents.executeJavaScript(code);
+        await childWindow.webContents.executeJavaScript(code + ';0');
         status('Page loaded');
     });
 
@@ -119,6 +119,5 @@ app.on('activate', () => { if (mainWindow === null) createWindow(); });
 
 function status(message) {
     console.log(message);
-    if (mainWindow.webContents.isLoading()) return;
     mainWindow.webContents.send('status', message);
 }
