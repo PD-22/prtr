@@ -1,9 +1,10 @@
+window.electron.childPageLoaded();
 window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Get user time stats');
     const result = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(result);
     window.electron.status(`Time stats:\n${result.split('\n').map(x => `\t${x}`).join('\n')}`);
-})
+});
 
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {

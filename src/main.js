@@ -39,11 +39,14 @@ app.whenReady().then(() => {
     mainWindow.webContents.on('did-finish-load', getInitImage);
 
     childWindow.webContents.on('did-finish-load', async () => {
-        status('Load page done');
         const path = join(__dirname, 'postload-child.js');
         const code = readFileSync(path, 'utf8');
         await childWindow.webContents.executeJavaScript(code);
+        status('Page loaded');
     });
+
+    let childPageLoaded = false;
+    ipcMain.once('child-page-loaded', () => { childPageLoaded = true; });
 
     ipcMain.handle('get-clipboard-image', () => {
         const image = clipboard.readImage();
@@ -75,7 +78,10 @@ app.whenReady().then(() => {
         const usernames = lines.map(l => l.text.replaceAll('\n', ''));
         status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`);
 
-        // TODO: fix childWindow not loaded yet
+        if (!childPageLoaded) await new Promise(resolve => {
+            status('Wait page load');
+            ipcMain.once('child-page-loaded', resolve);
+        });
         childWindow.webContents.send('scrape:usernames', usernames);
     });
 
@@ -102,5 +108,6 @@ function getInitImage() {
 
 function status(message) {
     console.log(message);
+    if (mainWindow.webContents.isLoading()) return;
     mainWindow.webContents.send('status', message);
 }
