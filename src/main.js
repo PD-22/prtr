@@ -36,8 +36,6 @@ app.whenReady().then(() => {
 
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
-    mainWindow.webContents.on('did-finish-load', getInitImage);
-
     childWindow.webContents.on('did-finish-load', async () => {
         const path = join(__dirname, 'postload-child.js');
         const code = readFileSync(path, 'utf8');
@@ -47,6 +45,27 @@ app.whenReady().then(() => {
 
     let childPageLoaded = false;
     ipcMain.once('child-page-loaded', () => { childPageLoaded = true; });
+
+    ipcMain.handle('load-canvas-image', async () => {
+        const { canceled, filePaths } = await dialog.showOpenDialog({
+            title: 'Open Image',
+            filters: [{ name: 'Images', extensions: ['png'] }],
+            defaultPath: join(__dirname, "init.png")
+        });
+        const filePath = filePaths[0];
+
+        if (canceled) return status('Load canceled');
+
+        let buffer;
+        try {
+            buffer = readFileSync(filePath);
+        } catch (error) {
+            status('Image not loaded');
+            return;
+        }
+        const base64 = buffer.toString('base64');
+        return `data:image/png;base64,${base64}`;
+    });
 
     ipcMain.handle('get-clipboard-image', () => {
         const image = clipboard.readImage();
@@ -60,7 +79,7 @@ app.whenReady().then(() => {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Save Image',
             filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: join(__dirname, "output")
+            defaultPath: join(__dirname, "output.png")
         });
 
         if (canceled) return status('Save canceled');;
@@ -92,19 +111,6 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (mainWindow === null) createWindow(); });
-
-const INIT_IMAGE_PATH = join(__dirname, 'init.png');
-function getInitImage() {
-    let buffer;
-    try {
-        buffer = readFileSync(INIT_IMAGE_PATH);
-    } catch (error) {
-        status('Initial image not loaded');
-        return;
-    }
-    const base64 = buffer.toString('base64');
-    mainWindow.webContents.send('get-init-image', `data:image/png;base64,${base64}`);
-}
 
 function status(message) {
     console.log(message);

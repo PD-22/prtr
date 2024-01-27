@@ -67,8 +67,6 @@ async function loadImageOnCanvas(dataURL) {
     ctx.drawImage(image, 0, 0);
 }
 
-window.electron.onGetInitImage(dataURL => loadImageOnCanvas(dataURL));
-
 window.electron.onScrapeResult(result => {
     // TODO:
 });
@@ -83,6 +81,10 @@ function formatShortcutDict() {
     return `Shortcuts:\n${Object.keys(shortcuts).map(s => `\t${formatShortcut(s)}`).join('\n')}`;
 }
 const shortcuts = {
+    o: async function load() {
+        const dataURL = await window.electron.loadCanvasImage();
+        if (dataURL) return loadImageOnCanvas(dataURL);
+    },
     v: async function paste() {
         const dataURL = await window.electron.getClipboardImage();
         if (dataURL) return loadImageOnCanvas(dataURL);
