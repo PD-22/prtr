@@ -100,13 +100,13 @@ app.whenReady().then(() => {
         mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
     });
 
-    ipcMain.on('scrape:tesseract-confirm-done', async (_, editedLines) => {
-        status(`Edited lines:\n${editedLines.join('\n')}`);
+    ipcMain.on('scrape:start', async (_, lines) => {
+        status(`Scrape lines:\n${lines.join('\n')}`);
         if (!childPageLoaded) await new Promise(resolve => {
             status('Wait page load');
             ipcMain.once('child-page-loaded', resolve);
         });
-        childWindow.webContents.send('scrape:usernames', editedLines);
+        childWindow.webContents.send('scrape:usernames', lines);
     });
 
     ipcMain.on('scrape:receive-result', (_, html) => {

@@ -10,7 +10,7 @@ const api = {
     scrapeTesseractConfirm: data => ipcRenderer.send('scrape:tesseract-confirm', data),
     onScrapeTesseractConfirm: callback =>
         ipcRenderer.on('scrape:tesseract-confirm', (_, value) => callback(value)),
-    scrapeTesseractConfirmDone: data => ipcRenderer.send('scrape:tesseract-confirm-done', data),
+    scrape: data => ipcRenderer.send('scrape:start', data),
     onScrapeResult: callback => ipcRenderer.on('scrape:result', (_, value) => callback(value)),
 };
 

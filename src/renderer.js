@@ -1,4 +1,7 @@
+let shortcutsDisabled = false;
+
 // canvas
+const canvasBackground = document.querySelector('.canvas-background');
 /** @type {HTMLCanvasElement} */
 const canvas = document.querySelector('.main-canvas');
 const ctx = canvas.getContext('2d');
@@ -80,7 +83,6 @@ function formatShortcut(key) {
 function formatShortcutDict() {
     return `Shortcuts:\n${Object.keys(shortcuts).map(formatShortcut).join('\n')}`;
 }
-let mainDisabled = false;
 const shortcuts = {
     o: async function load() {
         const dataURL = await window.electron.loadCanvasImage();
@@ -101,43 +103,53 @@ const shortcuts = {
     enter: async function scrapeTesseract() {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.scrapeTesseract(dataURL);
+    },
+    r: function openScrape() {
+        openScrapeModal();
     }
 };
 window.electron.status(formatShortcutDict());
 document.addEventListener('keydown', e => {
-    if (mainDisabled) return;
+    if (shortcutsDisabled) return;
+    if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
     const key = e.key.toLowerCase();
     const shortcut = shortcuts[key];
     if (!shortcut) return;
+    e.preventDefault();
     window.electron.status(`Shortcut ${formatShortcut(key)}`);
     shortcut();
 });
 
-// TODO: add cancel
-// TODO: add ability to see the picture
-// TODO: add ability open enter text without image parsing
-const confirmTextModal = document.querySelector('.confirm-text-modal');
-const confirmTextModalForm = confirmTextModal.querySelector('form');
-const confirmTextModalTextarea = confirmTextModal.querySelector('textarea');
-const confirmTextModalButton = confirmTextModal.querySelector('button');
-confirmTextModalForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const editedLines = event.target.elements.edited_text.value.split('\n');
-    window.electron.scrapeTesseractConfirmDone(editedLines);
+// scrap modal
+const scrapeModal = { container: document.querySelector('.scrape-modal') };
+scrapeModal.form = scrapeModal.container.querySelector('form');
+scrapeModal.textarea = scrapeModal.container.querySelector('textarea');
+scrapeModal.submitBtn = scrapeModal.container.querySelector('button.submit');
+scrapeModal.cancelBtn = scrapeModal.container.querySelector('button.cancel');
+scrapeModal.form.addEventListener('submit', e => {
+    e.preventDefault();
+    const editedLines = scrapeModal.textarea.value.split('\n');
+    window.electron.scrape(editedLines);
 
-    mainDisabled = false;
-    confirmTextModalTextarea.value = undefined;
-    confirmTextModal.classList.remove('opened');
-})
-window.electron.onScrapeTesseractConfirm(parsedLines => {
-    mainDisabled = true;
-    confirmTextModalTextarea.value = parsedLines.join('\n');
-    confirmTextModal.classList.add('opened');
-
-    confirmTextModalTextarea.focus();
-    confirmTextModalTextarea.style.height = confirmTextModalTextarea.scrollHeight + 'px';
-    confirmTextModalTextarea.style.width = confirmTextModalTextarea.scrollWidth + 'px';
+    closeScrapModal();
 });
+scrapeModal.cancelBtn.addEventListener('click', closeScrapModal);
+window.electron.onScrapeTesseractConfirm(parsedLines => {
+    openScrapeModal(parsedLines.join('\n'));
+});
+function openScrapeModal(value) {
+    shortcutsDisabled = true;
+    if (value != undefined) scrapeModal.textarea.value = value;
+    scrapeModal.container.classList.add('opened');
+
+    setTimeout(() => scrapeModal.textarea.focus());
+    scrapeModal.textarea.style.height = scrapeModal.textarea.scrollHeight + 'px';
+    scrapeModal.textarea.style.width = scrapeModal.textarea.scrollWidth + 'px';
+}
+function closeScrapModal() {
+    shortcutsDisabled = false;
+    scrapeModal.container.classList.remove('opened');
+}
 
 // mouse
 function cropCanvas() {
@@ -166,20 +178,17 @@ function getCanvasMousePos(e) {
     return [x, y];
 }
 let isMouseDown = false;
-document.addEventListener('mousedown', e => {
-    if (mainDisabled) return;
+canvasBackground.addEventListener('mousedown', e => {
     isMouseDown = true;
     const [x, y] = getCanvasMousePos(e);
     setRectStart(x, y);
 });
-document.addEventListener('mousemove', e => {
-    if (mainDisabled) return;
+canvasBackground.addEventListener('mousemove', e => {
     if (!isMouseDown) return;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
 });
-document.addEventListener('mouseup', e => {
-    if (mainDisabled) return;
+canvasBackground.addEventListener('mouseup', e => {
     if (!isMouseDown) return;
     isMouseDown = false;
     const [x, y] = getCanvasMousePos(e);

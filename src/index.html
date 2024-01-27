@@ -10,15 +10,20 @@
 </head>
 
 <body>
-    <div class="canvas-container">
-        <canvas class="main-canvas"></canvas>
-        <canvas class="overlay-canvas"></canvas>
+    <div class="canvas-background">
+        <div class="canvas-container">
+            <canvas class="main-canvas"></canvas>
+            <canvas class="overlay-canvas"></canvas>
+        </div>
     </div>
 
-    <div class="confirm-text-modal">
+    <div class="scrape-modal">
         <form>
-            <textarea name="edited_text" spellcheck="false"></textarea>
-            <button>Confirm</button>
+            <textarea spellcheck="false"></textarea>
+            <div class="control">
+                <button class="submit">Submit</button>
+                <button class="cancel" type="button">Cancel</button>
+            </div>
         </form>
     </div>
 
