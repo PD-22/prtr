@@ -78,7 +78,7 @@ function formatShortcut(key) {
     return `"${key}" - ${shortcuts[key].name}`;
 }
 function formatShortcutDict() {
-    return `Shortcuts:\n${Object.keys(shortcuts).map(s => `\t${formatShortcut(s)}`).join('\n')}`;
+    return `Shortcuts:\n${Object.keys(shortcuts).map(formatShortcut).join('\n')}`;
 }
 let mainDisabled = false;
 const shortcuts = {
@@ -135,7 +135,7 @@ window.electron.onScrapeTesseractConfirm(parsedLines => {
     confirmTextModalTextarea.value = parsedLines.join('\n');
     confirmTextModal.classList.add('opened');
 
-    confirmTextModalButton.focus();
+    confirmTextModalTextarea.focus();
     confirmTextModalTextarea.style.height = confirmTextModalTextarea.scrollHeight + 'px';
     confirmTextModalTextarea.style.width = confirmTextModalTextarea.scrollWidth + 'px';
 });

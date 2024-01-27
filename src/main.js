@@ -95,13 +95,13 @@ app.whenReady().then(() => {
         await worker.terminate();
 
         if (!lines?.length) return status('No parsed lines');
-        const parsedLines = lines.map(l => l.text.replaceAll('\n', ''));
-        status(`Parsed lines:\n${parsedLines.map(x => `\t${x}`).join('\n')}`);
+        const parsedLines = lines.map(l => l.text.replaceAll('\n', '').trim());
+        status(`Parsed lines:\n${parsedLines.join('\n')}`);
         mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
     });
 
     ipcMain.on('scrape:tesseract-confirm-done', async (_, editedLines) => {
-        status(`Edited lines:\n${editedLines.map(x => `\t${x}`).join('\n')}`);
+        status(`Edited lines:\n${editedLines.join('\n')}`);
         if (!childPageLoaded) await new Promise(resolve => {
             status('Wait page load');
             ipcMain.once('child-page-loaded', resolve);

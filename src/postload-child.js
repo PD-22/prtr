@@ -3,7 +3,7 @@ window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Get user time stats');
     const result = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(result);
-    window.electron.status(`Time stats:\n${result.split('\n').map(x => `\t${x}`).join('\n')}`);
+    window.electron.status(`Time stats:\n${result.split('\n').join('\n')}`);
 });
 
 function getToken() {
@@ -88,7 +88,7 @@ async function searchUser(username, token) {
 }
 
 function removeClanTag(usernameWithClanTag) {
-    return usernameWithClanTag.split(' ').slice(-1)[0];
+    return usernameWithClanTag.split(' ').slice(1).join('')
 }
 
 function sortBy(list, key) {
