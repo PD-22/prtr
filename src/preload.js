@@ -7,6 +7,10 @@ const api = {
     getClipboardImage: () => ipcRenderer.invoke('get-clipboard-image'),
     saveCanvas: dataURL => ipcRenderer.send('save-canvas', dataURL),
     scrapeTesseract: dataURL => ipcRenderer.send('scrape:tesseract', dataURL),
+    scrapeTesseractConfirm: data => ipcRenderer.send('scrape:tesseract-confirm', data),
+    onScrapeTesseractConfirm: callback =>
+        ipcRenderer.on('scrape:tesseract-confirm', (_, value) => callback(value)),
+    scrapeTesseractConfirmDone: data => ipcRenderer.send('scrape:tesseract-confirm-done', data),
     onScrapeResult: callback => ipcRenderer.on('scrape:result', (_, value) => callback(value)),
 };
 

@@ -94,14 +94,19 @@ app.whenReady().then(() => {
         const { data: { lines } } = await worker.recognize(dataURL);
         await worker.terminate();
 
-        const usernames = lines.map(l => l.text.replaceAll('\n', ''));
-        status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`);
+        if (!lines?.length) return status('No parsed lines');
+        const parsedLines = lines.map(l => l.text.replaceAll('\n', ''));
+        status(`Parsed lines:\n${parsedLines.map(x => `\t${x}`).join('\n')}`);
+        mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
+    });
 
+    ipcMain.on('scrape:tesseract-confirm-done', async (_, editedLines) => {
+        status(`Edited lines:\n${editedLines.map(x => `\t${x}`).join('\n')}`);
         if (!childPageLoaded) await new Promise(resolve => {
             status('Wait page load');
             ipcMain.once('child-page-loaded', resolve);
         });
-        childWindow.webContents.send('scrape:usernames', usernames);
+        childWindow.webContents.send('scrape:usernames', editedLines);
     });
 
     ipcMain.on('scrape:receive-result', (_, html) => {

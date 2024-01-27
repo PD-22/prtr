@@ -18,11 +18,46 @@ body {
 }
 
 .main-canvas,
-.overlay-canvas{
+.overlay-canvas {
     max-width: 100%;
     max-height: 100%;
 }
 
 .overlay-canvas {
     position: absolute;
+}
+
+.confirm-text-modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.confirm-text-modal form {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.confirm-text-modal.opened {
+    display: block;
+}
+
+.confirm-text-modal textarea {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.confirm-text-modal button {
+    margin: auto;
 }
