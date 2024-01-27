@@ -88,7 +88,8 @@ async function searchUser(username, token) {
 }
 
 function removeClanTag(usernameWithClanTag) {
-    return usernameWithClanTag.split(' ').slice(1).join('')
+    const [clanTag, ...rest] = usernameWithClanTag.split(' ');
+    return rest.length ? rest.join(' ') : clanTag;
 }
 
 function sortBy(list, key) {
