@@ -25,6 +25,9 @@ function createWindow() {
             preload: join(__dirname, 'preload-child.js')
         }
     });
+
+    status('Load page');
+    childWindow.loadURL('http://prstats.tk');
     childWindow.on('closed', () => { childWindow = null; });
 }
 
@@ -35,10 +38,11 @@ app.whenReady().then(() => {
 
     mainWindow.webContents.on('did-finish-load', getInitImage);
 
-    childWindow.webContents.on('did-finish-load', () => {
+    childWindow.webContents.on('did-finish-load', async () => {
+        status('Load page done');
         const path = join(__dirname, 'postload-child.js');
         const code = readFileSync(path, 'utf8');
-        childWindow.webContents.executeJavaScript(code);
+        await childWindow.webContents.executeJavaScript(code);
     });
 
     ipcMain.handle('get-clipboard-image', () => {
@@ -71,11 +75,8 @@ app.whenReady().then(() => {
         const usernames = lines.map(l => l.text.replaceAll('\n', ''));
         status(`Image lines:\n${usernames.map(x => `\t${x}`).join('\n')}`);
 
-        status('Load page');
-        const baseUrl = 'http://prstats.tk';
-        const paramName = 'scrape_usernames';
-        const url = `${baseUrl}?${paramName}=${encodeURIComponent(usernames.join(','))}`;
-        childWindow.loadURL(url);
+        // TODO: fix childWindow not loaded yet
+        childWindow.webContents.send('scrape:usernames', usernames);
     });
 
     ipcMain.on('scrape:receive-result', (_, html) => {

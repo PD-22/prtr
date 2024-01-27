@@ -1,23 +1,15 @@
-(async () => {
-    const usernames = getUsernames(window.location.search);
+window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Get user time stats');
     const result = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(result);
     window.electron.status(`Time stats:\n${result.split('\n').map(x => `\t${x}`).join('\n')}`);
-})();
+})
 
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {
         const result = script.textContent.match(/"_token"\s*:\s*"(\w+)"/)?.[1];
         if (result) return result;
     }
-}
-
-function getUsernames(queryString) {
-    const searchParams = new URLSearchParams(queryString);
-    const paramName = 'scrape_usernames';
-    const param = searchParams.get(paramName);
-    return param.split(',').map(str => decodeURIComponent(str));
 }
 
 async function getPrTimeStats(usernameList, token, requestLimit) {
