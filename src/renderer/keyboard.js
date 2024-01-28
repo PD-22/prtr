@@ -1,6 +1,6 @@
-import { canvas, ctx } from "./canvas.js";
+import { canvas, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
-import { fitRectToCanvas, resizeCanvas } from "./rect.js";
+import { fitRectToCanvas } from "./rect.js";
 import { openScrapeModal } from "./scrapeModal.js";
 
 const keyboard = { shortcutsDisabled: false };
@@ -49,14 +49,4 @@ export function onKeyDown(e) {
     e.preventDefault();
     window.electron.status(`Shortcut ${formatShortcut(key)}`);
     shortcut();
-}
-
-async function loadImageOnCanvas(dataURL) {
-    const image = new Image();
-    image.src = dataURL;
-    await new Promise(resolve => { image.onload = resolve; });
-
-    resizeCanvas(image.width, image.height);
-    fitRectToCanvas();
-    ctx.drawImage(image, 0, 0);
 }
