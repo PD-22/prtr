@@ -35,7 +35,7 @@ body {
     position: absolute;
 }
 
-.scrape-modal {
+.scrape-modal-background {
     position: absolute;
     left: 0;
     top: 0;
@@ -45,7 +45,11 @@ body {
     background: rgba(0, 0, 0, 0.5);
 }
 
-.scrape-modal form {
+.scrape-modal-background.opened {
+    display: block;
+}
+
+.scrape-modal {
     position: absolute;
     left: 0%;
     top: 0%;
@@ -53,26 +57,7 @@ body {
     margin: 1rem;
     max-width: 90vw;
     max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: .5rem;
-}
-
-.scrape-modal.opened {
-    display: block;
-}
-
-.scrape-modal textarea {
-    max-width: 100%;
-    max-height: 100%;
     white-space: pre;
     overflow-wrap: normal;
     overflow-x: auto;
-}
-
-.scrape-modal .control {
-    display: flex;
-    justify-content: center;
-    gap: .5rem;
 }

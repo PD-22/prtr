@@ -1,20 +1,9 @@
 import { canvas, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas } from "./rect.js";
-import { openScrapeModal } from "./scrapeModal.js";
+import { closeScrapModal, openScrapeModal, scrapeModal } from "./scrapeModal.js";
 
-const keyboard = { shortcutsDisabled: false };
-export default keyboard;
-
-function formatShortcut(key) {
-    return `"${key}" - ${shortcuts[key].name}`;
-}
-
-export function formatShortcutDict() {
-    return `Shortcuts:\n${Object.keys(shortcuts).map(formatShortcut).join('\n')}`;
-}
-
-const shortcuts = {
+export const mainShortcuts = {
     o: async function load() {
         const dataURL = await window.electron.loadCanvasImage();
         if (dataURL) return loadImageOnCanvas(dataURL);
@@ -37,16 +26,39 @@ const shortcuts = {
     },
     r: function openScrape() {
         openScrapeModal();
+        window.electron.status(formatShortcutDict(modalShortcuts));
     }
 };
 
+export const modalShortcuts = {
+    enter: function scrape() {
+        const value = scrapeModal.textarea.value;
+        if (!value) return;
+        window.electron.scrape(value.split('\n'));
+        closeScrapModal();
+    },
+    escape: closeScrapModal
+};
+
+export const keyModifiers = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'];
 export function onKeyDown(e) {
-    if (keyboard.shortcutsDisabled) return;
-    if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
+    if (keyModifiers.some(k => e[k])) return;
     const key = e.key.toLowerCase();
+    const shortcuts = scrapeModal.isOpen ? modalShortcuts : mainShortcuts;
     const shortcut = shortcuts[key];
     if (!shortcut) return;
     e.preventDefault();
-    window.electron.status(`Shortcut ${formatShortcut(key)}`);
-    shortcut();
+    window.electron.status(`Shortcut ${formatShortcut(key, shortcut)}`);
+    shortcut(e);
+}
+
+export function formatShortcut(key, fn) {
+    return `"${key}" - ${fn.name}`;
+}
+
+export function formatShortcutDict(shortcuts) {
+    const text = Object
+        .entries(shortcuts)
+        .map(([k, fn]) => formatShortcut(k, fn)).join('\n');
+    return `Shortcuts:\n${text}`;
 }
