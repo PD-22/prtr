@@ -1,7 +1,7 @@
 import { canvas, ctx, overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, resizeCanvas, setRectEnd, setRectStart } from "./rect.js";
 
-const mouse = { isDown: false };
+const mouse = { isHold: false };
 export default mouse;
 
 function cropCanvas() {
@@ -32,20 +32,20 @@ function getCanvasMousePos(e) {
 }
 
 export function onMouseDown(e) {
-    mouse.isDown = true;
+    mouse.isHold = true;
     const [x, y] = getCanvasMousePos(e);
     setRectStart(x, y);
 }
 
 export function onMouseMove(e) {
-    if (!mouse.isDown) return;
+    if (!mouse.isHold) return;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
 }
 
 export function onMouseUp(e) {
-    if (!mouse.isDown) return;
-    mouse.isDown = false;
+    if (!mouse.isHold) return;
+    mouse.isHold = false;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
     cropCanvas();

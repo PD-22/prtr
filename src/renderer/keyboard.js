@@ -25,7 +25,7 @@ const shortcuts = {
     },
     escape: function cancel() {
         fitRectToCanvas();
-        mouse.isMouseDown = false;
+        mouse.isHold = false;
     },
     s: function save() {
         const dataURL = canvas.toDataURL('image/png');
