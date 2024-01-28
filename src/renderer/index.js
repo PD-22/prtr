@@ -2,6 +2,7 @@ import { canvasBackground } from "./canvas.js";
 import { formatShortcutDict, mainShortcuts, onKeyDown } from "./keyboard.js";
 import { onMouseDown, onMouseMove, onMouseUp } from "./mouse.js";
 import { fitRectToCanvas, resizeCanvas } from "./rect.js";
+import { openScrapeModal, scrapeModal, writeScrapModal } from "./scrapeModal.js";
 
 resizeCanvas(screen.width, screen.height);
 
@@ -15,7 +16,8 @@ canvasBackground.addEventListener('mousemove', onMouseMove);
 canvasBackground.addEventListener('mouseup', onMouseUp);
 
 window.electron.onScrapeResult(result => {
-    // TODO: display result
+    writeScrapModal(result);
+    openScrapeModal();
 });
 
 window.electron.onStatus(console.log);

@@ -14,7 +14,7 @@ function getToken() {
 }
 
 async function getPrTimeStats(usernameList, token, requestLimit) {
-    const formatUserTime = (username, time) => `${username}: ${time}`;
+    const formatUserTime = (username, time) => `${username} - ${time}`;
 
     const userTimeEntries = await runAsyncFuncsInParallel(
         usernameList.map(username => async () => {
@@ -52,9 +52,8 @@ async function runAsyncFuncsInParallel(funcList = [], limit) {
 
 async function getUserTime(username, token) {
     try {
-        const cleanUsername = removeClanTag(username);
-        const searchResults = await searchUser(cleanUsername, token);
-        const foundUser = searchResults.find(x => x.label === cleanUsername);
+        const searchResults = await searchUser(username, token);
+        const foundUser = searchResults.find(x => x.label === username);
         const userPageUrl = foundUser.value.replace('http', 'https');
         return await extractUserTime(userPageUrl);
     } catch (error) {
@@ -85,11 +84,6 @@ async function searchUser(username, token) {
     };
     const response = await fetch("https://prstats.tk/json/search", options);
     return await response.json();
-}
-
-function removeClanTag(usernameWithClanTag) {
-    const [clanTag, ...rest] = usernameWithClanTag.split(' ');
-    return rest.length ? rest.join(' ') : clanTag;
 }
 
 function sortBy(list, key) {

@@ -16,3 +16,11 @@ export function closeScrapModal() {
     scrapeModal.isOpen = false;
     element.classList.remove('opened');
 }
+
+export function writeScrapModal(text) {
+    element.value = text;
+}
+
+export function appendScrapModal(text) {
+    element.value += text;
+}

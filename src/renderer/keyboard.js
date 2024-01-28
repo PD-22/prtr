@@ -1,7 +1,7 @@
 import { canvas, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas } from "./rect.js";
-import { closeScrapModal, openScrapeModal, scrapeModal } from "./scrapeModal.js";
+import { appendScrapModal, closeScrapModal, openScrapeModal, scrapeModal, writeScrapModal } from "./scrapeModal.js";
 
 export const mainShortcuts = {
     o: async function load() {
@@ -30,13 +30,23 @@ export const mainShortcuts = {
     }
 };
 
+const cleanUserLine = line => {
+    line = line.trim();
+    line = line.replace(/\s+/g, ' ');
+    line = line.match(/(.*?)(\s-\s\S*)?$/)?.[1]
+    line = line || '';
+    const [first, ...rest] = line.split(' ');
+    return rest.join('') || first;
+}
+
 export const modalShortcuts = {
     enter: function scrape() {
         const lines = scrapeModal.element.value
-            .split('\n').map(x => x.trim()).filter(x => x.length);
-        if (!lines.length) return;
+            .split('\n')
+            .map(cleanUserLine)
+            .filter(x => x.length);
+        writeScrapModal(lines.join('\n'));
         window.electron.scrape(lines);
-        closeScrapModal();
     },
     escape: closeScrapModal
 };
