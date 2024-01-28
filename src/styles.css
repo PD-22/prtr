@@ -47,9 +47,10 @@ body {
 
 .scrape-modal form {
     position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translate(0, -50%);
+    left: 0%;
+    top: 0%;
+    transform: translate(0%, 0%);
+    margin: 1rem;
     max-width: 90vw;
     max-height: 90vh;
     display: flex;

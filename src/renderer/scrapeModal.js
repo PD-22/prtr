@@ -25,6 +25,9 @@ export function openScrapeModal(value) {
     if (value != undefined) scrapeModal.textarea.value = value;
     scrapeModal.container.classList.add('opened');
 
+    scrapeModal.textarea.style.removeProperty('height');
+    scrapeModal.textarea.style.removeProperty('width');
+
     setTimeout(() => scrapeModal.textarea.focus());
     scrapeModal.textarea.style.height = scrapeModal.textarea.scrollHeight + 'px';
     scrapeModal.textarea.style.width = scrapeModal.textarea.scrollWidth + 'px';
