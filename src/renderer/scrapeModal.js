@@ -1,6 +1,5 @@
-const background = document.querySelector('.scrape-modal-background');
-const textarea = background.querySelector('textarea');
-export const scrapeModal = { background, textarea, isOpen: false };
+const element = document.querySelector('.scrape-modal');
+export const scrapeModal = { element, isOpen: false };
 
 window.electron.onScrapeTesseractConfirm(parsedLines => {
     openScrapeModal(parsedLines.join('\n'));
@@ -8,18 +7,12 @@ window.electron.onScrapeTesseractConfirm(parsedLines => {
 
 export function openScrapeModal(value) {
     scrapeModal.isOpen = true;
-    if (value != undefined) textarea.value = value;
-    background.classList.add('opened');
-
-    textarea.style.removeProperty('height');
-    textarea.style.removeProperty('width');
-
-    setTimeout(() => textarea.focus());
-    textarea.style.height = textarea.scrollHeight + 'px';
-    textarea.style.width = textarea.scrollWidth + 'px';
+    if (value != undefined) element.value = value;
+    element.classList.add('opened');
+    setTimeout(() => element.focus());
 }
 
 export function closeScrapModal() {
     scrapeModal.isOpen = false;
-    background.classList.remove('opened');
+    element.classList.remove('opened');
 }

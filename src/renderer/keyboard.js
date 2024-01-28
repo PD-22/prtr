@@ -32,9 +32,10 @@ export const mainShortcuts = {
 
 export const modalShortcuts = {
     enter: function scrape() {
-        const value = scrapeModal.textarea.value;
-        if (!value) return;
-        window.electron.scrape(value.split('\n'));
+        const lines = scrapeModal.element.value
+            .split('\n').map(x => x.trim()).filter(x => x.length);
+        if (!lines.length) return;
+        window.electron.scrape(lines);
         closeScrapModal();
     },
     escape: closeScrapModal

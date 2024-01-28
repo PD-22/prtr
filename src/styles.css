@@ -35,29 +35,25 @@ body {
     position: absolute;
 }
 
-.scrape-modal-background {
+.scrape-modal {
+    display: none;
     position: absolute;
-    left: 0;
     top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
-    display: none;
     background: rgba(0, 0, 0, 0.5);
-}
-
-.scrape-modal-background.opened {
-    display: block;
-}
-
-.scrape-modal {
-    position: absolute;
-    left: 0%;
-    top: 0%;
-    transform: translate(0%, 0%);
-    margin: 1rem;
-    max-width: 90vw;
-    max-height: 90vh;
+    color: #FFF;
+    outline: none;
+    box-sizing: border-box;
+    padding: 1rem;
     white-space: pre;
     overflow-wrap: normal;
-    overflow-x: auto;
+    overflow-x: visible;
+    overflow-y: visible;
+    resize: none;
+}
+
+.scrape-modal.opened {
+    display: block;
 }
