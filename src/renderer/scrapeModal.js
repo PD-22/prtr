@@ -1,20 +1,21 @@
 import keyboard from "./keyboard.js";
 
-const scrapeModal = { container: document.querySelector('.scrape-modal') };
-scrapeModal.form = scrapeModal.container.querySelector('form');
-scrapeModal.textarea = scrapeModal.container.querySelector('textarea');
-scrapeModal.submitBtn = scrapeModal.container.querySelector('button.submit');
-scrapeModal.cancelBtn = scrapeModal.container.querySelector('button.cancel');
+const container = document.querySelector('.scrape-modal');
+const form = container.querySelector('form');
+const textarea = container.querySelector('textarea');
+const submitBtn = container.querySelector('button.submit');
+const cancelBtn = container.querySelector('button.cancel');
+export const modal = { container, form, textarea, submitBtn, cancelBtn };
 
-scrapeModal.form.addEventListener('submit', e => {
+form.addEventListener('submit', e => {
     e.preventDefault();
-    const editedLines = scrapeModal.textarea.value.split('\n');
+    const editedLines = textarea.value.split('\n');
     window.electron.scrape(editedLines);
 
     closeScrapModal();
 });
 
-scrapeModal.cancelBtn.addEventListener('click', closeScrapModal);
+cancelBtn.addEventListener('click', closeScrapModal);
 
 window.electron.onScrapeTesseractConfirm(parsedLines => {
     openScrapeModal(parsedLines.join('\n'));
@@ -22,18 +23,18 @@ window.electron.onScrapeTesseractConfirm(parsedLines => {
 
 export function openScrapeModal(value) {
     keyboard.shortcutsDisabled = true;
-    if (value != undefined) scrapeModal.textarea.value = value;
-    scrapeModal.container.classList.add('opened');
+    if (value != undefined) textarea.value = value;
+    container.classList.add('opened');
 
-    scrapeModal.textarea.style.removeProperty('height');
-    scrapeModal.textarea.style.removeProperty('width');
+    textarea.style.removeProperty('height');
+    textarea.style.removeProperty('width');
 
-    setTimeout(() => scrapeModal.textarea.focus());
-    scrapeModal.textarea.style.height = scrapeModal.textarea.scrollHeight + 'px';
-    scrapeModal.textarea.style.width = scrapeModal.textarea.scrollWidth + 'px';
+    setTimeout(() => textarea.focus());
+    textarea.style.height = textarea.scrollHeight + 'px';
+    textarea.style.width = textarea.scrollWidth + 'px';
 }
 
-function closeScrapModal() {
+export function closeScrapModal() {
     keyboard.shortcutsDisabled = false;
-    scrapeModal.container.classList.remove('opened');
+    container.classList.remove('opened');
 }

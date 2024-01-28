@@ -19,4 +19,3 @@ window.electron.onScrapeResult(result => {
 });
 
 window.electron.onStatus(console.log);
-
