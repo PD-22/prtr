@@ -1,14 +1,14 @@
 import { canvas, clearOverlay, octx, overlayCanvas } from "./canvas.js";
 
-let rect;
+const rect = { x: 0, y: 0, w: 0, h: 0 };
+export default rect;
 
-function updateRect(newRect) {
+export function setRect(newRect) {
     let { x, y, w, h } = newRect;
-    x = Math.floor(x);
-    y = Math.floor(y);
-    w = Math.floor(w);
-    h = Math.floor(h);
-    rect = { x, y, w, h };
+    rect.x = Math.floor(x);
+    rect.y = Math.floor(y);
+    rect.w = Math.floor(w);
+    rect.h = Math.floor(h);
     drawCrop();
 }
 
@@ -31,15 +31,15 @@ export function resizeCanvas(w, h) {
 }
 
 export function fitRectToCanvas() {
-    updateRect({ x: 0, y: 0, w: overlayCanvas.width, h: overlayCanvas.height });
+    setRect({ x: 0, y: 0, w: overlayCanvas.width, h: overlayCanvas.height });
 }
 
 export function setRectEnd(x, y) {
-    updateRect({ ...rect, w: x - rect.x, h: y - rect.y });
+    setRect({ ...rect, w: x - rect.x, h: y - rect.y });
 }
 
 export function setRectStart(x, y) {
-    updateRect({ x, y, w: 0, h: 0 });
+    setRect({ x, y, w: 0, h: 0 });
 }
 
 export function getNormalRect() {
