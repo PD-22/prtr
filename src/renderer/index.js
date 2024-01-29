@@ -2,7 +2,7 @@ import { canvasBackground } from "./canvas.js";
 import { onKeyDown, remindShortcuts } from "./keyboard.js";
 import { onMouseDown, onMouseMove, onMouseUp } from "./mouse.js";
 import { fitRectToCanvas, resizeCanvas } from "./rect.js";
-import { openScrapeModal, writeScrapModal } from "./scrapeModal.js";
+import { openScrapeModal, writeScrapModalLines } from "./scrapeModal.js";
 
 resizeCanvas(screen.width, screen.height);
 
@@ -16,7 +16,7 @@ canvasBackground.addEventListener('mousemove', onMouseMove);
 canvasBackground.addEventListener('mouseup', onMouseUp);
 
 window.electron.onScrapeResult(result => {
-    writeScrapModal(result);
+    writeScrapModalLines(result);
     openScrapeModal();
 });
 

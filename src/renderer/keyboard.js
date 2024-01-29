@@ -83,11 +83,7 @@ export function formatShortcut(shortcut) {
     return `"${key}" - ${name}`;
 }
 
-export function formatShortcutList(shortcuts) {
-    const lines = shortcuts.map(formatShortcut);
-    return `Shortcuts:\n${lines.map(x => `${' '.repeat(2)}${x}`).join('\n')}`;
-}
-
 export function remindShortcuts() {
-    window.electron.status(formatShortcutList(getActiveShortcuts()));
+    const shortcuts = getActiveShortcuts();
+    window.electron.status('Shortcuts:', shortcuts.map(formatShortcut));
 }

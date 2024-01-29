@@ -97,7 +97,7 @@ app.whenReady().then(() => {
 
         try {
             await writeFile(filePath, base64Data, 'base64');
-            status(`Export: DONE\n"${filePath}"`);
+            status(`Export: DONE: "${filePath}"`);
         } catch (error) {
             status(`Export: FAIL`);
             console.error(error);
@@ -114,12 +114,12 @@ app.whenReady().then(() => {
         const whitespace = str => str.trim().replace(/\s+/g, ' ');
         const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
         if (!parsedLines?.length) return status('Parse: EMPTY');
-        status(`Parse: DONE\n${parsedLines.join('\n')}`);
+        status('Parse: DONE', parsedLines);
         mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
     });
 
     ipcMain.on('scrape:start', async (_, lines) => {
-        status(`Scrape: START\n${lines.join('\n')}`);
+        status('Scrape: START', lines);
         if (!statsPageLoaded) await new Promise(resolve => {
             status('Scrape: WAIT');
             ipcMain.once('stats-page-loaded', resolve);
@@ -135,7 +135,9 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (mainWindow === null) createWindow(); });
 
-function status(message) {
-    console.log(message);
-    mainWindow.webContents.send('status', message);
+function status(message, bodyLines) {
+    const indent = lines => lines.map(s => `${' '.repeat(2)}${s}`).join('\n');
+    const result = `${message}${!bodyLines ? '' : `\n${indent(bodyLines)}`}`;
+    console.log(result);
+    mainWindow.webContents.send('status', result);
 }
