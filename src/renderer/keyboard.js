@@ -30,7 +30,7 @@ export const mainShortcuts = [
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
-        } else {
+        } else if (!terminal.isOpen) {
             openTerminal();
             remindShortcuts();
         }
@@ -46,8 +46,10 @@ export const mainShortcuts = [
             if (!parsedLines) return;
 
             writeTerminalLines(parsedLines);
-            openTerminal();
-            // remindShortcuts();
+            if (!terminal.isOpen) {
+                openTerminal();
+                remindShortcuts();
+            }
         } catch (error) {
             window.electron.status('Recognize: ERROR');
             throw error;
@@ -66,16 +68,20 @@ export const terminalShortcuts = [
             const result = await window.electron.scrape(getTerminalLines());
 
             writeTerminalLines(result);
-            openTerminal();
-            // remindShortcuts();
+            if (!terminal.isOpen) {
+                openTerminal();
+                remindShortcuts();
+            }
         } catch (error) {
             window.electron.status('Scrape: ERROR');
             throw error;
         }
     }],
     ['Escape', 'Image', () => {
-        closeTerminal();
-        remindShortcuts();
+        if (terminal.isOpen) {
+            closeTerminal();
+            remindShortcuts();
+        }
     }]
 ];
 
