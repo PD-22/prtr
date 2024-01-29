@@ -1,8 +1,6 @@
-window.electron.onScrapeUsernames(async usernames => {
-    window.electron.status('Scrape: FETCH');
-    const timeStats = await getPrTimeStats(usernames, getToken(), 8);
-    window.electron.receiveResult(timeStats);
-    window.electron.status('Scrape: DONE', timeStats);
+window.electron.onScrape(async list => {
+    const result = await getPrTimeStats(list, getToken(), 8);
+    window.electron.scrapeReply(result);
 });
 
 window.electron.statsPageLoaded();

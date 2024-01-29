@@ -47,7 +47,7 @@ export const mainShortcuts = [
 
             writeTerminalLines(parsedLines);
             openTerminal();
-            remindShortcuts();
+            // remindShortcuts();
         } catch (error) {
             window.electron.status('Recognize: ERROR');
             throw error;
@@ -56,11 +56,22 @@ export const mainShortcuts = [
 ];
 
 export const terminalShortcuts = [
-    ['Enter', 'Clean and scrape', () => {
-        const lines = unique(getTerminalLines().map(extractUsername));
-        if (!lines.length) return window.electron.status("Scrape: EMPTY");
-        writeTerminalLines(lines);
-        window.electron.scrape(getTerminalLines());
+    ['Enter', 'Scrape', async () => {
+        try {
+            const lines = unique(getTerminalLines().map(extractUsername));
+            if (!lines.length) return window.electron.status("Scrape: EMPTY");
+            window.electron.status('Scrape: INIT', lines);
+            writeTerminalLines(lines);
+
+            const result = await window.electron.scrape(getTerminalLines());
+
+            writeTerminalLines(result);
+            openTerminal();
+            // remindShortcuts();
+        } catch (error) {
+            window.electron.status('Scrape: ERROR');
+            throw error;
+        }
     }],
     ['Escape', 'Image', () => {
         closeTerminal();

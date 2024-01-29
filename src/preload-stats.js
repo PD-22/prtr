@@ -2,8 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 const api = {
     status: (...args) => ipcRenderer.send('status', ...args),
-    receiveResult: result => ipcRenderer.send('scrape:receive-result', result),
-    onScrapeUsernames: callback => ipcRenderer.on('scrape:usernames', (_, value) => callback(value)),
+    onScrape: callback => ipcRenderer.on('scrape', (_, value) => callback(value)),
+    scrapeReply: result => ipcRenderer.send('scrape:reply', result),
     statsPageLoaded: () => ipcRenderer.send('stats-page-loaded'),
 };
 

@@ -127,29 +127,37 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.on('scrape:start', async (_, lines) => {
+    ipcMain.handle('scrape', async (_, lines) => {
         try {
-            status('Scrape: START', lines);
+            status('Scrape: START');
 
             if (statsPageLoaded === false) throw new Error('Stats page is not loaded');
-            if (statsPageLoaded !== true) await new Promise(((resolve, reject) => {
+            if (statsPageLoaded !== true) await new Promise((resolve, reject) => {
                 status('Scrape: WAIT: Prepare');
                 ipcMain.once('stats-page-loaded', resolve);
 
                 const ms = 60 * 1000;
-                const timeoutMessage = 'Stats page took too long to load';
+                const timeoutMessage = 'Stats page loading timeout';
                 setTimeout(() => reject(new Error(timeoutMessage)), ms);
-            }));
+            });
 
-            statsWindow.webContents.send('scrape:usernames', lines);
+            status('Scrape: FETCH');
+            const timeStats = await new Promise((resolve, reject) => {
+                statsWindow.webContents.send('scrape', lines);
+
+                ipcMain.once(`scrape:reply`, (_, response) => resolve(response));
+
+                const ms = 30 * 1000;
+                const timeoutTimeout = 'Stats page reply timeout';
+                setTimeout(() => reject(new Error(timeoutTimeout)), ms);
+            });
+
+            status('Scrape: DONE', timeStats);
+            return timeStats;
         } catch (error) {
             status('Scrape: ERROR');
             throw error;
         }
-    });
-
-    ipcMain.on('scrape:receive-result', (_, html) => {
-        mainWindow.webContents.send('scrape:result', html);
     });
 });
 
