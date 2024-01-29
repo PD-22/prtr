@@ -53,10 +53,11 @@ export const modalShortcuts = {
 
 export const keyModifiers = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'];
 export function onKeyDown(e) {
-    if (keyModifiers.some(k => e[k])) return;
-    const key = e.key.toLowerCase();
+    if (keyModifiers.some(m => e[m])) return;
     const shortcuts = scrapeModal.isOpen ? modalShortcuts : mainShortcuts;
-    const shortcut = shortcuts[key];
+    const key = e.key.toLowerCase();
+    const codeKey = String.fromCharCode(e.keyCode || e.which).toLowerCase();
+    const shortcut = shortcuts[key] || shortcuts[codeKey];
     if (!shortcut) return;
     e.preventDefault();
     window.electron.status(`Shortcut ${formatShortcut(key, shortcut)}`);
