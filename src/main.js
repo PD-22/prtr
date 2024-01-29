@@ -1,7 +1,7 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
-const { writeFileSync, readFileSync } = require('fs');
 const { join } = require('path');
 const { createWorker } = require('tesseract.js');
+const { writeFile, readFile } = require('fs/promises');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
 /** @type {BrowserWindow} */ let childWindow = null;
@@ -38,9 +38,14 @@ app.whenReady().then(() => {
 
     childWindow.webContents.on('did-finish-load', async () => {
         const path = join(__dirname, 'postload-child.js');
-        const code = readFileSync(path, 'utf8');
-        await childWindow.webContents.executeJavaScript(code + ';0');
-        status('Page loaded');
+        try {
+            const code = await readFile(path, 'utf8');
+            await childWindow.webContents.executeJavaScript(code + ';0');
+            status('Page loaded');
+        } catch (error) {
+            status('Page load failed');
+            throw error;
+        }
     });
 
     let childPageLoaded = false;
@@ -56,15 +61,14 @@ app.whenReady().then(() => {
 
         if (canceled) return status('Load canceled');
 
-        let buffer;
         try {
-            buffer = readFileSync(filePath);
+            const buffer = await readFile(filePath);
+            const base64 = buffer.toString('base64');
+            return `data:image/png;base64,${base64}`;
         } catch (error) {
-            status('Image not loaded');
-            return;
+            status('Image load failed');
+            throw error;
         }
-        const base64 = buffer.toString('base64');
-        return `data:image/png;base64,${base64}`;
     });
 
     ipcMain.handle('get-clipboard-image', () => {
@@ -82,9 +86,15 @@ app.whenReady().then(() => {
             defaultPath: join(__dirname, "output.png")
         });
 
-        if (canceled) return status('Save canceled');;
-        writeFileSync(filePath, base64Data, 'base64');
-        status(`Saved to "${filePath}"`);
+        if (canceled) return status('Save canceled');
+
+        try {
+            await writeFile(filePath, base64Data, 'base64');
+            status(`Image saved to "${filePath}"`);
+        } catch (error) {
+            status(`Image save failed`);
+            throw error;
+        }
     });
 
     ipcMain.on('scrape:tesseract', async (_, dataURL) => {
