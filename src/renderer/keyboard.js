@@ -11,8 +11,8 @@ export const mainShortcuts = [
             await loadImageOnCanvas(dataURL);
             window.electron.status('Import: DONE');
         } catch (error) {
-            console.error(error);
             window.electron.status('Import: ERROR');
+            throw error;
         }
     }],
     ['p', 'Paste', async () => {
@@ -22,8 +22,8 @@ export const mainShortcuts = [
             await loadImageOnCanvas(dataURL);
             window.electron.status('Paste: DONE');
         } catch (error) {
-            console.error(error);
             window.electron.status('Paste: ERROR');
+            throw error;
         }
     }],
     ['escape', 'Terminal', () => {
@@ -35,13 +35,23 @@ export const mainShortcuts = [
             remindShortcuts();
         }
     }],
-    ['e', 'export', () => {
+    ['e', 'Export', () => {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.export(dataURL);
     }],
-    ['enter', 'Scrape tesseract', async () => {
-        const dataURL = canvas.toDataURL('image/png');
-        window.electron.scrapeTesseract(dataURL);
+    ['enter', 'Recognize', async () => {
+        try {
+            const dataURL = canvas.toDataURL('image/png');
+            const parsedLines = await window.electron.recognize(dataURL);
+            if (!parsedLines) return;
+
+            writeTerminalLines(parsedLines);
+            openTerminal();
+            remindShortcuts();
+        } catch (error) {
+            window.electron.status('Recognize: ERROR');
+            throw error;
+        }
     }]
 ];
 

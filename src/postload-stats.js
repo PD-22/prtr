@@ -1,6 +1,6 @@
 window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Scrape: FETCH');
-    const timeStats = await getPrTimeStats(usernames, getToken());
+    const timeStats = await getPrTimeStats(usernames, getToken(), 8);
     window.electron.receiveResult(timeStats);
     window.electron.status('Scrape: DONE', timeStats);
 });

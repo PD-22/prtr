@@ -6,10 +6,7 @@ const api = {
     import: () => ipcRenderer.invoke('import'),
     paste: () => ipcRenderer.invoke('paste'),
     export: dataURL => ipcRenderer.send('export', dataURL),
-    scrapeTesseract: dataURL => ipcRenderer.send('scrape:tesseract', dataURL),
-    scrapeTesseractConfirm: data => ipcRenderer.send('scrape:tesseract-confirm', data),
-    onScrapeTesseractConfirm: callback =>
-        ipcRenderer.on('scrape:tesseract-confirm', (_, value) => callback(value)),
+    recognize: dataURL => ipcRenderer.invoke('recoginze', dataURL),
     scrape: data => ipcRenderer.send('scrape:start', data),
     onScrapeResult: callback => ipcRenderer.on('scrape:result', (_, value) => callback(value)),
 };

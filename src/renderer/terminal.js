@@ -1,13 +1,8 @@
 const element = document.querySelector('.terminal');
 export const terminal = { element, isOpen: false };
 
-window.electron.onScrapeTesseractConfirm(parsedLines => {
-    openTerminal(parsedLines.join('\n'));
-});
-
-export function openTerminal(value) {
+export function openTerminal() {
     terminal.isOpen = true;
-    if (value != undefined) element.value = value;
     element.classList.add('is-open');
     setTimeout(() => element.focus());
 }
