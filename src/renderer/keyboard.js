@@ -18,7 +18,7 @@ export const mainShortcuts = {
             fitRectToCanvas();
         } else {
             openScrapeModal();
-            window.electron.status(formatShortcutDict(modalShortcuts));
+            window.electron.status(formatShortcutDict(mainShortcuts));
         }
     },
     s: function save() {
@@ -34,7 +34,7 @@ export const mainShortcuts = {
 export const modalShortcuts = {
     enter: function cleanAndScrape() {
         const cleanedLines = unique(getScrapModalLines().map(extractUsername));
-        if (!cleanedLines.length) return window.electron.status("Empty cleaned lines");
+        if (!cleanedLines.length) return window.electron.status("Scrape: EMPTY");
         writeScrapModalLines(cleanedLines);
         window.electron.scrape(getScrapModalLines());
     },
@@ -60,7 +60,7 @@ export function onKeyDown(e) {
     const shortcut = shortcuts[key] || shortcuts[codeKey];
     if (!shortcut) return;
     e.preventDefault();
-    window.electron.status(`Shortcut ${formatShortcut(key, shortcut)}`);
+    window.electron.status(`Used ${formatShortcut(key, shortcut)}`);
     shortcut(e);
 }
 
@@ -69,8 +69,8 @@ export function formatShortcut(key, fn) {
 }
 
 export function formatShortcutDict(shortcuts) {
-    const text = Object
+    const lines = Object
         .entries(shortcuts)
-        .map(([k, fn]) => formatShortcut(k, fn)).join('\n');
-    return `Shortcuts:\n${text}`;
+        .map(([k, fn]) => formatShortcut(k, fn));
+    return `Shortcuts:\n${lines.join('\n')}`;
 }

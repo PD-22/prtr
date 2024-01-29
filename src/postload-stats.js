@@ -1,9 +1,9 @@
 window.electron.statsPageLoaded();
 window.electron.onScrapeUsernames(async usernames => {
-    window.electron.status('Get user time stats');
+    window.electron.status('Scrape: FETCH');
     const result = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(result);
-    window.electron.status(`Time stats:\n${result.split('\n').join('\n')}`);
+    window.electron.status(`Scrape: DONE\n${result.split('\n').join('\n')}`);
 });
 
 function getToken() {
@@ -19,7 +19,7 @@ async function getPrTimeStats(usernameList, token, requestLimit) {
     const userTimeEntries = await runAsyncFuncsInParallel(
         usernameList.map(username => async () => {
             const time = await getUserTime(username, token);
-            window.electron.status(formatUserTime(username, time));
+            window.electron.status(`Scrape: SINGLE\n${formatUserTime(username, time)}`);
             return { username, time };
         }),
         requestLimit

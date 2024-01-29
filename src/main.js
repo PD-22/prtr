@@ -35,7 +35,7 @@ app.whenReady().then(() => {
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
     mainWindow.webContents.on('did-finish-load', async () => {
-        status('Load stats page');
+        status('Prepare: START');
         statsWindow.loadURL('http://prstats.tk');
     });
 
@@ -44,9 +44,9 @@ app.whenReady().then(() => {
         try {
             const code = await readFile(path, 'utf8');
             await statsWindow.webContents.executeJavaScript(code + ';0');
-            status('Stats page loaded');
+            status('Prepare: DONE');
         } catch (error) {
-            status('Stats page load failed');
+            status('Prepare: FAIL');
             throw error;
         }
     });
@@ -62,14 +62,14 @@ app.whenReady().then(() => {
         });
         const filePath = filePaths[0];
 
-        if (canceled) return status('Load canceled');
+        if (canceled) return status('Import: CANCEL');
 
         try {
             const buffer = await readFile(filePath);
             const base64 = buffer.toString('base64');
             return `data:image/png;base64,${base64}`;
         } catch (error) {
-            status('Image load failed');
+            status('Import: FAIL');
             throw error;
         }
     });
@@ -89,19 +89,19 @@ app.whenReady().then(() => {
             defaultPath: join(__dirname, "output.png")
         });
 
-        if (canceled) return status('Save canceled');
+        if (canceled) return status('Export: CANCEL');
 
         try {
             await writeFile(filePath, base64Data, 'base64');
-            status(`Image saved to "${filePath}"`);
+            status(`Export: DONE\n"${filePath}"`);
         } catch (error) {
-            status(`Image save failed`);
+            status(`Export: FAIL`);
             throw error;
         }
     });
 
     ipcMain.on('scrape:tesseract', async (_, dataURL) => {
-        status('Recognize image');
+        status('Parse: START');
         const config = { load_system_dawg: false, load_freq_dawg: false };
         const worker = await createWorker('eng', undefined, undefined, config);
         const { data: { lines } } = await worker.recognize(dataURL);
@@ -109,15 +109,15 @@ app.whenReady().then(() => {
 
         const whitespace = str => str.trim().replace(/\s+/g, ' ');
         const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
-        if (!parsedLines?.length) return status('No parsed lines');
-        status(`Parsed lines:\n${parsedLines.join('\n')}`);
+        if (!parsedLines?.length) return status('Parse: EMPTY');
+        status(`Parse: DONE\n${parsedLines.join('\n')}`);
         mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
     });
 
     ipcMain.on('scrape:start', async (_, lines) => {
-        status(`Scrape lines:\n${lines.join('\n')}`);
+        status(`Scrape: START\n${lines.join('\n')}`);
         if (!statsPageLoaded) await new Promise(resolve => {
-            status('Wait page load');
+            status('Scrape: WAIT');
             ipcMain.once('stats-page-loaded', resolve);
         });
         statsWindow.webContents.send('scrape:usernames', lines);
