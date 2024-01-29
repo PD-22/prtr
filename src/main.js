@@ -50,7 +50,7 @@ app.whenReady().then(() => {
             status('Prepare: DONE');
         } catch (error) {
             statsPageLoaded = false;
-            status('Prepare: FAIL');
+            status('Prepare: ERROR');
             throw error;
         }
     });
@@ -58,13 +58,11 @@ app.whenReady().then(() => {
     ipcMain.handle('import', async () => {
         try {
             status('Import: START');
-
             const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
-                title: 'Open Image',
+                title: 'Import',
                 filters: [{ name: 'Images', extensions: ['png'] }],
                 defaultPath: join(__dirname, "init.png")
             });
-
             if (canceled) return status('Import: CANCEL');
 
             const buffer = await readFile(path);
@@ -90,22 +88,21 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.on('save-canvas', async (e, dataURL) => {
-        const base64Data = dataURL.replace(/^data:image\/png;base64,/, '');
-
-        const { canceled, filePath } = await dialog.showSaveDialog({
-            title: 'Save Image',
-            filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: join(__dirname, "output.png")
-        });
-
-        if (canceled) return status('Export: CANCEL');
-
+    ipcMain.on('export', async (_, dataURL) => {
         try {
-            await writeFile(filePath, base64Data, 'base64');
+            status('Export: START');
+            const { canceled, filePath } = await dialog.showSaveDialog({
+                title: 'Export',
+                filters: [{ name: 'Images', extensions: ['png'] }],
+                defaultPath: join(__dirname, "output.png")
+            });
+            if (canceled) return status('Export: CANCEL');
+
+            const base64 = dataURL.replace(/^data:image\/png;base64,/, '');
+            await writeFile(filePath, base64, 'base64');
             status(`Export: DONE: "${filePath}"`);
         } catch (error) {
-            status(`Export: FAIL`);
+            status(`Export: ERROR`);
             throw error;
         }
     });
@@ -140,7 +137,7 @@ app.whenReady().then(() => {
 
             statsWindow.webContents.send('scrape:usernames', lines);
         } catch (error) {
-            status('Scrape: FAIL');
+            status('Scrape: ERROR');
             throw error;
         }
     });

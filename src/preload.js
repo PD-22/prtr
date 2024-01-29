@@ -5,7 +5,7 @@ const api = {
     onStatus: callback => ipcRenderer.on('status', (_, value) => callback(value)),
     import: () => ipcRenderer.invoke('import'),
     paste: () => ipcRenderer.invoke('paste'),
-    saveCanvas: dataURL => ipcRenderer.send('save-canvas', dataURL),
+    export: dataURL => ipcRenderer.send('export', dataURL),
     scrapeTesseract: dataURL => ipcRenderer.send('scrape:tesseract', dataURL),
     scrapeTesseractConfirm: data => ipcRenderer.send('scrape:tesseract-confirm', data),
     onScrapeTesseractConfirm: callback =>

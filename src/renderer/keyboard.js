@@ -35,9 +35,9 @@ export const mainShortcuts = [
             remindShortcuts();
         }
     }],
-    ['s', 'Save', () => {
+    ['e', 'export', () => {
         const dataURL = canvas.toDataURL('image/png');
-        window.electron.saveCanvas(dataURL);
+        window.electron.export(dataURL);
     }],
     ['enter', 'Scrape tesseract', async () => {
         const dataURL = canvas.toDataURL('image/png');
