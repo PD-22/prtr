@@ -18,6 +18,7 @@ canvasBackground.addEventListener('mouseup', onMouseUp);
 window.electron.onScrapeResult(result => {
     writeTerminalLines(result);
     openTerminal();
+    remindShortcuts();
 });
 
 window.electron.onStatus(console.log);

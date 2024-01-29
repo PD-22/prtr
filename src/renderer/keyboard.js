@@ -62,7 +62,10 @@ export const terminalShortcuts = [
         writeTerminalLines(lines);
         window.electron.scrape(getTerminalLines());
     }],
-    ['escape', 'Close terminal', closeTerminal]
+    ['escape', 'Image', () => {
+        closeTerminal();
+        remindShortcuts();
+    }]
 ];
 
 export const getActiveShortcuts = () => {
