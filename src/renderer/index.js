@@ -1,14 +1,14 @@
 import { canvasBackground } from "./canvas.js";
-import { formatShortcutDict, mainShortcuts, onKeyDown } from "./keyboard.js";
+import { onKeyDown, remindShortcuts } from "./keyboard.js";
 import { onMouseDown, onMouseMove, onMouseUp } from "./mouse.js";
 import { fitRectToCanvas, resizeCanvas } from "./rect.js";
-import { openScrapeModal, scrapeModal, writeScrapModal } from "./scrapeModal.js";
+import { openScrapeModal, writeScrapModal } from "./scrapeModal.js";
 
 resizeCanvas(screen.width, screen.height);
 
 fitRectToCanvas();
 
-window.electron.status(formatShortcutDict(mainShortcuts));
+remindShortcuts();
 document.addEventListener('keydown', onKeyDown);
 
 canvasBackground.addEventListener('mousedown', onMouseDown);
