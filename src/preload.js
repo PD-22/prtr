@@ -4,7 +4,7 @@ const api = {
     status: (...args) => ipcRenderer.send('status', ...args),
     onStatus: callback => ipcRenderer.on('status', (_, value) => callback(value)),
     import: () => ipcRenderer.invoke('import'),
-    getClipboardImage: () => ipcRenderer.invoke('get-clipboard-image'),
+    paste: () => ipcRenderer.invoke('paste'),
     saveCanvas: dataURL => ipcRenderer.send('save-canvas', dataURL),
     scrapeTesseract: dataURL => ipcRenderer.send('scrape:tesseract', dataURL),
     scrapeTesseractConfirm: data => ipcRenderer.send('scrape:tesseract-confirm', data),

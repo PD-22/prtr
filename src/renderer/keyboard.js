@@ -5,9 +5,9 @@ import { closeScrapModal, getScrapModalLines, openScrapeModal, scrapeModal, writ
 
 export const mainShortcuts = [
     ['i', 'Import', async () => {
-        const dataURL = await window.electron.import();
-        if (!dataURL) return;
         try {
+            const dataURL = await window.electron.import();
+            if (!dataURL) return;
             await loadImageOnCanvas(dataURL);
             window.electron.status('Import: DONE');
         } catch (error) {
@@ -15,9 +15,16 @@ export const mainShortcuts = [
             window.electron.status('Import: ERROR');
         }
     }],
-    ['v', 'Paste', async () => {
-        const dataURL = await window.electron.getClipboardImage();
-        if (dataURL) return loadImageOnCanvas(dataURL);
+    ['p', 'Paste', async () => {
+        try {
+            const dataURL = await window.electron.paste();
+            if (!dataURL) return;
+            await loadImageOnCanvas(dataURL);
+            window.electron.status('Paste: DONE');
+        } catch (error) {
+            console.error(error);
+            window.electron.status('Paste: ERROR');
+        }
     }],
     ['escape', 'Open scrape', () => {
         if (mouse.isHold) {

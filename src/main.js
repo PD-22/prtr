@@ -78,10 +78,15 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.handle('get-clipboard-image', () => {
-        const image = clipboard.readImage();
-        if (image.isEmpty()) return null;
-        return image.toDataURL();
+    ipcMain.handle('paste', () => {
+        try {
+            const image = clipboard.readImage();
+            if (image.isEmpty()) return status('Paste: EMPTY');
+            return image.toDataURL();
+        } catch (error) {
+            console.error(error);
+            return status('Paste: ERROR');
+        }
     });
 
     ipcMain.on('save-canvas', async (e, dataURL) => {
