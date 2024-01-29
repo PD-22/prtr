@@ -26,8 +26,6 @@ function createWindow() {
         }
     });
 
-    status('Load page');
-    childWindow.loadURL('http://prstats.tk');
     childWindow.on('closed', () => { childWindow = null; });
 }
 
@@ -36,14 +34,19 @@ app.whenReady().then(() => {
 
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
+    mainWindow.webContents.on('did-finish-load', async () => {
+        status('Load child page');
+        childWindow.loadURL('http://prstats.tk');
+    });
+
     childWindow.webContents.on('did-finish-load', async () => {
         const path = join(__dirname, 'postload-child.js');
         try {
             const code = await readFile(path, 'utf8');
             await childWindow.webContents.executeJavaScript(code + ';0');
-            status('Page loaded');
+            status('Child page loaded');
         } catch (error) {
-            status('Page load failed');
+            status('Child page load failed');
             throw error;
         }
     });
