@@ -4,9 +4,16 @@ import { fitRectToCanvas } from "./rect.js";
 import { closeScrapModal, getScrapModalLines, openScrapeModal, scrapeModal, writeScrapModalLines } from "./scrapeModal.js";
 
 export const mainShortcuts = [
-    ['o', 'load', async () => {
-        const dataURL = await window.electron.loadCanvasImage();
-        if (dataURL) return loadImageOnCanvas(dataURL);
+    ['i', 'import', async () => {
+        const dataURL = await window.electron.import();
+        if (!dataURL) return;
+        try {
+            await loadImageOnCanvas(dataURL);
+            window.electron.status('Import: DONE');
+        } catch (error) {
+            console.error(error);
+            window.electron.status('Import: ERROR');
+        }
     }],
     ['v', 'paste', async () => {
         const dataURL = await window.electron.getClipboardImage();

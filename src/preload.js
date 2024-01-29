@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 const api = {
     status: (...args) => ipcRenderer.send('status', ...args),
     onStatus: callback => ipcRenderer.on('status', (_, value) => callback(value)),
-    loadCanvasImage: () => ipcRenderer.invoke('load-canvas-image'),
+    import: () => ipcRenderer.invoke('import'),
     getClipboardImage: () => ipcRenderer.invoke('get-clipboard-image'),
     saveCanvas: dataURL => ipcRenderer.send('save-canvas', dataURL),
     scrapeTesseract: dataURL => ipcRenderer.send('scrape:tesseract', dataURL),

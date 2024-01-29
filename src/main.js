@@ -47,30 +47,34 @@ app.whenReady().then(() => {
             status('Prepare: DONE');
         } catch (error) {
             status('Prepare: FAIL');
-            throw error;
+            console.error(error);
         }
     });
 
     let statsPageLoaded = false;
     ipcMain.once('stats-page-loaded', () => { statsPageLoaded = true; });
 
-    ipcMain.handle('load-canvas-image', async () => {
-        const { canceled, filePaths } = await dialog.showOpenDialog({
-            title: 'Open Image',
-            filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: join(__dirname, "init.png")
-        });
-        const filePath = filePaths[0];
-
-        if (canceled) return status('Import: CANCEL');
-
+    ipcMain.handle('import', async () => {
         try {
-            const buffer = await readFile(filePath);
+            status('Import: START');
+
+            const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
+                title: 'Open Image',
+                filters: [{ name: 'Images', extensions: ['png'] }],
+                defaultPath: join(__dirname, "init.png")
+            });
+
+            if (canceled) return status('Import: CANCEL');
+
+            const buffer = await readFile(path);
             const base64 = buffer.toString('base64');
+
+            if (!base64.length) return status('Import: EMPTY');
+
             return `data:image/png;base64,${base64}`;
         } catch (error) {
-            status('Import: FAIL');
-            throw error;
+            console.error(error);
+            return status('Import: ERROR');
         }
     });
 
@@ -96,7 +100,7 @@ app.whenReady().then(() => {
             status(`Export: DONE\n"${filePath}"`);
         } catch (error) {
             status(`Export: FAIL`);
-            throw error;
+            console.error(error);
         }
     });
 
