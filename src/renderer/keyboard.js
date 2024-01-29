@@ -1,7 +1,7 @@
 import { canvas, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas } from "./rect.js";
-import { appendScrapModal, closeScrapModal, openScrapeModal, scrapeModal, writeScrapModal } from "./scrapeModal.js";
+import { closeScrapModal, getScrapModalLines, openScrapeModal, scrapeModal, writeScrapModalLines } from "./scrapeModal.js";
 
 export const mainShortcuts = {
     o: async function load() {
@@ -12,9 +12,14 @@ export const mainShortcuts = {
         const dataURL = await window.electron.getClipboardImage();
         if (dataURL) return loadImageOnCanvas(dataURL);
     },
-    escape: function cancel() {
-        fitRectToCanvas();
-        mouse.isHold = false;
+    escape: function openScrape() {
+        if (mouse.isHold) {
+            mouse.isHold = false;
+            fitRectToCanvas();
+        } else {
+            openScrapeModal();
+            window.electron.status(formatShortcutDict(modalShortcuts));
+        }
     },
     s: function save() {
         const dataURL = canvas.toDataURL('image/png');
@@ -23,35 +28,30 @@ export const mainShortcuts = {
     enter: async function scrapeTesseract() {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.scrapeTesseract(dataURL);
-    },
-    r: function openScrape() {
-        openScrapeModal();
-        window.electron.status(formatShortcutDict(modalShortcuts));
     }
 };
 
-const cleanUserLine = line => {
-    line = line.trim();
-    line = line.replace(/\s+/g, ' ');
-    line = line.match(/(.*?)(\s-\s\S*)?$/)?.[1]
-    line = line || '';
-    const [first, ...rest] = line.split(' ');
+export const modalShortcuts = {
+    enter: function cleanAndScrape() {
+        const cleanedLines = unique(getScrapModalLines().map(extractUsername));
+        if (!cleanedLines.length) return window.electron.status("Empty cleaned lines");
+        writeScrapModalLines(cleanedLines);
+        window.electron.scrape(getScrapModalLines());
+    },
+    escape: function closeScrape() { closeScrapModal(); }
+};
+
+export const unique = arr => Array.from(new Set(arr.filter(Boolean)));
+export const whitespace = str => str.trim().replace(/\s+/g, ' ');
+const extractUsername = str => {
+    const match = whitespace(str).match(/(.*?)(\s+-\s+\S*)?$/)?.[1];
+    if (!match) return '';
+    const [first, ...rest] = match.split(' ');
     return rest.join('') || first;
 }
 
-export const modalShortcuts = {
-    enter: function scrape() {
-        const lines = scrapeModal.element.value
-            .split('\n')
-            .map(cleanUserLine)
-            .filter(x => x.length);
-        writeScrapModal(lines.join('\n'));
-        window.electron.scrape(lines);
-    },
-    escape: closeScrapModal
-};
-
 export const keyModifiers = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'];
+
 export function onKeyDown(e) {
     if (keyModifiers.some(m => e[m])) return;
     const shortcuts = scrapeModal.isOpen ? modalShortcuts : mainShortcuts;

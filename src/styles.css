@@ -52,6 +52,7 @@ body {
     overflow-x: visible;
     overflow-y: visible;
     resize: none;
+    font-family: Consolas;
 }
 
 .scrape-modal.opened {

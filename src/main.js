@@ -94,8 +94,9 @@ app.whenReady().then(() => {
         const { data: { lines } } = await worker.recognize(dataURL);
         await worker.terminate();
 
-        if (!lines?.length) return status('No parsed lines');
-        const parsedLines = lines.map(l => l.text.replaceAll('\n', '').trim());
+        const whitespace = str => str.trim().replace(/\s+/g, ' ');
+        const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
+        if (!parsedLines?.length) return status('No parsed lines');
         status(`Parsed lines:\n${parsedLines.join('\n')}`);
         mainWindow.webContents.send('scrape:tesseract-confirm', parsedLines);
     });

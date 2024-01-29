@@ -25,9 +25,7 @@ async function getPrTimeStats(usernameList, token, requestLimit) {
         requestLimit
     );
 
-    const sortedTimeDesc = sortBy(userTimeEntries, 'time');
-
-    return sortedTimeDesc.map(({ username, time }) => formatUserTime(username, time)).join('\n');
+    return userTimeEntries.map(({ username, time }) => formatUserTime(username, time)).join('\n');
 }
 
 async function runAsyncFuncsInParallel(funcList = [], limit) {
@@ -84,8 +82,4 @@ async function searchUser(username, token) {
     };
     const response = await fetch("https://prstats.tk/json/search", options);
     return await response.json();
-}
-
-function sortBy(list, key) {
-    return list.slice().sort((a, b) => b[key] - a[key]);
 }

@@ -24,3 +24,11 @@ export function writeScrapModal(text) {
 export function appendScrapModal(text) {
     element.value += text;
 }
+
+export function getScrapModalLines() {
+    return element.value.split('\n');
+}
+
+export function writeScrapModalLines(lines) {
+    return element.value = lines.join('\n');
+}
