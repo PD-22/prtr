@@ -4,7 +4,7 @@ import { fitRectToCanvas } from "./rect.js";
 import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export const mainShortcuts = [
-    ['i', 'Import', async () => {
+    ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
             if (!dataURL) return;
@@ -15,7 +15,7 @@ export const mainShortcuts = [
             throw error;
         }
     }],
-    ['p', 'Paste', async () => {
+    ['P', 'Paste', async () => {
         try {
             const dataURL = await window.electron.paste();
             if (!dataURL) return;
@@ -26,7 +26,7 @@ export const mainShortcuts = [
             throw error;
         }
     }],
-    ['escape', 'Terminal', () => {
+    ['Escape', 'Terminal', () => {
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
@@ -35,11 +35,11 @@ export const mainShortcuts = [
             remindShortcuts();
         }
     }],
-    ['e', 'Export', () => {
+    ['E', 'Export', () => {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.export(dataURL);
     }],
-    ['enter', 'Recognize', async () => {
+    ['Enter', 'Recognize', async () => {
         try {
             const dataURL = canvas.toDataURL('image/png');
             const parsedLines = await window.electron.recognize(dataURL);
@@ -56,13 +56,13 @@ export const mainShortcuts = [
 ];
 
 export const terminalShortcuts = [
-    ['enter', 'Clean and scrape', () => {
+    ['Enter', 'Clean and scrape', () => {
         const lines = unique(getTerminalLines().map(extractUsername));
         if (!lines.length) return window.electron.status("Scrape: EMPTY");
         writeTerminalLines(lines);
         window.electron.scrape(getTerminalLines());
     }],
-    ['escape', 'Image', () => {
+    ['Escape', 'Image', () => {
         closeTerminal();
         remindShortcuts();
     }]
@@ -88,7 +88,7 @@ export function onKeyDown(e) {
     const shortcuts = getActiveShortcuts();
     const key = e.key.toLowerCase();
     const codeKey = String.fromCharCode(e.keyCode || e.which).toLowerCase();
-    const shortcut = shortcuts.find(([k]) => [key, codeKey].includes(k))
+    const shortcut = shortcuts.find(([sk]) => [key, codeKey].includes(sk.toLowerCase()))
     if (!shortcut) return;
     e.preventDefault();
     window.electron.status(`Used ${formatShortcut(shortcut)}`);
