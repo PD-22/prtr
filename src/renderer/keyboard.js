@@ -4,7 +4,7 @@ import { fitRectToCanvas } from "./rect.js";
 import { closeScrapModal, getScrapModalLines, openScrapeModal, scrapeModal, writeScrapModalLines } from "./scrapeModal.js";
 
 export const mainShortcuts = [
-    ['i', 'import', async () => {
+    ['i', 'Import', async () => {
         const dataURL = await window.electron.import();
         if (!dataURL) return;
         try {
@@ -15,11 +15,11 @@ export const mainShortcuts = [
             window.electron.status('Import: ERROR');
         }
     }],
-    ['v', 'paste', async () => {
+    ['v', 'Paste', async () => {
         const dataURL = await window.electron.getClipboardImage();
         if (dataURL) return loadImageOnCanvas(dataURL);
     }],
-    ['escape', 'openScrape', () => {
+    ['escape', 'Open scrape', () => {
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
@@ -28,24 +28,24 @@ export const mainShortcuts = [
             remindShortcuts();
         }
     }],
-    ['s', 'save', () => {
+    ['s', 'Save', () => {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.saveCanvas(dataURL);
     }],
-    ['enter', 'scrapeTesseract', async () => {
+    ['enter', 'Scrape tesseract', async () => {
         const dataURL = canvas.toDataURL('image/png');
         window.electron.scrapeTesseract(dataURL);
     }]
 ];
 
 export const modalShortcuts = [
-    ['enter', 'cleanAndScrape', () => {
+    ['enter', 'Clean and scrape', () => {
         const cleanedLines = unique(getScrapModalLines().map(extractUsername));
         if (!cleanedLines.length) return window.electron.status("Scrape: EMPTY");
         writeScrapModalLines(cleanedLines);
         window.electron.scrape(getScrapModalLines());
     }],
-    ['escape', 'closeScrape', () => {
+    ['escape', 'Close scrape', () => {
         closeScrapModal();
     }]
 ];
