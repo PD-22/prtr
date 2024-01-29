@@ -1,4 +1,4 @@
-window.electron.childPageLoaded();
+window.electron.statsPageLoaded();
 window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Get user time stats');
     const result = await getPrTimeStats(usernames, getToken());

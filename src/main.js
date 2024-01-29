@@ -4,7 +4,7 @@ const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
-/** @type {BrowserWindow} */ let childWindow = null;
+/** @type {BrowserWindow} */ let statsWindow = null;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -17,16 +17,16 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, 'index.html'))
     mainWindow.on('closed', () => { mainWindow = null });
 
-    childWindow = new BrowserWindow({
+    statsWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
         webPreferences: {
             nodeIntegration: false,
-            preload: join(__dirname, 'preload-child.js')
+            preload: join(__dirname, 'preload-stats.js')
         }
     });
 
-    childWindow.on('closed', () => { childWindow = null; });
+    statsWindow.on('closed', () => { statsWindow = null; });
 }
 
 app.whenReady().then(() => {
@@ -35,24 +35,24 @@ app.whenReady().then(() => {
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
     mainWindow.webContents.on('did-finish-load', async () => {
-        status('Load child page');
-        childWindow.loadURL('http://prstats.tk');
+        status('Load stats page');
+        statsWindow.loadURL('http://prstats.tk');
     });
 
-    childWindow.webContents.on('did-finish-load', async () => {
-        const path = join(__dirname, 'postload-child.js');
+    statsWindow.webContents.on('did-finish-load', async () => {
+        const path = join(__dirname, 'postload-stats.js');
         try {
             const code = await readFile(path, 'utf8');
-            await childWindow.webContents.executeJavaScript(code + ';0');
-            status('Child page loaded');
+            await statsWindow.webContents.executeJavaScript(code + ';0');
+            status('Stats page loaded');
         } catch (error) {
-            status('Child page load failed');
+            status('Stats page load failed');
             throw error;
         }
     });
 
-    let childPageLoaded = false;
-    ipcMain.once('child-page-loaded', () => { childPageLoaded = true; });
+    let statsPageLoaded = false;
+    ipcMain.once('stats-page-loaded', () => { statsPageLoaded = true; });
 
     ipcMain.handle('load-canvas-image', async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -116,11 +116,11 @@ app.whenReady().then(() => {
 
     ipcMain.on('scrape:start', async (_, lines) => {
         status(`Scrape lines:\n${lines.join('\n')}`);
-        if (!childPageLoaded) await new Promise(resolve => {
+        if (!statsPageLoaded) await new Promise(resolve => {
             status('Wait page load');
-            ipcMain.once('child-page-loaded', resolve);
+            ipcMain.once('stats-page-loaded', resolve);
         });
-        childWindow.webContents.send('scrape:usernames', lines);
+        statsWindow.webContents.send('scrape:usernames', lines);
     });
 
     ipcMain.on('scrape:receive-result', (_, html) => {
