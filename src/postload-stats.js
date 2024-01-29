@@ -1,10 +1,11 @@
-window.electron.statsPageLoaded();
 window.electron.onScrapeUsernames(async usernames => {
     window.electron.status('Scrape: FETCH');
     const timeStats = await getPrTimeStats(usernames, getToken());
     window.electron.receiveResult(timeStats);
     window.electron.status('Scrape: DONE', timeStats);
 });
+
+window.electron.statsPageLoaded();
 
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {

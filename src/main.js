@@ -34,25 +34,26 @@ app.whenReady().then(() => {
 
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
+    let statsPageLoaded = false;
     mainWindow.webContents.on('did-finish-load', async () => {
-        status('Prepare: START');
-        statsWindow.loadURL('http://prstats.tk');
-    });
-
-    statsWindow.webContents.on('did-finish-load', async () => {
-        const path = join(__dirname, 'postload-stats.js');
         try {
+            status('Prepare: START');
+            statsPageLoaded = null;
+            await statsWindow.loadURL('http://prstats.tk');
+
+            status('Prepare: EXEC');
+            const path = join(__dirname, 'postload-stats.js');
             const code = await readFile(path, 'utf8');
             await statsWindow.webContents.executeJavaScript(code + ';0');
+
+            statsPageLoaded = true;
             status('Prepare: DONE');
         } catch (error) {
+            statsPageLoaded = false;
             status('Prepare: FAIL');
-            console.error(error);
+            throw error;
         }
     });
-
-    let statsPageLoaded = false;
-    ipcMain.once('stats-page-loaded', () => { statsPageLoaded = true; });
 
     ipcMain.handle('import', async () => {
         try {
@@ -73,8 +74,8 @@ app.whenReady().then(() => {
 
             return `data:image/png;base64,${base64}`;
         } catch (error) {
-            console.error(error);
-            return status('Import: ERROR');
+            status('Import: ERROR');
+            throw error;
         }
     });
 
@@ -84,8 +85,8 @@ app.whenReady().then(() => {
             if (image.isEmpty()) return status('Paste: EMPTY');
             return image.toDataURL();
         } catch (error) {
-            console.error(error);
-            return status('Paste: ERROR');
+            status('Paste: ERROR');
+            throw error;
         }
     });
 
@@ -105,7 +106,7 @@ app.whenReady().then(() => {
             status(`Export: DONE: "${filePath}"`);
         } catch (error) {
             status(`Export: FAIL`);
-            console.error(error);
+            throw error;
         }
     });
 
@@ -124,12 +125,24 @@ app.whenReady().then(() => {
     });
 
     ipcMain.on('scrape:start', async (_, lines) => {
-        status('Scrape: START', lines);
-        if (!statsPageLoaded) await new Promise(resolve => {
-            status('Scrape: WAIT');
-            ipcMain.once('stats-page-loaded', resolve);
-        });
-        statsWindow.webContents.send('scrape:usernames', lines);
+        try {
+            status('Scrape: START', lines);
+
+            if (statsPageLoaded === false) throw new Error('Stats page is not loaded');
+            if (statsPageLoaded !== true) await new Promise(((resolve, reject) => {
+                status('Scrape: WAIT: Prepare');
+                ipcMain.once('stats-page-loaded', resolve);
+
+                const ms = 60 * 1000;
+                const timeoutMessage = 'Stats page took too long to load';
+                setTimeout(() => reject(new Error(timeoutMessage)), ms);
+            }));
+
+            statsWindow.webContents.send('scrape:usernames', lines);
+        } catch (error) {
+            status('Scrape: FAIL');
+            throw error;
+        }
     });
 
     ipcMain.on('scrape:receive-result', (_, html) => {

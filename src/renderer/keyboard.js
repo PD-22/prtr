@@ -1,7 +1,7 @@
 import { canvas, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas } from "./rect.js";
-import { closeScrapModal, getScrapModalLines, openScrapeModal, scrapeModal, writeScrapModalLines } from "./scrapeModal.js";
+import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export const mainShortcuts = [
     ['i', 'Import', async () => {
@@ -26,12 +26,12 @@ export const mainShortcuts = [
             window.electron.status('Paste: ERROR');
         }
     }],
-    ['escape', 'Open scrape', () => {
+    ['escape', 'Terminal', () => {
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
         } else {
-            openScrapeModal();
+            openTerminal();
             remindShortcuts();
         }
     }],
@@ -45,20 +45,18 @@ export const mainShortcuts = [
     }]
 ];
 
-export const modalShortcuts = [
+export const terminalShortcuts = [
     ['enter', 'Clean and scrape', () => {
-        const cleanedLines = unique(getScrapModalLines().map(extractUsername));
-        if (!cleanedLines.length) return window.electron.status("Scrape: EMPTY");
-        writeScrapModalLines(cleanedLines);
-        window.electron.scrape(getScrapModalLines());
+        const lines = unique(getTerminalLines().map(extractUsername));
+        if (!lines.length) return window.electron.status("Scrape: EMPTY");
+        writeTerminalLines(lines);
+        window.electron.scrape(getTerminalLines());
     }],
-    ['escape', 'Close scrape', () => {
-        closeScrapModal();
-    }]
+    ['escape', 'Close terminal', closeTerminal]
 ];
 
 export const getActiveShortcuts = () => {
-    return scrapeModal.isOpen ? modalShortcuts : mainShortcuts
+    return terminal.isOpen ? terminalShortcuts : mainShortcuts
 }
 
 export const unique = arr => Array.from(new Set(arr.filter(Boolean)));

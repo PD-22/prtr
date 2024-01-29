@@ -2,7 +2,7 @@ import { canvasBackground } from "./canvas.js";
 import { onKeyDown, remindShortcuts } from "./keyboard.js";
 import { onMouseDown, onMouseMove, onMouseUp } from "./mouse.js";
 import { fitRectToCanvas, resizeCanvas } from "./rect.js";
-import { openScrapeModal, writeScrapModalLines } from "./scrapeModal.js";
+import { openTerminal, writeTerminalLines } from "./terminal.js";
 
 resizeCanvas(screen.width, screen.height);
 
@@ -16,8 +16,8 @@ canvasBackground.addEventListener('mousemove', onMouseMove);
 canvasBackground.addEventListener('mouseup', onMouseUp);
 
 window.electron.onScrapeResult(result => {
-    writeScrapModalLines(result);
-    openScrapeModal();
+    writeTerminalLines(result);
+    openTerminal();
 });
 
 window.electron.onStatus(console.log);
