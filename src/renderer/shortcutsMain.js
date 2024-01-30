@@ -41,6 +41,10 @@ export default [
             throw error;
         }
     }],
+    ['D', 'Deselect', () => {
+        mouse.isHold = false;
+        fitRectToCanvas();
+    }],
     ['Enter', 'Recognize', async () => {
         try {
             const dataURL = getRectCanvasDataURL();
@@ -60,7 +64,7 @@ export default [
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
-        } else if (!terminal.isOpen) {
+        } else if (terminal.isOpen) {
             openTerminal();
             remindShortcuts();
         }

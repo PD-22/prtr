@@ -16,24 +16,20 @@ function getCanvasMousePos(e) {
     return [x, y];
 }
 
-export function onMouseDown(e) {
+export function startDrag(e) {
     mouse.isHold = true;
     const [x, y] = getCanvasMousePos(e);
     setRectStart(x, y);
 }
 
-export function onMouseMove(e) {
+export function moveDrag(e) {
     if (!mouse.isHold) return;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
 }
 
-export function onMouseUp(e) {
-    if (!mouse.isHold) return;
+export function stopDrag() {
     mouse.isHold = false;
-    const [x, y] = getCanvasMousePos(e);
-    setRectEnd(x, y);
-
     const { w, h } = getNormalRect();
     if (w < 1 || h < 1) return fitRectToCanvas();
 }
