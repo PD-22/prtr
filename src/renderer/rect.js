@@ -28,6 +28,7 @@ function drawCrop() {
 export function resizeCanvas(w, h) {
     overlayCanvas.width = canvas.width = w;
     overlayCanvas.height = canvas.height = h;
+    fitRectToCanvas();
 }
 
 export function fitRectToCanvas() {
@@ -50,4 +51,17 @@ export function getNormalRect() {
         y: Math.min(y, y + h),
         h: Math.abs(h)
     };
+}
+
+export function getRectCanvasDataURL() {
+    const { x, y, w, h } = getNormalRect();
+
+    const rectCanvas = document.createElement('canvas');
+    rectCanvas.width = w;
+    rectCanvas.height = h;
+
+    const ctx = rectCanvas.getContext('2d');
+    ctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+
+    return rectCanvas.toDataURL('image/png');
 }

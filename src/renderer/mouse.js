@@ -1,23 +1,8 @@
-import { canvas, ctx, overlayCanvas } from "./canvas.js";
-import { fitRectToCanvas, getNormalRect, resizeCanvas, setRectEnd, setRectStart } from "./rect.js";
+import { overlayCanvas } from "./canvas.js";
+import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
 export default mouse;
-
-function cropCanvas() {
-    const { x, y, w, h } = getNormalRect();
-    if (w < 1 || h < 1) return fitRectToCanvas();
-
-    const tempCanvas = document.createElement('canvas');
-    const tctx = tempCanvas.getContext('2d');
-    tempCanvas.width = w;
-    tempCanvas.height = h;
-    tctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-
-    resizeCanvas(w, h);
-    fitRectToCanvas();
-    ctx.drawImage(tempCanvas, 0, 0);
-}
 
 function getCanvasMousePos(e) {
     const bcr = overlayCanvas.getBoundingClientRect();
@@ -48,5 +33,7 @@ export function onMouseUp(e) {
     mouse.isHold = false;
     const [x, y] = getCanvasMousePos(e);
     setRectEnd(x, y);
-    cropCanvas();
+
+    const { w, h } = getNormalRect();
+    if (w < 1 || h < 1) return fitRectToCanvas();
 }

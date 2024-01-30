@@ -81,7 +81,7 @@ app.whenReady().then(async () => {
         try {
             const image = clipboard.readImage();
             if (image.isEmpty()) return status('Paste: EMPTY');
-            return image.toDataURL();
+            return image.toDataURL('image/png');
         } catch (error) {
             status('Paste: ERROR');
             throw error;

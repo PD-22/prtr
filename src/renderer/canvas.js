@@ -1,4 +1,4 @@
-import { fitRectToCanvas, resizeCanvas } from "./rect.js";
+import { resizeCanvas } from "./rect.js";
 
 export const canvasBackground = document.querySelector('.canvas-background');
 /** @type {HTMLCanvasElement} */
@@ -16,6 +16,5 @@ export async function loadImageOnCanvas(dataURL) {
     await new Promise(resolve => { image.onload = resolve; });
 
     resizeCanvas(image.width, image.height);
-    fitRectToCanvas();
     ctx.drawImage(image, 0, 0);
 }

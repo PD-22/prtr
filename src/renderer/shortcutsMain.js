@@ -1,11 +1,11 @@
-import { canvas, loadImageOnCanvas } from "./canvas.js";
+import { canvas, ctx, loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
-import { fitRectToCanvas } from "./rect.js";
+import { fitRectToCanvas, getNormalRect, getRectCanvasDataURL, resizeCanvas } from "./rect.js";
 import { remindShortcuts } from "./shortcuts.js";
 import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export default [
-    ['O', 'Import', async () => {
+    ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
             if (!dataURL) return;
@@ -16,11 +16,11 @@ export default [
             throw error;
         }
     }],
-    ['S', 'Export', () => {
-        const dataURL = canvas.toDataURL('image/png');
+    ['E', 'Export', () => {
+        const dataURL = getRectCanvasDataURL();
         window.electron.export(dataURL);
     }],
-    ['V', 'Paste', async () => {
+    ['P', 'Paste', async () => {
         try {
             const dataURL = await window.electron.paste();
             if (!dataURL) return;
@@ -31,9 +31,19 @@ export default [
             throw error;
         }
     }],
+    ['C', 'Crop', async () => {
+        try {
+            window.electron.status('Crop: START');
+            await loadImageOnCanvas(getRectCanvasDataURL());
+            window.electron.status('Crop: DONE');
+        } catch (error) {
+            window.electron.status('Crop: ERROR');
+            throw error;
+        }
+    }],
     ['Enter', 'Recognize', async () => {
         try {
-            const dataURL = canvas.toDataURL('image/png');
+            const dataURL = getRectCanvasDataURL();
             const parsedLines = await window.electron.recognize(dataURL);
             if (!parsedLines) return;
 
