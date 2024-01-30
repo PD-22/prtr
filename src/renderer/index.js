@@ -1,5 +1,5 @@
 import { canvasBackground } from "./canvas.js";
-import { onKeyDown, remindShortcuts } from "./keyboard.js";
+import { onKeyDown, remindShortcuts } from "./shortcuts.js";
 import { onMouseDown, onMouseMove, onMouseUp } from "./mouse.js";
 import { fitRectToCanvas, resizeCanvas } from "./rect.js";
 
