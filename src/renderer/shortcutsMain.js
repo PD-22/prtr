@@ -5,7 +5,7 @@ import { remindShortcuts } from "./shortcuts.js";
 import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export default [
-    ['I', 'Import', async () => {
+    ['O', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
             if (!dataURL) return;
@@ -16,7 +16,11 @@ export default [
             throw error;
         }
     }],
-    ['P', 'Paste', async () => {
+    ['S', 'Export', () => {
+        const dataURL = canvas.toDataURL('image/png');
+        window.electron.export(dataURL);
+    }],
+    ['V', 'Paste', async () => {
         try {
             const dataURL = await window.electron.paste();
             if (!dataURL) return;
@@ -27,19 +31,6 @@ export default [
             throw error;
         }
     }],
-    ['Escape', 'Terminal', () => {
-        if (mouse.isHold) {
-            mouse.isHold = false;
-            fitRectToCanvas();
-        } else if (!terminal.isOpen) {
-            openTerminal();
-            remindShortcuts();
-        }
-    }],
-    ['E', 'Export', () => {
-        const dataURL = canvas.toDataURL('image/png');
-        window.electron.export(dataURL);
-    }],
     ['Enter', 'Recognize', async () => {
         try {
             const dataURL = canvas.toDataURL('image/png');
@@ -47,13 +38,21 @@ export default [
             if (!parsedLines) return;
 
             writeTerminalLines(parsedLines);
-            if (!terminal.isOpen) {
-                openTerminal();
-                remindShortcuts();
-            }
+            if (terminal.isOpen) return;
+            openTerminal();
+            remindShortcuts();
         } catch (error) {
             window.electron.status('Recognize: ERROR');
             throw error;
+        }
+    }],
+    ['Escape', 'Terminal', () => {
+        if (mouse.isHold) {
+            mouse.isHold = false;
+            fitRectToCanvas();
+        } else if (!terminal.isOpen) {
+            openTerminal();
+            remindShortcuts();
         }
     }]
 ];

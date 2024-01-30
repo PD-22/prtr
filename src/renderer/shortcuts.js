@@ -6,15 +6,6 @@ export const getActiveShortcuts = () => {
     return terminal.isOpen ? shortcutsTerminal : shortcutsMain
 }
 
-export const unique = arr => Array.from(new Set(arr.filter(Boolean)));
-export const whitespace = str => str.trim().replace(/\s+/g, ' ');
-export const extractUsername = str => {
-    const match = whitespace(str).match(/(.*?)(\s+-\s+\S*)?$/)?.[1];
-    if (!match) return '';
-    const [first, ...rest] = match.split(' ');
-    return rest.join('') || first;
-}
-
 export const keyModifiers = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'];
 
 export function onKeyDown(e) {

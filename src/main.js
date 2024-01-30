@@ -5,9 +5,7 @@ const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
-/** @type {BrowserWindow} */ let statsWindow = null;
-
-function createWindow() {
+function createMainWindow() {
     mainWindow = new BrowserWindow({
         webPreferences: {
             preload: join(__dirname, 'preload.js')
@@ -15,9 +13,11 @@ function createWindow() {
         fullscreen: true,
         frame: false
     })
-    mainWindow.loadFile(join(__dirname, 'index.html'))
     mainWindow.on('closed', () => { mainWindow = null });
+}
 
+/** @type {BrowserWindow} */ let statsWindow = null;
+function createStatsWindow() {
     statsWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
@@ -26,34 +26,15 @@ function createWindow() {
             preload: join(__dirname, 'preload-stats.js')
         }
     });
-
     statsWindow.on('closed', () => { statsWindow = null; });
 }
 
-app.whenReady().then(() => {
-    createWindow();
+const pageLoading = new Observable();
+app.whenReady().then(async () => {
+    createMainWindow();
+    createStatsWindow();
 
     ipcMain.on('status', (_, ...args) => { status(...args) });
-
-    const statsPageLoading = new Observable();
-    mainWindow.webContents.on('did-finish-load', async () => {
-        try {
-            status('Prepare: START');
-            statsPageLoading.value = true;
-            await statsWindow.loadURL('http://prstats.tk');
-
-            const path = join(__dirname, 'postload-stats.js');
-            const code = await readFile(path, 'utf8');
-            await statsWindow.webContents.executeJavaScript(code + ';0');
-
-            statsPageLoading.value = false;
-            status('Prepare: DONE');
-        } catch (error) {
-            statsPageLoading.value = null;
-            status('Prepare: ERROR');
-            throw error;
-        }
-    });
 
     ipcMain.handle('import', async () => {
         try {
@@ -77,17 +58,6 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.handle('paste', () => {
-        try {
-            const image = clipboard.readImage();
-            if (image.isEmpty()) return status('Paste: EMPTY');
-            return image.toDataURL();
-        } catch (error) {
-            status('Paste: ERROR');
-            throw error;
-        }
-    });
-
     ipcMain.on('export', async (_, dataURL) => {
         try {
             status('Export: START');
@@ -103,6 +73,17 @@ app.whenReady().then(() => {
             status(`Export: DONE: "${filePath}"`);
         } catch (error) {
             status(`Export: ERROR`);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('paste', () => {
+        try {
+            const image = clipboard.readImage();
+            if (image.isEmpty()) return status('Paste: EMPTY');
+            return image.toDataURL();
+        } catch (error) {
+            status('Paste: ERROR');
             throw error;
         }
     });
@@ -131,11 +112,11 @@ app.whenReady().then(() => {
         try {
             status('Scrape: START');
 
-            while (statsPageLoading.value === true) await new Promise(resolve => {
+            while (pageLoading.value === true) await new Promise(resolve => {
                 status('Scrape: Prepare');
-                statsPageLoading.once(Observable.EVENT, resolve);
+                pageLoading.once(Observable.EVENT, resolve);
             });
-            if (statsPageLoading.value !== false) throw new Error('Stats page not available');
+            if (pageLoading.value !== false) throw new Error('Stats page not available');
 
             status('Scrape: FETCH');
             const timeStats = await new Promise((resolve, reject) => {
@@ -150,10 +131,29 @@ app.whenReady().then(() => {
             throw error;
         }
     });
+
+    try {
+        status('Prepare: START');
+        await mainWindow.loadFile(join(__dirname, 'index.html'));
+
+        pageLoading.value = true;
+        await statsWindow.loadURL('http://prstats.tk');
+
+        const path = join(__dirname, 'postload-stats.js');
+        const code = await readFile(path, 'utf8');
+        await statsWindow.webContents.executeJavaScript(code + ';0');
+
+        pageLoading.value = false;
+        status('Prepare: DONE');
+    } catch (error) {
+        pageLoading.value = null;
+        status('Prepare: ERROR');
+        throw error;
+    }
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('activate', () => { if (mainWindow === null) createWindow(); });
+app.on('activate', () => { if (mainWindow === null) createMainWindow(); });
 
 function status(message, bodyLines) {
     const indent = lines => lines.map(s => `${' '.repeat(2)}${s}`).join('\n');
