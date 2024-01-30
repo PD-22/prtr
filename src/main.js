@@ -2,6 +2,7 @@ const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
 const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
+const { Observable } = require('./Observable');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
 /** @type {BrowserWindow} */ let statsWindow = null;
@@ -34,22 +35,21 @@ app.whenReady().then(() => {
 
     ipcMain.on('status', (_, ...args) => { status(...args) });
 
-    let statsPageLoaded = false;
+    const statsPageLoading = new Observable();
     mainWindow.webContents.on('did-finish-load', async () => {
         try {
             status('Prepare: START');
-            statsPageLoaded = null;
+            statsPageLoading.value = true;
             await statsWindow.loadURL('http://prstats.tk');
 
-            status('Prepare: EXEC');
             const path = join(__dirname, 'postload-stats.js');
             const code = await readFile(path, 'utf8');
             await statsWindow.webContents.executeJavaScript(code + ';0');
 
-            statsPageLoaded = true;
+            statsPageLoading.value = false;
             status('Prepare: DONE');
         } catch (error) {
-            statsPageLoaded = false;
+            statsPageLoading.value = null;
             status('Prepare: ERROR');
             throw error;
         }
@@ -131,25 +131,16 @@ app.whenReady().then(() => {
         try {
             status('Scrape: START');
 
-            if (statsPageLoaded === false) throw new Error('Stats page is not loaded');
-            if (statsPageLoaded !== true) await new Promise((resolve, reject) => {
-                status('Scrape: WAIT: Prepare');
-                ipcMain.once('stats-page-loaded', resolve);
-
-                const ms = 60 * 1000;
-                const timeoutMessage = 'Stats page loading timeout';
-                setTimeout(() => reject(new Error(timeoutMessage)), ms);
+            while (statsPageLoading.value === true) await new Promise(resolve => {
+                status('Scrape: Prepare');
+                statsPageLoading.once(Observable.EVENT, resolve);
             });
+            if (statsPageLoading.value !== false) throw new Error('Stats page not available');
 
             status('Scrape: FETCH');
             const timeStats = await new Promise((resolve, reject) => {
                 statsWindow.webContents.send('scrape', lines);
-
                 ipcMain.once(`scrape:reply`, (_, response) => resolve(response));
-
-                const ms = 30 * 1000;
-                const timeoutTimeout = 'Stats page reply timeout';
-                setTimeout(() => reject(new Error(timeoutTimeout)), ms);
             });
 
             status('Scrape: DONE', timeStats);

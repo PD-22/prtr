@@ -3,8 +3,6 @@ window.electron.onScrape(async list => {
     window.electron.scrapeReply(result);
 });
 
-window.electron.statsPageLoaded();
-
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {
         const result = script.textContent.match(/"_token"\s*:\s*"(\w+)"/)?.[1];
@@ -79,6 +77,6 @@ async function searchUser(username, token) {
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ search: username, _token: token })
     };
-    const response = await fetch("https://prstats.tk/json/search", options);
+    const response = await fetch("/json/search", options);
     return await response.json();
 }
