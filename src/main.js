@@ -5,7 +5,22 @@ const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
 
 /** @type {BrowserWindow} */ let mainWindow = null;
-function createMainWindow() {
+/** @type {BrowserWindow} */ let statsWindow = null;
+const pageLoading = new Observable();
+app.whenReady().then(async () => {
+    createWindows();
+    addListeners();
+    await loadWindows();
+});
+
+function status(message, bodyLines) {
+    const indent = lines => lines.map(s => `${' '.repeat(2)}${s}`).join('\n');
+    const result = `${message}${!bodyLines ? '' : `\n${indent(bodyLines)}`}`;
+    console.log(result);
+    mainWindow.webContents.send('status', result);
+}
+
+function createWindows() {
     mainWindow = new BrowserWindow({
         webPreferences: {
             preload: join(__dirname, 'preload.js')
@@ -14,10 +29,7 @@ function createMainWindow() {
         frame: false
     })
     mainWindow.on('closed', () => { mainWindow = null });
-}
 
-/** @type {BrowserWindow} */ let statsWindow = null;
-function createStatsWindow() {
     statsWindow = new BrowserWindow({
         parent: mainWindow,
         show: false,
@@ -29,12 +41,32 @@ function createStatsWindow() {
     statsWindow.on('closed', () => { statsWindow = null; });
 }
 
-const pageLoading = new Observable();
-app.whenReady().then(async () => {
-    createMainWindow();
-    createStatsWindow();
+async function loadWindows() {
+    try {
+        status('Prepare: START');
+        await mainWindow.loadFile(join(__dirname, 'index.html'));
 
-    ipcMain.on('status', (_, ...args) => { status(...args) });
+        pageLoading.value = true;
+        await statsWindow.loadURL('http://prstats.tk');
+
+        const path = join(__dirname, 'postload-stats.js');
+        const code = await readFile(path, 'utf8');
+        await statsWindow.webContents.executeJavaScript(code + ';0');
+
+        pageLoading.value = false;
+        status('Prepare: DONE');
+    } catch (error) {
+        pageLoading.value = null;
+        status('Prepare: ERROR');
+        throw error;
+    }
+}
+
+function addListeners() {
+    app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+    app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+
+    ipcMain.on('status', (_, ...args) => { status(...args); });
 
     ipcMain.handle('import', async () => {
         try {
@@ -108,56 +140,17 @@ app.whenReady().then(async () => {
         }
     });
 
-    ipcMain.handle('scrape', async (_, lines) => {
-        try {
-            status('Scrape: START');
+    ipcMain.handle('scrape', async (_, line) => {
+        while (pageLoading.value === true) await new Promise(resolve =>
+            pageLoading.once(Observable.EVENT, resolve)
+        );
+        if (pageLoading.value !== false) throw new Error('Stats page not available');
 
-            while (pageLoading.value === true) await new Promise(resolve => {
-                status('Scrape: Prepare');
-                pageLoading.once(Observable.EVENT, resolve);
-            });
-            if (pageLoading.value !== false) throw new Error('Stats page not available');
+        const stat = await new Promise(resolve => {
+            statsWindow.webContents.send('scrape', line);
+            ipcMain.once(`scrape:reply`, (_, response) => resolve(response));
+        });
 
-            status('Scrape: FETCH');
-            const timeStats = await new Promise((resolve, reject) => {
-                statsWindow.webContents.send('scrape', lines);
-                ipcMain.once(`scrape:reply`, (_, response) => resolve(response));
-            });
-
-            status('Scrape: DONE', timeStats);
-            return timeStats;
-        } catch (error) {
-            status('Scrape: ERROR');
-            throw error;
-        }
+        return stat;
     });
-
-    try {
-        status('Prepare: START');
-        await mainWindow.loadFile(join(__dirname, 'index.html'));
-
-        pageLoading.value = true;
-        await statsWindow.loadURL('http://prstats.tk');
-
-        const path = join(__dirname, 'postload-stats.js');
-        const code = await readFile(path, 'utf8');
-        await statsWindow.webContents.executeJavaScript(code + ';0');
-
-        pageLoading.value = false;
-        status('Prepare: DONE');
-    } catch (error) {
-        pageLoading.value = null;
-        status('Prepare: ERROR');
-        throw error;
-    }
-});
-
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-app.on('activate', () => { if (mainWindow === null) createMainWindow(); });
-
-function status(message, bodyLines) {
-    const indent = lines => lines.map(s => `${' '.repeat(2)}${s}`).join('\n');
-    const result = `${message}${!bodyLines ? '' : `\n${indent(bodyLines)}`}`;
-    console.log(result);
-    mainWindow.webContents.send('status', result);
 }

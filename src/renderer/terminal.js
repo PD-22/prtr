@@ -23,3 +23,9 @@ export function getTerminalLines() {
 export function writeTerminalLines(lines) {
     return writeTerminal(lines.join('\n'));
 }
+
+export function writeTerminalLine(index, line) {
+    const lines = getTerminalLines();
+    lines[index] = line;
+    return writeTerminal(lines.join('\n'));
+}

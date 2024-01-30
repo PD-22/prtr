@@ -1,5 +1,7 @@
-window.electron.onScrape(async list => {
-    const result = await getPrTimeStats(list, getToken(), 8);
+const token = getToken();
+
+window.electron.onScrape(async username => {
+    const result = await getUserTime(username, token);
     window.electron.scrapeReply(result);
 });
 
@@ -8,41 +10,6 @@ function getToken() {
         const result = script.textContent.match(/"_token"\s*:\s*"(\w+)"/)?.[1];
         if (result) return result;
     }
-}
-
-async function getPrTimeStats(usernameList, token, requestLimit) {
-    const formatUserTime = (username, time) => `${username} - ${time}`;
-
-    const userTimeEntries = await runAsyncFuncsInParallel(
-        usernameList.map(username => async () => {
-            const time = await getUserTime(username, token);
-            window.electron.status(`Scrape: ${formatUserTime(username, time)}`);
-            return { username, time };
-        }),
-        requestLimit
-    );
-
-    return userTimeEntries.map(({ username, time }) => formatUserTime(username, time));
-}
-
-async function runAsyncFuncsInParallel(funcList = [], limit) {
-    if (!(limit > 0)) limit = funcList.length;
-
-    const results = [];
-    let index = 0;
-
-    async function runNextFunc() {
-        const currIndex = index++;
-        if (currIndex >= funcList.length) return;
-
-        results[currIndex] = await funcList[currIndex]();
-
-        await runNextFunc();
-    }
-
-    await Promise.all(Array(limit).fill().map(runNextFunc));
-
-    return results;
 }
 
 async function getUserTime(username, token) {

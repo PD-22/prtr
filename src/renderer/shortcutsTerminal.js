@@ -1,5 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalLines } from "./terminal.js";
+import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -18,9 +18,15 @@ export default [
             window.electron.status('Scrape: INIT', lines);
             writeTerminalLines(lines);
 
-            const result = await window.electron.scrape(getTerminalLines());
+            window.electron.status('Scrape: START');
+            const initLines = getTerminalLines();
+            await Promise.allSettled(initLines.map(async (line, index) => {
+                const data = await window.electron.scrape(line);
+                const newLine = `${line} - ${data}`;
+                window.electron.status(`Scrape: ${newLine}`);
+                writeTerminalLine(index, newLine);
+            }));
 
-            writeTerminalLines(result);
             if (terminal.isOpen) return;
             openTerminal();
             remindShortcuts();

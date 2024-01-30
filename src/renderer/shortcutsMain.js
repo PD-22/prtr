@@ -1,6 +1,6 @@
-import { canvas, ctx, loadImageOnCanvas } from "./canvas.js";
+import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
-import { fitRectToCanvas, getNormalRect, getRectCanvasDataURL, resizeCanvas } from "./rect.js";
+import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { remindShortcuts } from "./shortcuts.js";
 import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
@@ -64,7 +64,7 @@ export default [
         if (mouse.isHold) {
             mouse.isHold = false;
             fitRectToCanvas();
-        } else if (terminal.isOpen) {
+        } else if (!terminal.isOpen) {
             openTerminal();
             remindShortcuts();
         }
