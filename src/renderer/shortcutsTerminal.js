@@ -18,12 +18,24 @@ export default [
             throw error;
         }
     }],
+    ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
+    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
     ['Escape', 'Close', () => {
         if (!terminal.isOpen) return;
         closeTerminal();
         remindShortcuts();
     }]
 ];
+
+function sortData(ascending = true) {
+    const parsedLines = parseLines(getTerminalLines());
+    const sorted = parsedLines
+        .sort((a, b) => a.username.localeCompare(b.username))
+        .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
+    if (!ascending) sorted.reverse();
+    const lines = sorted.map(x => fkv(x.username, x.data));
+    writeTerminalLines(lines);
+}
 
 async function scrape(removeData = false) {
     const parsedLines = parseLines(getTerminalLines());
@@ -36,7 +48,7 @@ async function scrape(removeData = false) {
         .filter(o => removeData || !o.data);
 
     if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
-    
+
     window.electron.status('Scrape: START');
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
         writeTerminalLine(index, fkv(username, '...'));
