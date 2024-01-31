@@ -1,5 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
+import { closeTerminal, getTerminalCursor, getTerminalLines, openTerminal, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -18,6 +18,7 @@ export default [
             throw error;
         }
     }],
+    ['Ctrl+Enter', 'Cursor', () => console.log(getTerminalCursor())], // TEMP
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
     ['Escape', 'Close', () => {
