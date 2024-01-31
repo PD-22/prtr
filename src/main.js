@@ -148,7 +148,7 @@ function addListeners() {
 
         const stat = await new Promise(resolve => {
             statsWindow.webContents.send('scrape', line);
-            ipcMain.once(`scrape:reply`, (_, response) => resolve(response));
+            ipcMain.once(`scrape:${line}`, (_, response) => resolve(response));
         });
 
         return stat;

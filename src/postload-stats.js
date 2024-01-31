@@ -1,9 +1,6 @@
 const token = getToken();
 
-window.electron.onScrape(async username => {
-    const result = await getUserTime(username, token);
-    window.electron.scrapeReply(result);
-});
+window.electron.onScrape(username => getUserTime(username, token));
 
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {
