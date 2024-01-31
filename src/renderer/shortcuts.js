@@ -6,19 +6,40 @@ export const getActiveShortcuts = () => {
     return terminal.isOpen ? shortcutsTerminal : shortcutsMain
 }
 
-export const keyModifiers = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'];
-
 export function onKeyDown(e) {
-    if (keyModifiers.some(m => e[m])) return;
-    const shortcuts = getActiveShortcuts();
-    const key = e.key.toLowerCase();
-    const codeKey = String.fromCharCode(e.keyCode || e.which).toLowerCase();
-    const shortcut = shortcuts.find(([sk]) => [key, codeKey].includes(sk.toLowerCase()))
-    if (!shortcut) return;
+    const filteredShortcuts = getActiveShortcuts().filter(([shortcutKeyString]) => {
+        const [key, mods] = parseShortcut(shortcutKeyString);
+        const eventKey = e.key.toLowerCase();
+        const eventCode = String.fromCharCode(e.keyCode || e.which).toLowerCase();
+
+        return modifierMatches(mods, e) && [eventKey, eventCode].includes(key);
+    })
+    if (!filteredShortcuts.length) return;
+
     e.preventDefault();
-    window.electron.status(`Used ${formatShortcut(shortcut)}`);
-    const [_key, _name, callback] = shortcut;
-    callback(e);
+    filteredShortcuts.forEach(shortcut => {
+        window.electron.status(`Used ${formatShortcut(shortcut)}`);
+        const [_key, _name, callback] = shortcut;
+        callback(e);
+    })
+}
+
+function modifierMatches(mods, event) {
+    mods = Array.from(new Set(mods));
+
+    const allowedMods = ['ctrl', 'shift', 'alt', 'meta'];
+    if (!mods.every(mod => allowedMods.includes(mod))) return false;
+
+    const eventMods = allowedMods.filter(mod => event[`${mod}Key`]);
+    if (mods.length !== eventMods.length) return;
+    return eventMods.every(mod => mods.includes(mod));
+}
+
+function parseShortcut(str) {
+    const parts = str.toLowerCase().split('+');
+    const key = parts[parts.length - 1];
+    const mods = parts.slice(0, parts.length - 1);
+    return [key, mods];
 }
 
 export function formatShortcut(shortcut) {
