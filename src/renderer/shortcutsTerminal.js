@@ -4,29 +4,15 @@ import { closeTerminal, getTerminalLines, openTerminal, terminal, writeTerminalL
 export default [
     ['Enter', 'Scrape', async () => {
         try {
-            const parsedLines = parseLines(getTerminalLines());
-            if (!parsedLines.length) return window.electron.status("Scrape: EMPTY");
-
-            const lines = parsedLines.map(x => fkv(x.username, x.data));
-            window.electron.status('Scrape: INIT', lines);
-            writeTerminalLines(lines);
-
-            window.electron.status('Scrape: START');
-            await Promise.allSettled(parsedLines.map(async ({ username, data }, index) => {
-                if (data) return;
-
-                writeTerminalLine(index, fkv(username, '...'));
-
-                const newData = await window.electron.scrape(username);
-
-                const newLine = fkv(username, newData);
-                window.electron.status(`Scrape: ${newLine}`);
-                writeTerminalLine(index, newLine);
-            }));
-
-            if (terminal.isOpen) return;
-            openTerminal();
-            remindShortcuts();
+            await scrape();
+        } catch (error) {
+            window.electron.status('Scrape: ERROR');
+            throw error;
+        }
+    }],
+    ['Alt+Enter', 'Rescrape', async () => {
+        try {
+            await scrape(true);
         } catch (error) {
             window.electron.status('Scrape: ERROR');
             throw error;
@@ -38,6 +24,34 @@ export default [
         remindShortcuts();
     }]
 ];
+
+async function scrape(removeData = false) {
+    const parsedLines = parseLines(getTerminalLines());
+    const lines = parsedLines.map(x => fkv(x.username, x.data));
+    window.electron.status('Scrape: INIT', lines);
+    writeTerminalLines(lines);
+
+    const filteredLines = parsedLines
+        .map((o, index) => ({ ...o, index }))
+        .filter(o => removeData || !o.data);
+
+    if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
+    
+    window.electron.status('Scrape: START');
+    await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
+        writeTerminalLine(index, fkv(username, '...'));
+
+        const newData = await window.electron.scrape(username);
+
+        const newLine = fkv(username, newData);
+        window.electron.status(`Scrape: ${newLine}`);
+        writeTerminalLine(index, newLine);
+    }));
+
+    if (terminal.isOpen) return;
+    openTerminal();
+    remindShortcuts();
+}
 
 function parseLines(lines) {
     const mappedLines = lines.map(line => {
