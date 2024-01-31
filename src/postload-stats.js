@@ -1,6 +1,6 @@
 const token = getToken();
-
 window.electron.onScrape(username => getUserTime(username, token));
+token;
 
 function getToken() {
     for (const script of document.body.querySelectorAll('script')) {

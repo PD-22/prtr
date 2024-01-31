@@ -47,14 +47,15 @@ async function loadWindows() {
         await mainWindow.loadFile(join(__dirname, 'index.html'));
 
         pageLoading.value = true;
-        await statsWindow.loadURL('http://prstats.tk');
+        await statsWindow.loadURL('https://prstats.tk');
 
         const path = join(__dirname, 'postload-stats.js');
         const code = await readFile(path, 'utf8');
-        await statsWindow.webContents.executeJavaScript(code + ';0');
+        const token = await statsWindow.webContents.executeJavaScript(code);
+        if (!token) throw new Error("Token missing");
 
         pageLoading.value = false;
-        status('Prepare: DONE');
+        status(`Prepare: DONE: ${token}`);
     } catch (error) {
         pageLoading.value = null;
         status('Prepare: ERROR');
