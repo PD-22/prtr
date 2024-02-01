@@ -1,5 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { closeTerminal, getTerminalCursor, getTerminalLines, openTerminal, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
+import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, setTerminalSelection, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -18,7 +18,8 @@ export default [
             throw error;
         }
     }],
-    ['Ctrl+Enter', 'Cursor', () => console.log(getTerminalCursor())], // TEMP
+    ['Alt+ArrowUp', 'Up', () => moveLine(-1)],
+    ['Alt+ArrowDown', 'Down', () => moveLine(1)],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
     ['Escape', 'Close', () => {
@@ -27,6 +28,21 @@ export default [
         remindShortcuts();
     }]
 ];
+
+function moveLine(change) {
+    const lines = getTerminalLines();
+    const { caret } = getTerminalSelection();
+    const [row] = getTerminalPos(caret);
+
+    const newRow = clamp(row + change, 0, lines.length);
+    if (newRow >= lines.length) return;
+    [lines[row], lines[newRow]] = [lines[newRow], lines[row]];
+    writeTerminalLines(lines);
+
+    const newStart = getTerminalCaret(newRow, 0);
+    const newEnd = getTerminalCaret(newRow, lines[newRow].length);
+    setTerminalSelection(newStart, newEnd);
+}
 
 function sortData(ascending = true) {
     const parsedLines = parseLines(getTerminalLines());
