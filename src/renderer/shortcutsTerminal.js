@@ -1,5 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, setTerminalSelection, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
+import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, popTerminalHistory, setTerminalSelection, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -20,6 +20,12 @@ export default [
     }],
     ['Alt+ArrowUp', 'Up', () => moveLine(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLine(1)],
+    ['Alt+C', 'Clean', () => {
+        const parsedLines = parseLines(getTerminalLines());
+        writeTerminalLines(parsedLines.map(x => fkv(x.username, x.data)));
+    }],
+    ['Ctrl+Z', 'Undo', () => popTerminalHistory()],
+    ['Ctrl+Y', 'Redo', () => { }],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
     ['Escape', 'Close', () => {
@@ -72,9 +78,8 @@ async function scrape(removeData = false) {
 
         const newData = await window.electron.scrape(username);
 
-        const newLine = fkv(username, newData);
-        window.electron.status(`Scrape: ${newLine}`);
-        writeTerminalLine(index, newLine);
+        window.electron.status(`Scrape: ${fkv(username, newData ?? 'N/A')}`);
+        writeTerminalLine(index, fkv(username, newData));
     }));
 
     if (terminal.isOpen) return;

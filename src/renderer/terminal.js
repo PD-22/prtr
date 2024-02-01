@@ -1,6 +1,8 @@
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
-export const terminal = { element, isOpen: false };
+const history = [];
+const histroyMaxSize = 4;
+export const terminal = { isOpen: false };
 
 export function openTerminal() {
     terminal.isOpen = true;
@@ -14,7 +16,36 @@ export function closeTerminal() {
 }
 
 export function writeTerminal(text) {
+    if (element.value === text) return;
+    pushTerminalHistory(text);
     element.value = text;
+}
+
+export function pushTerminalHistory() {
+    const initLength = history.length;
+    const lastHistory = history[history.length - 1];
+    const value = element.value;
+    if (value === lastHistory?.value) return;
+
+    const newItem = { ...getTerminalSelection(), value };
+    history.push(newItem);
+
+    const overflow = history.length - histroyMaxSize;
+    if (history.length > 0) history.splice(0, overflow);
+
+    if (initLength === history.length) return;
+    window.electron.status(`History: ${history.length}`);
+}
+
+export function popTerminalHistory() {
+    const initLength = history.length;
+    if (!history.length) return;
+    const { value, start, end, dir } = history.pop();
+    element.value = value;
+    setTerminalSelection(start, end, dir);
+
+    if (initLength === history.length) return;
+    window.electron.status(`History: ${history.length}`);
 }
 
 export function getTerminalLines() {
@@ -66,11 +97,11 @@ export function clamp(value, min, max) {
 }
 
 export function getTerminalSelection() {
-    const { selectionDirection, selectionStart, selectionEnd } = terminal.element;
+    const { selectionDirection, selectionStart, selectionEnd } = element;
     const caret = selectionDirection === 'forward' ? selectionEnd : selectionStart;
     return { start: selectionStart, end: selectionEnd, dir: selectionDirection, caret };
 }
 
 export function setTerminalSelection(start, end, dir) {
-    terminal.element.setSelectionRange(start, end, dir);
+    element.setSelectionRange(start, end, dir);
 }
