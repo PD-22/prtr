@@ -1,5 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, popTerminalHistory, setTerminalSelection, terminal, writeTerminalLine, writeTerminalLines } from "./terminal.js";
+import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, redoTerminalHistory, setTerminalSelection, terminal, undoTerminalHistory, writeTerminalLine, writeTerminalLines } from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -24,8 +24,14 @@ export default [
         const parsedLines = parseLines(getTerminalLines());
         writeTerminalLines(parsedLines.map(x => fkv(x.username, x.data)));
     }],
-    ['Ctrl+Z', 'Undo', () => popTerminalHistory()],
-    ['Ctrl+Y', 'Redo', () => { }],
+
+    ['Ctrl+Z', 'Undo', undoTerminalHistory],
+    ['Meta+Z', 'Undo', undoTerminalHistory],
+    ['Ctrl+Y', 'Redo', redoTerminalHistory],
+    ['Meta+Y', 'Redo', redoTerminalHistory],
+    ['Ctrl+Shift+Z', 'Redo', redoTerminalHistory],
+    ['Meta+Shift+Z', 'Redo', redoTerminalHistory],
+
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
     ['Escape', 'Close', () => {

@@ -1,7 +1,8 @@
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
 const history = [];
-const histroyMaxSize = 4;
+let historyIndex = 0;
+const histroyMaxSize = 3;
 export const terminal = { isOpen: false };
 
 export function openTerminal() {
@@ -16,36 +17,57 @@ export function closeTerminal() {
 }
 
 export function writeTerminal(text) {
-    if (element.value === text) return;
-    pushTerminalHistory(text);
+    if (element.value === text) return; // abort: no changes
     element.value = text;
+    pushTerminalHistory();
+}
+
+function formatHistory() {
+    return history
+        .map((x, i) => `${historyIndex === i ? '<--\n' : ''}${x.value}`)
+        .join('\n\n')
+        .split('\n')
 }
 
 export function pushTerminalHistory() {
-    const initLength = history.length;
     const lastHistory = history[history.length - 1];
     const value = element.value;
-    if (value === lastHistory?.value) return;
+    if (value === lastHistory?.value) return; // abort: duplicate history
 
-    const newItem = { ...getTerminalSelection(), value };
-    history.push(newItem);
+    // replace future history with new snapshot
+    const snapshot = { ...getTerminalSelection(), value };
+    history.splice(historyIndex + 1, Infinity, snapshot);
 
+    // limit history from end
     const overflow = history.length - histroyMaxSize;
     if (history.length > 0) history.splice(0, overflow);
 
-    if (initLength === history.length) return;
-    window.electron.status(`History: ${history.length}`);
+    // move history index to end
+    historyIndex = history.length - 1;
+
+    window.electron.status('History', formatHistory()); // log history with markers
 }
 
-export function popTerminalHistory() {
-    const initLength = history.length;
-    if (!history.length) return;
-    const { value, start, end, dir } = history.pop();
+export function undoTerminalHistory() {
+    window.electron.status('Terminal: Undo');
+
+    const prevIndex = historyIndex - 1;
+    const prevSnapshot = history[prevIndex];
+
+    if (!prevSnapshot) return; // abort: empty
+
+    // restore index, text, selection
+    historyIndex = prevIndex;
+    const { value, start, end, dir } = prevSnapshot;
     element.value = value;
     setTerminalSelection(start, end, dir);
 
-    if (initLength === history.length) return;
-    window.electron.status(`History: ${history.length}`);
+    window.electron.status('History', formatHistory()); // log history with markers
+}
+
+// TODO
+export function redoTerminalHistory() {
+    window.electron.status('Terminal: Redo');
 }
 
 export function getTerminalLines() {
