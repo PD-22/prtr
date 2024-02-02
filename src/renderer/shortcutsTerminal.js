@@ -1,5 +1,16 @@
 import { remindShortcuts } from "./shortcuts.js";
-import { clamp, closeTerminal, getTerminalCaret, getTerminalLines, getTerminalPos, getTerminalSelection, openTerminal, redoTerminalHistory, setTerminalSelection, terminal, undoTerminalHistory, writeTerminalLine, writeTerminalLines } from "./terminal.js";
+import {
+    checkoutTerminalHistory,
+    closeTerminal,
+    getTerminalLines,
+    getTerminalPos,
+    getTerminalSelection,
+    openTerminal,
+    setTerminalSelectionPos,
+    terminal,
+    writeTerminalLine,
+    writeTerminalLines
+} from "./terminal.js";
 
 export default [
     ['Enter', 'Scrape', async () => {
@@ -18,19 +29,26 @@ export default [
             throw error;
         }
     }],
-    ['Alt+ArrowUp', 'Up', () => moveLine(-1)],
-    ['Alt+ArrowDown', 'Down', () => moveLine(1)],
+    ['Ctrl+Enter', 'Selection', () => window.electron.status(
+        Object.entries(getTerminalSelection()).map(entry => entry.join(': '))
+    )],
+    ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
+    ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+C', 'Clean', () => {
         const parsedLines = parseLines(getTerminalLines());
         writeTerminalLines(parsedLines.map(x => fkv(x.username, x.data)));
     }],
+    ['Alt+Shift+C', 'Clear', () => {
+        const parsedLines = parseLines(getTerminalLines());
+        writeTerminalLines(parsedLines.map(x => x.username));
+    }],
 
-    ['Ctrl+Z', 'Undo', undoTerminalHistory],
-    ['Meta+Z', 'Undo', undoTerminalHistory],
-    ['Ctrl+Y', 'Redo', redoTerminalHistory],
-    ['Meta+Y', 'Redo', redoTerminalHistory],
-    ['Ctrl+Shift+Z', 'Redo', redoTerminalHistory],
-    ['Meta+Shift+Z', 'Redo', redoTerminalHistory],
+    ['Ctrl+Z', 'Undo', () => checkoutTerminalHistory(-1)],
+    ['Meta+Z', 'Undo', () => checkoutTerminalHistory(-1)],
+    ['Ctrl+Shift+Z', 'Redo', () => checkoutTerminalHistory(+1)],
+    ['Meta+Shift+Z', 'Redo', () => checkoutTerminalHistory(+1)],
+    ['Ctrl+Y', 'Redo', () => checkoutTerminalHistory(+1)],
+    ['Meta+Y', 'Redo', () => checkoutTerminalHistory(+1)],
 
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
@@ -41,19 +59,21 @@ export default [
     }]
 ];
 
-function moveLine(change) {
+function moveLines(change) {
     const lines = getTerminalLines();
-    const { caret } = getTerminalSelection();
-    const [row] = getTerminalPos(caret);
+    const { start, end, dir } = getTerminalSelection();
+    const [startRow, startCol] = getTerminalPos(start);
+    const [endRow, endCol] = getTerminalPos(end);
 
-    const newRow = clamp(row + change, 0, lines.length);
-    if (newRow >= lines.length) return;
-    [lines[row], lines[newRow]] = [lines[newRow], lines[row]];
+    const newStartRow = startRow + change;
+    const newEndRow = endRow + change;
+    if (newStartRow < 0 || newEndRow >= lines.length) return;
+
+    const movedLines = lines.splice(startRow, endRow - startRow + 1);
+    lines.splice(newStartRow, 0, ...movedLines);
     writeTerminalLines(lines);
 
-    const newStart = getTerminalCaret(newRow, 0);
-    const newEnd = getTerminalCaret(newRow, lines[newRow].length);
-    setTerminalSelection(newStart, newEnd);
+    setTerminalSelectionPos(newStartRow, startCol, newEndRow, endCol, dir);
 }
 
 function sortData(ascending = true) {

@@ -2,7 +2,7 @@
 const element = document.querySelector('textarea.terminal');
 const history = [];
 let historyIndex = 0;
-const histroyMaxSize = 3;
+const historyMaxSize = 8;
 export const terminal = { isOpen: false };
 
 export function openTerminal() {
@@ -16,62 +16,68 @@ export function closeTerminal() {
     element.classList.remove('is-open');
 }
 
-export function writeTerminal(text) {
-    if (element.value === text) return; // abort: no changes
-    element.value = text;
-    pushTerminalHistory();
+export function getTerminalValue() {
+    return element.value;
 }
 
-function formatHistory() {
-    return history
-        .map((x, i) => `${historyIndex === i ? '<--\n' : ''}${x.value}`)
-        .join('\n\n')
-        .split('\n')
+export function setTerminalValue(newValue) {
+    return element.value = newValue;
 }
 
-export function pushTerminalHistory() {
-    const lastHistory = history[history.length - 1];
-    const value = element.value;
-    if (value === lastHistory?.value) return; // abort: duplicate history
-
-    // replace future history with new snapshot
-    const snapshot = { ...getTerminalSelection(), value };
-    history.splice(historyIndex + 1, Infinity, snapshot);
-
-    // limit history from end
-    const overflow = history.length - histroyMaxSize;
-    if (history.length > 0) history.splice(0, overflow);
-
-    // move history index to end
-    historyIndex = history.length - 1;
-
-    window.electron.status('History', formatHistory()); // log history with markers
+export function writeTerminal(newValue) {
+    if (getTerminalValue() === newValue) return;
+    pushHistory();
+    setTerminalValue(newValue);
+    logHistory();
 }
 
-export function undoTerminalHistory() {
-    window.electron.status('Terminal: Undo');
+function pushHistory() {
+    const currentValue = getTerminalValue();
 
-    const prevIndex = historyIndex - 1;
-    const prevSnapshot = history[prevIndex];
+    const { start, end, dir } = getTerminalSelection();
+    const snapshot = { value: currentValue, start, end, dir };
+    history.splice(clamp(historyIndex, 1, Infinity), Infinity, snapshot);
 
-    if (!prevSnapshot) return; // abort: empty
+    const overflow = history.length - historyMaxSize;
+    if (overflow > 0) history.splice(0, overflow);
 
-    // restore index, text, selection
-    historyIndex = prevIndex;
-    const { value, start, end, dir } = prevSnapshot;
-    element.value = value;
+    historyIndex = history.length;
+}
+
+export function checkoutTerminalHistory(change) {
+    const newHistoryIndex = clamp(historyIndex + change, 0, history.length - 1);
+    if (newHistoryIndex === historyIndex) return;
+
+    if (historyIndex >= history.length) pushHistory();
+
+    historyIndex = newHistoryIndex;
+    const { value, start, end, dir } = history[historyIndex];
+    setTerminalValue(value);
     setTerminalSelection(start, end, dir);
 
-    window.electron.status('History', formatHistory()); // log history with markers
+    logHistory();
 }
 
-// TODO
-export function redoTerminalHistory() {
-    window.electron.status('Terminal: Redo');
+function logHistory() {
+    const dictLines = dict => Object.entries(dict).map(entry => entry.join(': ')).join(' | ');
+
+    const body = [
+        dictLines({ historyIndex, length: history.length }),
+        ...history.map((snapshot, index) => {
+            const { start, end, dir } = snapshot;
+            const startPos = getTerminalPos(start);
+            const endPos = getTerminalPos(end);
+            return [
+                dictLines({ index, startPos, endPos, dir }),
+                JSON.stringify(snapshot.value)
+            ];
+        }).flat(),
+    ];
+    window.electron.status('History', body);
 }
 
 export function getTerminalLines() {
-    return element.value.replace(/\r/g, "\n").split('\n');
+    return getTerminalValue().replace(/\r/g, "\n").split('\n');
 }
 
 export function writeTerminalLines(lines) {
@@ -125,5 +131,11 @@ export function getTerminalSelection() {
 }
 
 export function setTerminalSelection(start, end, dir) {
+    element.setSelectionRange(start, end, dir);
+}
+
+export function setTerminalSelectionPos(startRow, startCol, endRow, endCol, dir) {
+    const start = getTerminalCaret(startRow, startCol);
+    const end = getTerminalCaret(endRow, endCol);
     element.setSelectionRange(start, end, dir);
 }
