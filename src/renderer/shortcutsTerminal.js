@@ -84,7 +84,7 @@ function sortData(ascending = true) {
         .sort((a, b) => a.username.localeCompare(b.username))
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
-    const lines = sorted.map(x => fkv(x.username, x.data));
+    const lines = sorted.map(x => x.line);
     writeTerminalLines(lines);
 }
 
@@ -118,7 +118,7 @@ async function scrape(removeData = false) {
 function parseLines(lines) {
     const mappedLines = lines.map(line => {
         const [username, data] = parseUser(line);
-        return { username, data };
+        return { username, data, line };
     });
 
     const filteredLines = mappedLines.filter(x => x.username)
