@@ -7,21 +7,27 @@ export const getActiveShortcuts = () => {
 }
 
 export function onKeyDown(e) {
-    const filteredShortcuts = getActiveShortcuts().filter(([shortcutKeyString]) => {
-        const [key, mods] = parseShortcut(shortcutKeyString);
-        const eventKey = e.key.toLowerCase();
-        const eventCode = String.fromCharCode(e.keyCode || e.which).toLowerCase();
+    getActiveShortcuts().forEach(s => handleShortcut(e, s));
+}
 
-        return modifierMatches(mods, e) && [eventKey, eventCode].includes(key);
-    })
-    if (!filteredShortcuts.length) return;
+function handleShortcut(e, shortcut) {
+    const [input, name, callback] = shortcut;
+
+    const inputs = Array.isArray(input) ? input : [input];
+    const matchedInput = inputs.find(input => shortcutMatches(e, input));
+    if (!matchedInput) return;
 
     e.preventDefault();
-    filteredShortcuts.forEach(shortcut => {
-        window.electron.status(`Used ${formatShortcut(shortcut)}`);
-        const [_key, _name, callback] = shortcut;
-        callback(e);
-    })
+    window.electron.status(`Used ${formatShortcut([matchedInput, name])}`);
+    callback(e, matchedInput);
+}
+
+function shortcutMatches(e, str) {
+    const [key, mods] = parseShortcut(str);
+    const eventKey = e.key.toLowerCase();
+    const eventCode = String.fromCharCode(e.keyCode || e.which).toLowerCase();
+
+    return modifierMatches(mods, e) && [eventKey, eventCode].includes(key);
 }
 
 function modifierMatches(mods, event) {
@@ -44,7 +50,9 @@ function parseShortcut(str) {
 
 export function formatShortcut(shortcut) {
     const [key, name] = shortcut;
-    return `"${key}" - ${name}`;
+    const keys = !Array.isArray(key) ? key :
+        key.map(k => `"${k}"`).join(', ');
+    return [keys, name].join(' - ');
 }
 
 export function remindShortcuts() {
