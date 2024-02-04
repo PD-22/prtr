@@ -1,6 +1,6 @@
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
-const history = [];
+const history = [{ value: '', start: 0, end: 0 }];
 let historyIndex = 0;
 const historyMaxSize = 8;
 export const terminal = { isOpen: false };
@@ -26,8 +26,8 @@ export function setTerminalValue(newValue) {
 
 export function writeTerminal(newValue) {
     if (getTerminalValue() === newValue) return;
-    pushHistory();
     setTerminalValue(newValue);
+    pushHistory();
 }
 
 function pushHistory() {
@@ -35,21 +35,23 @@ function pushHistory() {
 
     const { start, end, dir } = getTerminalSelection();
     const snapshot = { value: currentValue, start, end, dir };
-    history.splice(clamp(historyIndex, 1, Infinity), Infinity, snapshot);
+    history.splice(historyIndex + 1, Infinity, snapshot);
 
     const overflow = history.length - historyMaxSize;
     if (overflow > 0) history.splice(0, overflow);
 
-    historyIndex = history.length;
+    historyIndex = history.length - 1;
 }
 
-export function checkoutTerminalHistory(change) {
+export function checkoutTerminalHistory(direction = false) {
+    const change = direction ? 1 : -1;
     const newHistoryIndex = clamp(historyIndex + change, 0, history.length - 1);
     if (newHistoryIndex === historyIndex) return;
 
-    if (historyIndex >= history.length) pushHistory();
-
     historyIndex = newHistoryIndex;
+    if (change === -1 && historyIndex === history.length - 2) pushHistory();
+    historyIndex = newHistoryIndex;
+
     const { value, start, end, dir } = history[historyIndex];
     setTerminalValue(value);
     setTerminalSelection(start, end, dir);

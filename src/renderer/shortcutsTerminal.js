@@ -45,9 +45,9 @@ export default [
         writeTerminalLines(parsedLines.map(x => x.username));
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => checkoutTerminalHistory(-1)],
+    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => checkoutTerminalHistory(false)],
     [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'],
-        'Redo', () => checkoutTerminalHistory(+1)
+        'Redo', () => checkoutTerminalHistory(true)
     ],
 
     ['Ctrl+H', 'Redo', logHistory],
