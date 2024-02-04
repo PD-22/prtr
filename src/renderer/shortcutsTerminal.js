@@ -3,7 +3,7 @@ import {
     checkoutTerminalHistory,
     closeTerminal,
     getTerminalLines,
-    getTerminalPos,
+    posToCaret,
     getTerminalSelection,
     logHistory,
     openTerminal,
@@ -64,8 +64,8 @@ export default [
 function moveLines(change) {
     const lines = getTerminalLines();
     const { start, end, dir } = getTerminalSelection();
-    const [startRow, startCol] = getTerminalPos(start);
-    const [endRow, endCol] = getTerminalPos(end);
+    const [startRow, startCol] = posToCaret(lines, start);
+    const [endRow, endCol] = posToCaret(lines, end);
 
     const newStartRow = startRow + change;
     const newEndRow = endRow + change;

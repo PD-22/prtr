@@ -63,9 +63,9 @@ export function logHistory() {
     const body = [
         dictLines({ historyIndex, length: history.length }),
         ...history.flatMap((snapshot, index) => {
-            const { start, end, dir } = snapshot;
-            const startPos = getTerminalPos(start);
-            const endPos = getTerminalPos(end);
+            const { start, end, dir, value } = snapshot;
+            const startPos = posToCaret(value, start);
+            const endPos = posToCaret(value, end);
             return [
                 '',
                 dictLines({ index, startPos, endPos, dir }),
@@ -91,8 +91,7 @@ export function writeTerminalLine(index, line) {
     return writeTerminal(lines.join('\n'));
 }
 
-export function getTerminalPos(caret) {
-    const lines = getTerminalLines();
+export function posToCaret(lines, caret) {
     let index = 0;
     let row;
 
@@ -109,8 +108,7 @@ export function getTerminalPos(caret) {
     return [row, col];
 }
 
-export function getTerminalCaret(row, col = 0) {
-    const lines = getTerminalLines();
+export function caretToPos(lines, row, col = 0) {
     row = clamp(row, 0, lines.length);
     col = clamp(col, 0, lines[row].length);
 
@@ -136,7 +134,8 @@ export function setTerminalSelection(start, end, dir) {
 }
 
 export function setTerminalSelectionPos(startRow, startCol, endRow, endCol, dir) {
-    const start = getTerminalCaret(startRow, startCol);
-    const end = getTerminalCaret(endRow, endCol);
+    const lines = getTerminalLines();
+    const start = caretToPos(lines, startRow, startCol);
+    const end = caretToPos(lines, endRow, endCol);
     element.setSelectionRange(start, end, dir);
 }
