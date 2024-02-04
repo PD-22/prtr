@@ -38,9 +38,6 @@ export default [
             throw error;
         }
     }],
-    ['Ctrl+Enter', 'Selection', () => window.electron.status(
-        Object.entries(getTerminalSelection()).map(entry => entry.join(': '))
-    )],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
@@ -104,12 +101,18 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START');
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        writeTerminalLine(index, fkv(username, '...'));
+        try {
+            writeTerminalLine(index, fkv(username, '...'));
+            const newData = await window.electron.scrape(username);
+            if (newData == null) throw new Error('User data not found');
 
-        const newData = await window.electron.scrape(username);
-
-        window.electron.status(`Scrape: ${fkv(username, newData ?? 'N/A')}`);
-        writeTerminalLine(index, fkv(username, newData));
+            window.electron.status(`Scrape: ${fkv(username, newData)}`);
+            writeTerminalLine(index, fkv(username, newData));
+        } catch (error) {
+            window.electron.status(`Scrape: FAIL: ${username}`);
+            writeTerminalLine(index, username);
+            throw error;
+        }
     }));
 
     if (terminal.isOpen) return;
