@@ -28,7 +28,6 @@ export function writeTerminal(newValue) {
     if (getTerminalValue() === newValue) return;
     pushHistory();
     setTerminalValue(newValue);
-    logHistory();
 }
 
 function pushHistory() {
@@ -54,25 +53,25 @@ export function checkoutTerminalHistory(change) {
     const { value, start, end, dir } = history[historyIndex];
     setTerminalValue(value);
     setTerminalSelection(start, end, dir);
-
-    logHistory();
 }
 
-function logHistory() {
+export function logHistory() {
     const dictLines = dict => Object.entries(dict).map(entry => entry.join(': ')).join(' | ');
 
     const body = [
         dictLines({ historyIndex, length: history.length }),
-        ...history.map((snapshot, index) => {
+        ...history.flatMap((snapshot, index) => {
             const { start, end, dir } = snapshot;
             const startPos = getTerminalPos(start);
             const endPos = getTerminalPos(end);
             return [
+                '',
                 dictLines({ index, startPos, endPos, dir }),
-                JSON.stringify(snapshot.value)
+                JSON.stringify(snapshot.value),
             ];
-        }).flat(),
+        }),
     ];
+
     window.electron.status('History', body);
 }
 

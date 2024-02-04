@@ -5,6 +5,7 @@ import { remindShortcuts } from "./shortcuts.js";
 import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export default [
+    ['/', 'Shortcuts', remindShortcuts],
     ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();

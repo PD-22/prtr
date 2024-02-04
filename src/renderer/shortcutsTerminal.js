@@ -5,6 +5,7 @@ import {
     getTerminalLines,
     getTerminalPos,
     getTerminalSelection,
+    logHistory,
     openTerminal,
     setTerminalSelectionPos,
     terminal,
@@ -13,6 +14,7 @@ import {
 } from "./terminal.js";
 
 export default [
+    ['/', 'Shortcuts', remindShortcuts],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -49,6 +51,8 @@ export default [
     ['Meta+Shift+Z', 'Redo', () => checkoutTerminalHistory(+1)],
     ['Ctrl+Y', 'Redo', () => checkoutTerminalHistory(+1)],
     ['Meta+Y', 'Redo', () => checkoutTerminalHistory(+1)],
+    
+    ['Ctrl+H', 'Redo', logHistory],
 
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
