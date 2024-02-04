@@ -3,10 +3,11 @@ import {
     checkoutTerminalHistory,
     closeTerminal,
     getTerminalLines,
-    posToCaret,
     getTerminalSelection,
     logHistory,
     openTerminal,
+    posToCaret,
+    setTerminalSelection,
     setTerminalSelectionPos,
     terminal,
     writeTerminalLine,
@@ -14,7 +15,8 @@ import {
 } from "./terminal.js";
 
 export default [
-    ['/', 'Shortcuts', remindShortcuts],
+    ['Alt+/', 'Shortcuts', remindShortcuts],
+    ['Tab', 'Close', closeTerminal],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -23,6 +25,11 @@ export default [
             throw error;
         }
     }],
+    ['Escape', 'Close', () => {
+        const { caret } = getTerminalSelection();
+        setTerminalSelection(caret, caret);
+    }],
+
     ['Alt+Enter', 'Rescrape', async () => {
         try {
             await scrape(true);
@@ -34,6 +41,7 @@ export default [
     ['Ctrl+Enter', 'Selection', () => window.electron.status(
         Object.entries(getTerminalSelection()).map(entry => entry.join(': '))
     )],
+
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+C', 'Clean', () => {
@@ -51,14 +59,8 @@ export default [
     ],
 
     ['Ctrl+H', 'Redo', logHistory],
-
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
-    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
-    ['Escape', 'Close', () => {
-        if (!terminal.isOpen) return;
-        closeTerminal();
-        remindShortcuts();
-    }]
+    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)]
 ];
 
 function moveLines(change) {
@@ -112,7 +114,6 @@ async function scrape(removeData = false) {
 
     if (terminal.isOpen) return;
     openTerminal();
-    remindShortcuts();
 }
 
 function parseLines(lines) {

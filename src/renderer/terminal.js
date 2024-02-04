@@ -49,9 +49,6 @@ export function checkoutTerminalHistory(direction = false) {
     if (newHistoryIndex === historyIndex) return;
 
     historyIndex = newHistoryIndex;
-    if (change === -1 && historyIndex === history.length - 2) pushHistory();
-    historyIndex = newHistoryIndex;
-
     const { value, start, end, dir } = history[historyIndex];
     setTerminalValue(value);
     setTerminalSelection(start, end, dir);

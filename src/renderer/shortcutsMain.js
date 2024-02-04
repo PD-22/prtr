@@ -5,7 +5,8 @@ import { remindShortcuts } from "./shortcuts.js";
 import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
 
 export default [
-    ['/', 'Shortcuts', remindShortcuts],
+    ['Alt+/', 'Shortcuts', remindShortcuts],
+    ['Tab', 'Terminal', openTerminal],
     ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
@@ -55,19 +56,10 @@ export default [
             writeTerminalLines(parsedLines);
             if (terminal.isOpen) return;
             openTerminal();
-            remindShortcuts();
         } catch (error) {
             window.electron.status('Recognize: ERROR');
             throw error;
         }
     }],
-    ['Escape', 'Terminal', () => {
-        if (mouse.isHold) {
-            mouse.isHold = false;
-            fitRectToCanvas();
-        } else if (!terminal.isOpen) {
-            openTerminal();
-            remindShortcuts();
-        }
-    }]
+    ['Escape', 'Cancel', () => { mouse.isHold = false; fitRectToCanvas(); }]
 ];
