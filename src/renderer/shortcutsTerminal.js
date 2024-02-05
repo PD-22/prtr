@@ -74,7 +74,7 @@ function moveLines(change) {
     lines.splice(newStartRow, 0, ...movedLines);
     const newStart = posToCaret(lines, newStartRow, 0);
     const newEnd = posToCaret(lines, newEndRow, Infinity);
-    writeTerminalLines(lines, newStart, newEnd);
+    writeTerminalLines(lines, { start: newStart, end: newEnd });
 }
 
 function sortData(ascending = true) {
@@ -102,15 +102,15 @@ async function scrape(removeData = false) {
     window.electron.status('Scrape: START');
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
         try {
-            writeTerminalLine(index, fkv(username, '...'));
+            writeTerminalLine(index, fkv(username, '...'), true);
             const newData = await window.electron.scrape(username);
             if (newData == null) throw new Error('User data not found');
 
             window.electron.status(`Scrape: ${fkv(username, newData)}`);
-            writeTerminalLine(index, fkv(username, newData));
+            writeTerminalLine(index, fkv(username, newData), true);
         } catch (error) {
             window.electron.status(`Scrape: FAIL: ${username}`);
-            writeTerminalLine(index, username);
+            writeTerminalLine(index, username, true);
             throw error;
         }
     }));

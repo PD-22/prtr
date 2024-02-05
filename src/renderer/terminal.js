@@ -26,9 +26,9 @@ function setTerminalValue(newValue) {
     return element.value = newValue;
 }
 
-export function writeTerminal(value, start, end, dir) {
+export function writeTerminal(value, selection) {
     cancelInputHistory();
-    pushHistory(value, start, end, dir);
+    pushHistory(value, selection);
     checkoutTerminalHistory(true);
 }
 
@@ -36,18 +36,15 @@ export function onTerminalInput() {
     cancelInputHistory();
     debounceId = window.setTimeout(() => {
         const value = getTerminalValue();
-        const { start, end, dir } = getTerminalSelection();
-        writeTerminal(value, start, end, dir);
+        writeTerminal(value, getTerminalSelection());
     }, inputDebounce);
 }
 function cancelInputHistory() {
     return window.clearTimeout(debounceId);
 };
 
-function pushHistory(value, start, end, dir) {
-    if (start == null) start = value.length;
-    if (end == null) end = value.length;
-    start = Math.min(start, end);
+function pushHistory(value, selection) {
+    let { start, end, dir } = parseSelection(value, selection);
 
     const spliceIndex = historyIndex + (value !== history[historyIndex].value);
     const snapshot = { value, start, end, dir };
@@ -55,6 +52,26 @@ function pushHistory(value, start, end, dir) {
 
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) history.splice(0, overflow);
+}
+
+function parseSelection(value, selection) {
+    let start = selection?.start;
+    let end = selection?.end;
+    let dir = selection?.dir;
+
+    if (start == null) start = value.length;
+    if (end == null) end = value.length;
+    start = Math.min(start, end);
+
+    if (selection === true) {
+        const prevSelection = getTerminalSelection();
+        const prevLines = getTerminalLines();
+        const lines = getTerminalLines(value);
+        start = posToCaret(lines, ...caretToPos(prevLines, prevSelection.start));
+        end = posToCaret(lines, ...caretToPos(prevLines, prevSelection.end));
+    }
+
+    return { start, end, dir };
 }
 
 export function checkoutTerminalHistory(direction = false) {
@@ -69,7 +86,6 @@ export function checkoutTerminalHistory(direction = false) {
 
 export function logHistory() {
     const curValStr = JSON.stringify(getTerminalValue());
-    const header = `History: ${curValStr}`;
     const formatSnap = ({ value, start, end, dir }, i) => {
         const isActive = i === historyIndex;
         const valStr = JSON.stringify(value);
@@ -82,22 +98,21 @@ export function logHistory() {
             possArrow
         ].join(' ');
     };
-    window.electron.status(header, history.map(formatSnap));
+    window.electron.status('History', history.map(formatSnap));
 }
 
-export function getTerminalLines() {
-    return getTerminalValue().replace(/\r/g, "\n").split('\n');
+export function getTerminalLines(value = getTerminalValue()) {
+    return value.replace(/\r/g, "\n").split('\n');
 }
 
-export function writeTerminalLines(lines, start, end, dir) {
-    return writeTerminal(lines.join('\n'), start, end, dir);
+export function writeTerminalLines(lines, selection) {
+    return writeTerminal(lines.join('\n'), selection);
 }
 
-export function writeTerminalLine(index, line) {
+export function writeTerminalLine(index, line, selection) {
     const lines = getTerminalLines();
     lines[index] = line;
-    const caret = posToCaret(lines, index, Infinity);
-    return writeTerminal(lines.join('\n'), caret, caret);
+    return writeTerminal(lines.join('\n'), selection);
 }
 
 export function caretToPos(lines, caret) {
