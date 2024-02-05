@@ -1,9 +1,11 @@
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
 const history = [{ value: '', start: 0, end: 0 }];
+const maxHistoryLength = 128;
+const inputDebounce = 500;
 let historyIndex = 0;
-const maxHistoryLength = 50;
-export const terminal = { isOpen: false };
+let debounceId;
+export const terminal = { element, isOpen: false };
 
 export function openTerminal() {
     terminal.isOpen = true;
@@ -25,18 +27,31 @@ function setTerminalValue(newValue) {
 }
 
 export function writeTerminal(value, start, end, dir) {
-    if (getTerminalValue() === value) return;
+    cancelInputHistory();
     pushHistory(value, start, end, dir);
     checkoutTerminalHistory(true);
 }
+
+export function onTerminalInput() {
+    cancelInputHistory();
+    debounceId = window.setTimeout(() => {
+        const value = getTerminalValue();
+        const { start, end, dir } = getTerminalSelection();
+        writeTerminal(value, start, end, dir);
+    }, inputDebounce);
+}
+function cancelInputHistory() {
+    return window.clearTimeout(debounceId);
+};
 
 function pushHistory(value, start, end, dir) {
     if (start == null) start = value.length;
     if (end == null) end = value.length;
     start = Math.min(start, end);
 
+    const spliceIndex = historyIndex + (value !== history[historyIndex].value);
     const snapshot = { value, start, end, dir };
-    history.splice(historyIndex + 1, Infinity, snapshot);
+    history.splice(spliceIndex, Infinity, snapshot);
 
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) history.splice(0, overflow);
@@ -58,8 +73,7 @@ export function logHistory() {
     const formatSnap = ({ value, start, end, dir }, i) => {
         const isActive = i === historyIndex;
         const valStr = JSON.stringify(value);
-        if (isActive && valStr !== curValStr)
-            throw Error('Text content does not match');
+        if (isActive && valStr !== curValStr) console.warn('Text content does not match');
         const possArrow = isActive ? '<--' : '';
         return [
             i,
