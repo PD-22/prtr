@@ -1,14 +1,14 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
+    posToCaret,
     checkoutTerminalHistory,
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
     logHistory,
     openTerminal,
-    posToCaret,
+    caretToPos,
     setTerminalSelection,
-    setTerminalSelectionPos,
     terminal,
     writeTerminalLine,
     writeTerminalLines
@@ -25,11 +25,6 @@ export default [
             throw error;
         }
     }],
-    ['Escape', 'Close', () => {
-        const { caret } = getTerminalSelection();
-        setTerminalSelection(caret, caret);
-    }],
-
     ['Alt+Enter', 'Rescrape', async () => {
         try {
             await scrape(true);
@@ -37,6 +32,11 @@ export default [
             window.electron.status('Scrape: ERROR');
             throw error;
         }
+    }],
+
+    ['Escape', 'Deselect', () => {
+        const { caret } = getTerminalSelection();
+        setTerminalSelection(caret, caret);
     }],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
@@ -55,16 +55,16 @@ export default [
         'Redo', () => checkoutTerminalHistory(true)
     ],
 
-    ['Ctrl+H', 'Redo', logHistory],
+    ['Ctrl+H', 'History', logHistory],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)]
 ];
 
 function moveLines(change) {
     const lines = getTerminalLines();
-    const { start, end, dir } = getTerminalSelection();
-    const [startRow, startCol] = posToCaret(lines, start);
-    const [endRow, endCol] = posToCaret(lines, end);
+    const { start, end } = getTerminalSelection();
+    const [startRow] = caretToPos(lines, start);
+    const [endRow] = caretToPos(lines, end);
 
     const newStartRow = startRow + change;
     const newEndRow = endRow + change;
@@ -72,9 +72,9 @@ function moveLines(change) {
 
     const movedLines = lines.splice(startRow, endRow - startRow + 1);
     lines.splice(newStartRow, 0, ...movedLines);
-    writeTerminalLines(lines);
-
-    setTerminalSelectionPos(newStartRow, startCol, newEndRow, endCol, dir);
+    const newStart = posToCaret(lines, newStartRow, 0);
+    const newEnd = posToCaret(lines, newEndRow, Infinity);
+    writeTerminalLines(lines, newStart, newEnd);
 }
 
 function sortData(ascending = true) {

@@ -61,5 +61,5 @@ export default [
             throw error;
         }
     }],
-    ['Escape', 'Cancel', () => { mouse.isHold = false; fitRectToCanvas(); }]
+    ['Escape', 'Deselect', () => { mouse.isHold = false; fitRectToCanvas(); }]
 ];

@@ -18,7 +18,7 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    window.electron.status(`Used ${formatShortcut([matchedInput, name])}`);
+    window.electron.status(`Used: ${formatShortcut([matchedInput, name])}`);
     callback(e, matchedInput);
 }
 
@@ -50,9 +50,9 @@ function parseShortcut(str) {
 
 export function formatShortcut(shortcut) {
     const [key, name] = shortcut;
-    const keys = !Array.isArray(key) ? key :
-        key.map(k => `"${k}"`).join(', ');
-    return [keys, name].join(' - ');
+    const keys = Array.isArray(key) ? key : [key];
+    const formattedKeys = keys.map(k => `${k}`).join(', ');
+    return [name, formattedKeys].join(' - ');
 }
 
 export function remindShortcuts() {
