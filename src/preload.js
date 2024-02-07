@@ -7,7 +7,8 @@ const api = {
     export: dataURL => ipcRenderer.send('export', dataURL),
     paste: () => ipcRenderer.invoke('paste'),
     recognize: dataURL => ipcRenderer.invoke('recoginze', dataURL),
-    scrape: data => ipcRenderer.invoke('scrape', data)
+    scrape: (row, line) => ipcRenderer.invoke('scrape', row, line),
+    abortScrape: row => ipcRenderer.send(`scrape:abort:${row}`)
 };
 
 contextBridge.exposeInMainWorld('electron', api);

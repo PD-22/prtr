@@ -1,15 +1,18 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
-    posToCaret,
-    checkoutTerminalHistory,
+    caretToPos,
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
+    lockTerminalLine,
     logHistory,
     openTerminal,
-    caretToPos,
+    posToCaret,
+    redoTerminalHistory,
     setTerminalSelection,
     terminal,
+    undoTerminalHistory,
+    unlockTerminalLine,
     writeTerminalLine,
     writeTerminalLines
 } from "./terminal.js";
@@ -50,10 +53,8 @@ export default [
         writeTerminalLines(parsedLines.map(x => x.username));
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => checkoutTerminalHistory(false)],
-    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'],
-        'Redo', () => checkoutTerminalHistory(true)
-    ],
+    [['Ctrl+Z', 'Meta+Z'], 'Undo', undoTerminalHistory],
+    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', redoTerminalHistory],
 
     ['Ctrl+H', 'History', logHistory],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
@@ -99,19 +100,29 @@ async function scrape(removeData = false) {
 
     if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
 
-    window.electron.status('Scrape: START');
+    window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
+        const writeLine = line => writeTerminalLine(index, line, true, true);
         try {
-            writeTerminalLine(index, fkv(username, '...'), true);
-            const newData = await window.electron.scrape(username);
-            if (newData == null) throw new Error('User data not found');
+            writeLine(fkv(username, '...'));
+            lockTerminalLine(index);
+
+            const newData = await window.electron.scrape(index, username);
+            if (newData == null) {
+                window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
+                return writeLine(username);
+            }
 
             window.electron.status(`Scrape: ${fkv(username, newData)}`);
-            writeTerminalLine(index, fkv(username, newData), true);
+            writeLine(fkv(username, newData));
         } catch (error) {
-            window.electron.status(`Scrape: FAIL: ${username}`);
-            writeTerminalLine(index, username, true);
+            window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
+            writeLine(username);
+
+            console.error(error);
             throw error;
+        } finally {
+            unlockTerminalLine(index);
         }
     }));
 

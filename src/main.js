@@ -141,17 +141,26 @@ function addListeners() {
         }
     });
 
-    ipcMain.handle('scrape', async (_, line) => {
-        while (pageLoading.value === true) await new Promise(resolve =>
-            pageLoading.once(Observable.EVENT, resolve)
-        );
-        if (pageLoading.value !== false) throw new Error('Stats page not available');
+    // TODO: maybe abort possible ongoing conflicting duplicate event
+    // TODO: abort in statsWindow as well
+    // statsWindow.webContents.send(`scrape:abort:${eventId}`);
+    ipcMain.handle('scrape', (_, row, line) => {
+        const scrapePromise = (async () => {
+            while (pageLoading.value === true) await new Promise(
+                resolve => pageLoading.once(Observable.EVENT, resolve)
+            );
+            if (pageLoading.value !== false) throw new Error('Stats page not available');
 
-        const stat = await new Promise(resolve => {
-            statsWindow.webContents.send('scrape', line);
-            ipcMain.once(`scrape:${line}`, (_, response) => resolve(response));
+            return new Promise(resolve => {
+                statsWindow.webContents.send('scrape', row, line);
+                ipcMain.once(`scrape:${row}`, (_, response) => resolve(response));
+            });
+        })();
+
+        const abortPromise = new Promise((_, reject) => {
+            ipcMain.once(`scrape:abort:${row}`, () => reject(`Scrape: ${line}: ABORT`))
         });
 
-        return stat;
+        return Promise.race([scrapePromise, abortPromise]);
     });
 }

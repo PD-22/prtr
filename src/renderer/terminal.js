@@ -2,8 +2,9 @@
 const element = document.querySelector('textarea.terminal');
 const history = [{ value: '', start: 0, end: 0 }];
 const maxHistoryLength = 128;
-const inputDebounce = 1000; // TEMP
+const inputDebounce = 500;
 let inputLoading = false;
+const lockedLines = new Set();
 let historyIndex = 0;
 let debounceId;
 export const terminal = { element, isOpen: false };
@@ -15,6 +16,7 @@ export function openTerminal() {
 }
 
 export function closeTerminal() {
+    commitInputHistory();
     terminal.isOpen = false;
     element.classList.remove('is-open');
 }
@@ -23,30 +25,51 @@ export function getTerminalValue() {
     return element.value;
 }
 
+function getHistoryValue() {
+    return history[historyIndex].value;
+}
+
 function setTerminalValue(newValue) {
     return element.value = newValue;
 }
 
-export function writeTerminal(value, selection) {
+export function writeTerminal(value, selection, overrideBlock) {
     commitInputHistory();
+    if (!overrideBlock && abortCorruptedLines(value)) return checkoutTerminalHistory(0);
     pushHistory(value, selection);
-    checkoutTerminalHistory(true);
+    redoTerminalHistory();
+}
+
+export function lockTerminalLine(row) {
+    lockedLines.add(row);
+}
+export function unlockTerminalLine(row) {
+    lockedLines.delete(row);
+}
+function abortCorruptedLines(newValue) {
+    const lines = getTerminalLines(getHistoryValue());
+    const newLines = getTerminalLines(newValue);
+    const rowChanged = row => lines[row] !== newLines[row];
+    const abortRows = Array.from(lockedLines).filter(rowChanged);
+    if (!abortRows.length) return false;
+    abortRows.forEach(row => { window.electron.abortScrape(row); });
+    return true;
 }
 
 export function onTerminalInput() {
     cancelInputHistory();
+    if (abortCorruptedLines(getTerminalValue())) return checkoutTerminalHistory(0);
     inputLoading = true;
-    debounceId = window.setTimeout(commitInputHistory, inputDebounce);
+    debounceId = setTimeout(commitInputHistory, inputDebounce);
 }
 function commitInputHistory() {
     if (!inputLoading) return;
     cancelInputHistory();
-    const value = getTerminalValue();
-    writeTerminal(value, getTerminalSelection());
+    writeTerminal(getTerminalValue(), getTerminalSelection());
 }
 function cancelInputHistory() {
     inputLoading = false;
-    return window.clearTimeout(debounceId);
+    return clearTimeout(debounceId);
 };
 
 function pushHistory(value, selection) {
@@ -80,14 +103,19 @@ function parseSelection(value, selection) {
     return { start, end, dir };
 }
 
-export function checkoutTerminalHistory(direction = false) {
-    const change = direction ? 1 : -1;
+function checkoutTerminalHistory(change) {
     const newHistoryIndex = clamp(historyIndex + change, 0, history.length - 1);
 
     historyIndex = newHistoryIndex;
     const { value, start, end, dir } = history[historyIndex];
     setTerminalValue(value);
     setTerminalSelection(start, end, dir);
+}
+export function undoTerminalHistory() {
+    return checkoutTerminalHistory(-1);
+}
+export function redoTerminalHistory() {
+    return checkoutTerminalHistory(1);
 }
 
 export function logHistory() {
@@ -111,14 +139,14 @@ export function getTerminalLines(value = getTerminalValue()) {
     return value.replace(/\r/g, "\n").split('\n');
 }
 
-export function writeTerminalLines(lines, selection) {
-    return writeTerminal(lines.join('\n'), selection);
+export function writeTerminalLines(lines, selection, overrideBlock) {
+    return writeTerminal(lines.join('\n'), selection, overrideBlock);
 }
 
-export function writeTerminalLine(index, line, selection) {
+export function writeTerminalLine(index, line, selection, overrideBlock) {
     const lines = getTerminalLines();
     lines[index] = line;
-    return writeTerminal(lines.join('\n'), selection);
+    return writeTerminal(lines.join('\n'), selection, overrideBlock);
 }
 
 export function caretToPos(lines, caret) {
