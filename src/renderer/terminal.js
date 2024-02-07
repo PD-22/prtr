@@ -2,7 +2,8 @@
 const element = document.querySelector('textarea.terminal');
 const history = [{ value: '', start: 0, end: 0 }];
 const maxHistoryLength = 128;
-const inputDebounce = 500;
+const inputDebounce = 1000; // TEMP
+let inputLoading = false;
 let historyIndex = 0;
 let debounceId;
 export const terminal = { element, isOpen: false };
@@ -27,19 +28,24 @@ function setTerminalValue(newValue) {
 }
 
 export function writeTerminal(value, selection) {
-    cancelInputHistory();
+    commitInputHistory();
     pushHistory(value, selection);
     checkoutTerminalHistory(true);
 }
 
 export function onTerminalInput() {
     cancelInputHistory();
-    debounceId = window.setTimeout(() => {
-        const value = getTerminalValue();
-        writeTerminal(value, getTerminalSelection());
-    }, inputDebounce);
+    inputLoading = true;
+    debounceId = window.setTimeout(commitInputHistory, inputDebounce);
+}
+function commitInputHistory() {
+    if (!inputLoading) return;
+    cancelInputHistory();
+    const value = getTerminalValue();
+    writeTerminal(value, getTerminalSelection());
 }
 function cancelInputHistory() {
+    inputLoading = false;
     return window.clearTimeout(debounceId);
 };
 
