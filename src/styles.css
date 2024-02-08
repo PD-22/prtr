@@ -1,9 +1,8 @@
 body {
-    margin: 0;
-    height: 100vh;
     width: 100vw;
+    height: 100vh;
+    margin: 0;
     padding: 0;
-    display: flex;
     background: #000;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -14,11 +13,15 @@ body::-webkit-scrollbar {
 }
 
 .canvas-background {
+    position: absolute;
+    display: flex;
     width: 100%;
     height: 100%;
-    display: flex;
     justify-content: center;
-    align-items: center;
+}
+
+.canvas-container {
+    margin: auto;
 }
 
 .main-canvas,
@@ -43,7 +46,14 @@ body::-webkit-scrollbar {
     overflow-y: visible;
     resize: none;
     font-family: Consolas;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
+
+.terminal::-webkit-scrollbar {
+    display: none;
+}
+
 
 .terminal.is-open {
     display: block;
