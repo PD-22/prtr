@@ -4,7 +4,7 @@ import { resizeCanvas } from "./rect.js";
 import { onKeyDown } from "./shortcuts.js";
 import { onTerminalInput, terminal } from "./terminal.js";
 
-resizeCanvas(screen.width, screen.height);
+resizeCanvas(0, 0);
 
 document.addEventListener('keydown', onKeyDown);
 

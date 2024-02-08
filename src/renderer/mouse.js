@@ -1,5 +1,6 @@
 import { overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
+import { clamp } from "./terminal.js";
 
 const mouse = { isHold: false };
 export default mouse;
@@ -10,8 +11,8 @@ function getCanvasMousePos(e) {
     const scaleX = overlayCanvas.width / bcr.width;
     const scaleY = overlayCanvas.height / bcr.height;
 
-    const x = Math.min(overlayCanvas.width, Math.max(0, (e.clientX - bcr.left) * scaleX));
-    const y = Math.min(overlayCanvas.height, Math.max(0, (e.clientY - bcr.top) * scaleY));
+    const x = clamp((e.clientX - bcr.left) * scaleX, 0, overlayCanvas.width);
+    const y = clamp((e.clientY - bcr.top) * scaleY, 0, overlayCanvas.height);
 
     return [x, y];
 }

@@ -1,6 +1,7 @@
 import { resizeCanvas } from "./rect.js";
 
 export const canvasBackground = document.querySelector('.canvas-background');
+export const canvasContainer = document.querySelector('.canvas-container');
 /** @type {HTMLCanvasElement} */
 export const canvas = document.querySelector('.main-canvas');
 export const ctx = canvas.getContext('2d');

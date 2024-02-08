@@ -1,7 +1,6 @@
 node_modules
 .*
+temp
 *.txt
 *.traineddata
-temp
-output.*
-init.png
+*.png

@@ -1,33 +1,41 @@
-import { canvas, clearOverlay, octx, overlayCanvas } from "./canvas.js";
+import { canvas, canvasContainer, clearOverlay, octx, overlayCanvas } from "./canvas.js";
 
 const rect = { x: 0, y: 0, w: 0, h: 0 };
+const dash = { width: 2, length: 5 };
 export default rect;
 
 export function setRect(newRect) {
     let { x, y, w, h } = newRect;
-    rect.x = Math.floor(x);
-    rect.y = Math.floor(y);
-    rect.w = Math.floor(w);
-    rect.h = Math.floor(h);
+    rect.x = Math.round(x);
+    rect.y = Math.round(y);
+    rect.w = Math.round(w);
+    rect.h = Math.round(h);
     drawCrop();
 }
 
 function drawCrop() {
-    let { x, y, w, h } = rect;
-    octx.lineWidth = "1px";
+    octx.save();
+    const { x, y, w, h } = rect;
+    octx.lineWidth = dash.width;
     octx.strokeStyle = "#FFF";
     clearOverlay();
-    octx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    octx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     octx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     octx.clearRect(x, y, w, h);
-    octx.strokeStyle = '#FFF';
-    octx.lineWidth = 1;
+    octx.setLineDash([dash.length, dash.length]);
     octx.strokeRect(x, y, w, h);
+    octx.restore();
 }
 
 export function resizeCanvas(w, h) {
-    overlayCanvas.width = canvas.width = w;
-    overlayCanvas.height = canvas.height = h;
+    canvasContainer.style.width = w + 'px';
+    overlayCanvas.width = w;
+    canvas.width = w;
+
+    canvasContainer.style.height = h + 'px';
+    overlayCanvas.height = h;
+    canvas.height = h;
+
     fitRectToCanvas();
 }
 
