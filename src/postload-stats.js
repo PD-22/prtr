@@ -1,8 +1,9 @@
 const token = getToken();
-window.electron.onScrape(async (row, line) => {
+window.electron.onScrape((username) => {
     const controller = new AbortController();
-    window.electron.onAbort(row, () => controller.abort());
-    return getUserTime(line, token, controller.signal);
+    const promise = getUserTime(username, token, controller.signal)
+    const abort = () => controller.abort();
+    return [promise, abort];
 });
 token;
 
@@ -14,14 +15,10 @@ function getToken() {
 }
 
 async function getUserTime(username, token, signal) {
-    try {
-        const searchResults = await searchUser(username, token, signal);
-        const foundUser = searchResults.find(x => x.label === username);
-        const userPageUrl = foundUser.value.replace('http', 'https');
-        return await extractUserTime(userPageUrl, signal);
-    } catch (error) {
-        return null;
-    }
+    const searchResults = await searchUser(username, token, signal);
+    const foundUser = searchResults.find(x => x.label === username);
+    const userPageUrl = foundUser.value.replace('http', 'https');
+    return await extractUserTime(userPageUrl, signal);
 }
 
 async function extractUserTime(userPageUrl, signal) {

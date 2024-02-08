@@ -141,7 +141,7 @@ function addListeners() {
         }
     });
 
-    ipcMain.handle('scrape', (_, row, line) => {
+    ipcMain.handle('scrape', (_, row, username) => {
         const scrapePromise = (async () => {
             while (pageLoading.value === true) await new Promise(
                 resolve => pageLoading.once(Observable.EVENT, resolve)
@@ -149,16 +149,16 @@ function addListeners() {
             if (pageLoading.value !== false) throw new Error('Stats page not available');
 
             return new Promise(resolve => {
-                statsWindow.webContents.send('scrape', row, line);
+                statsWindow.webContents.send('scrape', row, username);
                 ipcMain.once(`scrape:${row}`, (_, response) => resolve(response));
             });
         })();
 
         const abortPromise = new Promise((_, reject) => {
-            const channel = `scrape:abort:${row}`;
-            ipcMain.once(channel, () => {
-                statsWindow.webContents.send(channel);
-                reject(`Scrape: ${line}: ABORT`);
+            const abortChannel = `scrape:abort:${row}`;
+            ipcMain.once(abortChannel, () => {
+                statsWindow.webContents.send(abortChannel);
+                reject(new Error(`Scrape: ABORT: ${username}`));
             })
         });
 

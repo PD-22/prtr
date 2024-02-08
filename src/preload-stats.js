@@ -1,11 +1,32 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-const api = {
-    onScrape: callback => ipcRenderer.on('scrape', async (_, row, line) => {
-        const result = await callback(row, line);
-        ipcRenderer.send(`scrape:${row}`, result);
-    }),
-    onAbort: (row, abort) => ipcRenderer.on(`scrape:abort:${row}`, abort)
-};
+const onScrape = getUserTime => ipcRenderer.on('scrape', (_, row, username) =>
+    new Promise((resolve, reject) => {
+        const scrapeChannel = `scrape:${row}`;
+        const abortChannel = `scrape:abort:${row}`;
 
-contextBridge.exposeInMainWorld('electron', api);
+        const abortHandler = () => {
+            abort();
+            reject(new Error(`Scrape: ABORT: ${username}`));
+        };
+        const dataHandler = result => {
+            ipcRenderer.send(scrapeChannel, result)
+            resolve();
+        };
+        const errorHandler = (error) => {
+            ipcRenderer.send(scrapeChannel, null)
+            reject(error);
+        }
+        const finalHandler = () => {
+            ipcRenderer.removeListener(abortChannel, abortHandler);
+        };
+
+        ipcRenderer.once(abortChannel, abortHandler);
+
+        /** @type {Promise} */
+        const [promise, abort] = getUserTime(username);
+        promise.then(dataHandler).catch(errorHandler).finally(finalHandler);
+    })
+);
+
+contextBridge.exposeInMainWorld('electron', { onScrape });
