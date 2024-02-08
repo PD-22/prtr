@@ -104,6 +104,7 @@ function parseSelection(value, selection) {
 }
 
 function checkoutTerminalHistory(change) {
+    commitInputHistory();
     const newHistoryIndex = clamp(historyIndex + change, 0, history.length - 1);
 
     historyIndex = newHistoryIndex;
@@ -123,7 +124,7 @@ export function logHistory() {
     const formatSnap = ({ value, start, end, dir }, i) => {
         const isActive = i === historyIndex;
         const valStr = JSON.stringify(value);
-        if (isActive && valStr !== curValStr) console.warn('Text content does not match');
+        // if (isActive && valStr !== curValStr) console.warn('Text content does not match');
         const possArrow = isActive ? '<--' : '';
         return [
             i,
@@ -132,7 +133,7 @@ export function logHistory() {
             possArrow
         ].join(' ');
     };
-    window.electron.status('History', history.map(formatSnap));
+    window.electron.status('History', [curValStr, ...history.map(formatSnap)]);
 }
 
 export function getTerminalLines(value = getTerminalValue()) {
