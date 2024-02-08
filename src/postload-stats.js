@@ -18,22 +18,22 @@ async function getUserTime(username, token, signal) {
         const searchResults = await searchUser(username, token, signal);
         const foundUser = searchResults.find(x => x.label === username);
         const userPageUrl = foundUser.value.replace('http', 'https');
-        return await extractUserTime(userPageUrl);
+        return await extractUserTime(userPageUrl, signal);
     } catch (error) {
         return null;
     }
 }
 
-async function extractUserTime(userPageUrl) {
-    const document = await fetchPage(userPageUrl);
+async function extractUserTime(userPageUrl, signal) {
+    const document = await fetchPage(userPageUrl, signal);
     const allElements = Array.from(document.getElementsByTagName("*"));
     const inGameTimeElt = allElements.find(elt => elt.textContent === "IN-GAME TIME");
     const timeElement = inGameTimeElt.previousElementSibling.querySelector('abbr');
     return parseInt(timeElement.title);
 }
 
-async function fetchPage(url) {
-    const response = await fetch(url);
+async function fetchPage(url, signal) {
+    const response = await fetch(url, { signal });
     const htmlText = await response.text();
     const parser = new DOMParser();
     return parser.parseFromString(htmlText, "text/html");
