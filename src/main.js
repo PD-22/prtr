@@ -141,9 +141,6 @@ function addListeners() {
         }
     });
 
-    // TODO: maybe abort possible ongoing conflicting duplicate event
-    // TODO: abort in statsWindow as well
-    // statsWindow.webContents.send(`scrape:abort:${eventId}`);
     ipcMain.handle('scrape', (_, row, line) => {
         const scrapePromise = (async () => {
             while (pageLoading.value === true) await new Promise(
@@ -158,7 +155,11 @@ function addListeners() {
         })();
 
         const abortPromise = new Promise((_, reject) => {
-            ipcMain.once(`scrape:abort:${row}`, () => reject(`Scrape: ${line}: ABORT`))
+            const channel = `scrape:abort:${row}`;
+            ipcMain.once(channel, () => {
+                statsWindow.webContents.send(channel);
+                reject(`Scrape: ${line}: ABORT`);
+            })
         });
 
         return Promise.race([scrapePromise, abortPromise]);

@@ -1,5 +1,9 @@
 const token = getToken();
-window.electron.onScrape(username => getUserTime(username, token));
+window.electron.onScrape(async (row, line) => {
+    const controller = new AbortController();
+    window.electron.onAbort(row, () => controller.abort());
+    return getUserTime(line, token, controller.signal);
+});
 token;
 
 function getToken() {
@@ -9,9 +13,9 @@ function getToken() {
     }
 }
 
-async function getUserTime(username, token) {
+async function getUserTime(username, token, signal) {
     try {
-        const searchResults = await searchUser(username, token);
+        const searchResults = await searchUser(username, token, signal);
         const foundUser = searchResults.find(x => x.label === username);
         const userPageUrl = foundUser.value.replace('http', 'https');
         return await extractUserTime(userPageUrl);
@@ -35,11 +39,12 @@ async function fetchPage(url) {
     return parser.parseFromString(htmlText, "text/html");
 }
 
-async function searchUser(username, token) {
+async function searchUser(username, token, signal) {
     const options = {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ search: username, _token: token })
+        body: new URLSearchParams({ search: username, _token: token }),
+        signal
     };
     const response = await fetch("/json/search", options);
     return await response.json();
