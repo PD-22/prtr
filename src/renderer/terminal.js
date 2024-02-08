@@ -120,20 +120,22 @@ export function redoTerminalHistory() {
 }
 
 export function logHistory() {
+    const arrow = '-->';
+    const indent = ' '.repeat(arrow.length + 1);
     const curValStr = JSON.stringify(getTerminalValue());
-    const formatSnap = ({ value, start, end, dir }, i) => {
-        const isActive = i === historyIndex;
+    const formatSnap = ({ value, start, end, dir }, index) => {
+        const isActive = index === historyIndex;
         const valStr = JSON.stringify(value);
         // if (isActive && valStr !== curValStr) console.warn('Text content does not match');
-        const possArrow = isActive ? '<--' : '';
-        return [
-            i,
-            valStr.padEnd(9, ' '),
-            [start, end, dir].map(x => x ?? '?').join('-'),
-            possArrow
-        ].join(' ');
+        const arrowStr = (isActive ? arrow : '').padEnd(arrow.length, ' ');
+        const indexStr = `${index}:`;
+        const startStr = String(start).padStart?.(2, '0');
+        const endStr = String(end).padStart?.(2, '0');
+        const selectStr = [startStr, endStr, dir?.[0]].map(x => x ?? '?').join('-');
+        return [arrowStr, indexStr, selectStr, valStr,].join(' ');
     };
-    window.electron.status('History', [curValStr, ...history.map(formatSnap)]);
+    const body = ['History', indent + curValStr, ...history.map(formatSnap)];
+    window.electron.status(body.join('\n'));
 }
 
 export function getTerminalLines(value = getTerminalValue()) {
