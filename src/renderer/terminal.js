@@ -64,6 +64,26 @@ writeTerminalLine('A');                                     /**/_`C X A`;
 writeTerminalLine('B');                                     /**/_`C X A B`;
 writeTerminalLine('C');                                     /**/_`C X A B C`;
 writeTerminalLine('D');                                     /**/_`C X A B C D`;
+[
+    /* writeTerminalLine('T'); */                                     /**/`X Z B T`,
+    /* removeTerminalLines(2); */                                     /**/`X Z T`,
+    /* writeTerminalLine("A", 0); */                                  /**/`A Z T`,
+    /* writeTerminalLine("B"); */                                     /**/`A Z T B`,
+    /* writeTerminalLine("C"); */                                     /**/`A Z T B C`,
+    /* removeTerminalLines(2); */                                     /**/`A Z B C`,
+    /* writeTerminalLine("B", 1); */                                  /**/`A B B C`,
+    /* writeTerminalLine("Q", 2); */                                  /**/`A B Q C`,
+    /* writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' }); */     /**/`X X X X`,
+    /* writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' }); */             /**/`E D C X`,
+    /* writeTerminalLines({ 5: 'H', 7: 'J' }); */                     /**/`E D C X\n H\n J`,
+    /* removeTerminalLines(4); */                                     /**/`E D C X H\n J`,
+    /* removeTerminalLines(6); */                                     /**/`E D C X H `,
+    /* removeTerminalLines(0, 2); */                                  /**/`C X H `,
+    /* removeTerminalLines(-2, 2); */                                 /**/`C X`,
+    /* writeTerminalLine('A'); */                                     /**/`C X A`,
+    /* writeTerminalLine('B'); */                                     /**/`C X A B`,
+    /* writeTerminalLine('C'); */                                     /**/`C X A B C`,
+].toReversed().forEach(str => { undoTerminalHistory(); _([str]); });
 
 export function openTerminal() {
     terminal.isOpen = true;
