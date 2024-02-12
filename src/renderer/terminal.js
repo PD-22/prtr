@@ -4,7 +4,7 @@ const element = document.querySelector('textarea.terminal');
 const history = [];
 let historyBase = "X\nY\nZ\nA";
 // let historyBase = "";
-const maxHistoryLength = 128;
+const maxHistoryLength = 18;
 let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -123,17 +123,6 @@ function cancelInputHistory() {
     inputLoading = false;
     return clearTimeout(debounceId);
 };
-
-function pushHistory(value, selection) {
-    let { start, end, dir } = parseSelection(value, selection);
-
-    const spliceIndex = historyIndex + (value !== history[historyIndex].value);
-    const snapshot = { value, start, end, dir };
-    history.splice(spliceIndex, Infinity, snapshot);
-
-    const overflow = history.length - maxHistoryLength;
-    if (overflow > 0) history.splice(0, overflow);
-}
 
 function parseSelection(value, selection) {
     let start = selection?.start;
@@ -259,16 +248,11 @@ export function writeTerminalLines(rowTextDict) {
     const size = Math.max(prevSize ?? baseSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
-    const snapshot = { size, ...newDict };
-
-    if (size === prevSize && !Object.entries(newDict).length) return;
-    history.splice(historyIndex, Infinity, snapshot);
-    redoTerminalHistory();
+    pushHistory({ size, ...newDict });
 }
 
 /** @param {[Number, any][]} rowTextPairs */
 function fillSnaps(rowTextPairs) {
-    // TODO: may lines incorrect - no historyIndex dependency
     const lines = getTerminalLines();
     const end = Math.max(...rowTextPairs.map(([row]) => row));
     const length = end - lines.length;
@@ -293,8 +277,17 @@ export function removeTerminalLines(start, end = start + 1) {
     const size = newLines.length
     const newDict = Object.fromEntries(entries);
 
-    const snapshot = { size, ...newDict };
+    pushHistory({ size, ...newDict });
+}
+
+function pushHistory(snapshot) {
+    const { size, ...newDict } = snapshot;
+
+    const prevSize = history[historyIndex - 1]?.size;
+    if (size === prevSize && !Object.entries(newDict).length) return;
+
     history.splice(historyIndex, Infinity, snapshot);
+
     redoTerminalHistory();
 }
 
