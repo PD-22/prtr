@@ -4,7 +4,7 @@ const element = document.querySelector('textarea.terminal');
 const history = [];
 let historyBase = "X\nY\nZ\nA";
 // let historyBase = "";
-const maxHistoryLength = 24;
+const maxHistoryLength = 25;
 let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -14,19 +14,32 @@ const lockedLines = new Set();
 let debounceId;
 export const terminal = { element, isOpen: false };
 
+const assert = (actual, expected) => {
+    if (actual === expected) return;
+    throw new Error(`expected ${expected} but got ${actual}`);
+}
 const _ = ([input]) => {
     const expected = JSON.stringify(input.replaceAll(', ', '\n'));
     const actual = JSON.stringify(getTerminalValue());
-    const matches = actual === expected;
-    if (!matches) throw new Error(`expected ${expected} but got ${actual}`);
+    assert(actual, expected);
     logHistory();
 };
-const __ = ([input]) => {
-    const arr = input.slice(1, -1).split('\n');
-    for (let i = historyIndex - 1; i >= 0; i--) { undoTerminalHistory(); _([arr[i]]); }
-    for (let i = 1; i < maxHistoryLength; i++) { redoTerminalHistory(); _([arr[i]]); }
+const __ = ([inputs]) => {
+    const arr = inputs.slice(1, -1).split('\n');
+    const indexList = arr.map((_v, i) => i);
+
+    assert(maxHistoryLength, arr.length);
+    assert(historyIndex, maxHistoryLength);
+
+    const undoArr = indexList.toReversed().slice(1);
+    const redoArr = indexList.slice(1);
+
+    undoArr.forEach(index => { undoTerminalHistory(); _([arr[index]]); });
+    redoArr.forEach(index => { redoTerminalHistory(); _([arr[index]]); });
 };
+// TODO: test clear all
 openTerminal();                                             /**/_`X, Y, Z, A`;
+writeTerminalLine('N', 3);                                  /**/_`X, Y, Z, N`;
 removeTerminalLines(3);                                     /**/_`X, Y, Z`;
 writeTerminalLine('B', 0);                                  /**/_`B, Y, Z`;
 writeTerminalLine('C', 1);                                  /**/_`B, C, Z`;
@@ -34,9 +47,9 @@ writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/_`D, E, F, G`;
 undoTerminalHistory();                                      /**/_`B, C, Z`;
 undoTerminalHistory();                                      /**/_`B, Y, Z`;
 undoTerminalHistory();                                      /**/_`X, Y, Z`;
-undoTerminalHistory();                                      /**/_`X, Y, Z, A`;
-writeTerminalLine('B');                                     /**/_`X, Y, Z, A, B`;
-removeTerminalLines(1);                                     /**/_`X, Z, A, B`;
+undoTerminalHistory();                                      /**/_`X, Y, Z, N`;
+writeTerminalLine('B');                                     /**/_`X, Y, Z, N, B`;
+removeTerminalLines(1);                                     /**/_`X, Z, N, B`;
 removeTerminalLines(2);                                     /**/_`X, Z, B`;
 removeTerminalLines(0);                                     /**/_`Z, B`;
 undoTerminalHistory();                                      /**/_`X, Z, B`;
@@ -68,10 +81,11 @@ writeTerminalLine('C');                                     /**/_`C, X, A, B, C`
 writeTerminalLine('D');                                     /**/_`C, X, A, B, C, D`;
 removeTerminalLines(0, 2);                                  /**/_`A, B, C, D`;
 writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });    /**/_`A, B, C, D, E, F, G, H`;
+writeTerminal('A\nB\nC\nD\nE\nF\nG\nH');                    /**/_`A, B, C, D, E, F, G, H`;
+writeTerminal('H\nG\nF\nE\nD\nC\nB\nA');                    /**/_`H, G, F, E, D, C, B, A`;
 __`
-X, Y, Z, A
-X, Y, Z, A, B
-X, Z, A, B
+X, Y, Z, N, B
+X, Z, N, B
 X, Z, B
 X, Z, B, T
 X, Z, T
@@ -94,6 +108,7 @@ C, X, A, B, C
 C, X, A, B, C, D
 A, B, C, D
 A, B, C, D, E, F, G, H
+H, G, F, E, D, C, B, A
 `;
 
 export function openTerminal() {
@@ -118,13 +133,6 @@ function getHistoryValue() {
 
 function setTerminalValue(newValue) {
     element.value = newValue;
-}
-
-export function writeTerminal(value, selection, overrideBlock) {
-    // commitInputHistory();
-    // if (!overrideBlock && abortCorruptedLines(value)) return checkoutTerminalHistory(0);
-    // pushHistory(value, selection);
-    // redoTerminalHistory();
 }
 
 export function lockTerminalLine(row) {
@@ -277,6 +285,13 @@ export function getTerminalLines(value = getTerminalValue()) {
     return value.replace(/\r/g, "\n").split('\n');
 }
 
+export function writeTerminal(text) {
+    const lines = getTerminalLines(text);
+    const size = lines.length;
+    const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
+    pushHistory({ size, ...dictionary });
+}
+
 export function writeTerminalLines(rowTextDict) {
     const lines = getTerminalLines();
     const changesRow = ([row, text]) => lines[row] !== text;
@@ -320,10 +335,15 @@ export function removeTerminalLines(start, end = start + 1) {
 }
 
 function pushHistory(snapshot) {
-    const { size, ...newDict } = snapshot;
+    let { size, entries } = parseSnapshot(snapshot);
+    const lines = getTerminalLines();
+
+    entries = entries.filter(([row, text]) => lines[row] !== text);
+    const dictionary = Object.fromEntries(entries);
+    entries = Object.entries(dictionary);
 
     const prevSize = history[historyIndex - 1]?.size;
-    if (size === prevSize && !Object.entries(newDict).length) return;
+    if (size === prevSize && !entries.length) return;
 
     history.splice(historyIndex, Infinity, snapshot);
 
