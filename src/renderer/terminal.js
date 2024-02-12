@@ -196,17 +196,21 @@ function latestText(row) {
 
 export function redoTerminalHistory() {
     if (historyIndex >= history.length) return;
-    const { size, ...snapshot } = history[historyIndex];
-    const lines = getTerminalLines();
+    setTerminalValue(applySnapshot(history[historyIndex], getTerminalValue()));
+    historyIndex++;
+}
 
-    parseSnapshot(snapshot).entries.forEach(operation => {
+export function applySnapshot(snapshot, text) {
+    const { size, ...dict } = snapshot;
+    const lines = getTerminalLines(text);
+
+    parseSnapshot(dict).entries.forEach(operation => {
         const [row, text] = operation;
         lines[row] = text;
     });
 
     lines.length = size;
-    setTerminalValue(lines.join('\n'));
-    historyIndex++;
+    return lines.join('\n');
 }
 
 function parseSnapshot(snapshot) {
