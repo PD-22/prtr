@@ -4,7 +4,7 @@ const element = document.querySelector('textarea.terminal');
 const history = [];
 let historyBase = "X\nY\nZ\nA";
 // let historyBase = "";
-const maxHistoryLength = 18;
+const maxHistoryLength = 24;
 let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -14,76 +14,87 @@ const lockedLines = new Set();
 let debounceId;
 export const terminal = { element, isOpen: false };
 
-const assert = (actual, expected) => {
-    if (actual === expected) return;
-    throw new Error(`expected ${expected} but got ${actual}`);
-}
-const _ = ([expected]) => {
-    expected = JSON.stringify(expected.replaceAll(' ', '\n'));
+const _ = ([input]) => {
+    const expected = JSON.stringify(input.replaceAll(', ', '\n'));
     const actual = JSON.stringify(getTerminalValue());
-    assert(actual, expected);
+    const matches = actual === expected;
+    if (!matches) throw new Error(`expected ${expected} but got ${actual}`);
     logHistory();
 };
-openTerminal();                                             /**/_`X Y Z A`;
-removeTerminalLines(3);                                     /**/_`X Y Z`;
-writeTerminalLine('B', 0);                                  /**/_`B Y Z`;
-writeTerminalLine('C', 1);                                  /**/_`B C Z`;
-writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/_`D E F G`;
-undoTerminalHistory();                                      /**/_`B C Z`;
-undoTerminalHistory();                                      /**/_`B Y Z`;
-undoTerminalHistory();                                      /**/_`X Y Z`;
-undoTerminalHistory();                                      /**/_`X Y Z A`;
-writeTerminalLine('B');                                     /**/_`X Y Z A B`;
-removeTerminalLines(1);                                     /**/_`X Z A B`;
-removeTerminalLines(2);                                     /**/_`X Z B`;
-removeTerminalLines(0);                                     /**/_`Z B`;
-undoTerminalHistory();                                      /**/_`X Z B`;
-writeTerminalLine('T');                                     /**/_`X Z B T`;
-writeTerminalLine('R');                                     /**/_`X Z B T R`;
-undoTerminalHistory();                                      /**/_`X Z B T`;
-removeTerminalLines(2);                                     /**/_`X Z T`;
-writeTerminalLine("A", 0);                                  /**/_`A Z T`;
-writeTerminalLine("B");                                     /**/_`A Z T B`;
-writeTerminalLine("C");                                     /**/_`A Z T B C`;
-removeTerminalLines(2);                                     /**/_`A Z B C`;
-writeTerminalLine("B", 1);                                  /**/_`A B B C`;
-writeTerminalLine("Q", 2);                                  /**/_`A B Q C`;
-writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/_`C D E F`;
-undoTerminalHistory();                                      /**/_`A B Q C`;
-writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/_`X X X X`;
-writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/_`E D C X`;
-writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/_`E D C X\n H\n J`;
-removeTerminalLines(4);                                     /**/_`E D C X H\n J`;
-removeTerminalLines(6);                                     /**/_`E D C X H `;
-removeTerminalLines(0, 2);                                  /**/_`C X H `;
-removeTerminalLines(-2, 2);                                 /**/_`C X`;
-writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/_`C X`;
-undoTerminalHistory();                                      /**/_`C X H `;
-redoTerminalHistory();                                      /**/_`C X`;
-writeTerminalLine('A');                                     /**/_`C X A`;
-writeTerminalLine('B');                                     /**/_`C X A B`;
-writeTerminalLine('C');                                     /**/_`C X A B C`;
-writeTerminalLine('D');                                     /**/_`C X A B C D`;
-[
-    /* writeTerminalLine('T'); */                                     /**/`X Z B T`,
-    /* removeTerminalLines(2); */                                     /**/`X Z T`,
-    /* writeTerminalLine("A", 0); */                                  /**/`A Z T`,
-    /* writeTerminalLine("B"); */                                     /**/`A Z T B`,
-    /* writeTerminalLine("C"); */                                     /**/`A Z T B C`,
-    /* removeTerminalLines(2); */                                     /**/`A Z B C`,
-    /* writeTerminalLine("B", 1); */                                  /**/`A B B C`,
-    /* writeTerminalLine("Q", 2); */                                  /**/`A B Q C`,
-    /* writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' }); */     /**/`X X X X`,
-    /* writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' }); */             /**/`E D C X`,
-    /* writeTerminalLines({ 5: 'H', 7: 'J' }); */                     /**/`E D C X\n H\n J`,
-    /* removeTerminalLines(4); */                                     /**/`E D C X H\n J`,
-    /* removeTerminalLines(6); */                                     /**/`E D C X H `,
-    /* removeTerminalLines(0, 2); */                                  /**/`C X H `,
-    /* removeTerminalLines(-2, 2); */                                 /**/`C X`,
-    /* writeTerminalLine('A'); */                                     /**/`C X A`,
-    /* writeTerminalLine('B'); */                                     /**/`C X A B`,
-    /* writeTerminalLine('C'); */                                     /**/`C X A B C`,
-].toReversed().forEach(str => { undoTerminalHistory(); _([str]); });
+const __ = ([input]) => {
+    const arr = input.slice(1, -1).split('\n');
+    for (let i = historyIndex - 1; i >= 0; i--) { undoTerminalHistory(); _([arr[i]]); }
+    for (let i = 1; i < maxHistoryLength; i++) { redoTerminalHistory(); _([arr[i]]); }
+};
+openTerminal();                                             /**/_`X, Y, Z, A`;
+removeTerminalLines(3);                                     /**/_`X, Y, Z`;
+writeTerminalLine('B', 0);                                  /**/_`B, Y, Z`;
+writeTerminalLine('C', 1);                                  /**/_`B, C, Z`;
+writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/_`D, E, F, G`;
+undoTerminalHistory();                                      /**/_`B, C, Z`;
+undoTerminalHistory();                                      /**/_`B, Y, Z`;
+undoTerminalHistory();                                      /**/_`X, Y, Z`;
+undoTerminalHistory();                                      /**/_`X, Y, Z, A`;
+writeTerminalLine('B');                                     /**/_`X, Y, Z, A, B`;
+removeTerminalLines(1);                                     /**/_`X, Z, A, B`;
+removeTerminalLines(2);                                     /**/_`X, Z, B`;
+removeTerminalLines(0);                                     /**/_`Z, B`;
+undoTerminalHistory();                                      /**/_`X, Z, B`;
+writeTerminalLine('T');                                     /**/_`X, Z, B, T`;
+writeTerminalLine('R');                                     /**/_`X, Z, B, T, R`;
+undoTerminalHistory();                                      /**/_`X, Z, B, T`;
+removeTerminalLines(2);                                     /**/_`X, Z, T`;
+writeTerminalLine("A", 0);                                  /**/_`A, Z, T`;
+writeTerminalLine("B");                                     /**/_`A, Z, T, B`;
+writeTerminalLine("C");                                     /**/_`A, Z, T, B, C`;
+removeTerminalLines(2);                                     /**/_`A, Z, B, C`;
+writeTerminalLine("B", 1);                                  /**/_`A, B, B, C`;
+writeTerminalLine("Q", 2);                                  /**/_`A, B, Q, C`;
+writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/_`C, D, E, F`;
+undoTerminalHistory();                                      /**/_`A, B, Q, C`;
+writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/_`X, X, X, X`;
+writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/_`E, D, C, X`;
+writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/_`E, D, C, X, , H, , J`;
+removeTerminalLines(4);                                     /**/_`E, D, C, X, H, , J`;
+removeTerminalLines(6);                                     /**/_`E, D, C, X, H, `;
+removeTerminalLines(0, 2);                                  /**/_`C, X, H, `;
+removeTerminalLines(-2, 2);                                 /**/_`C, X`;
+writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/_`C, X`;
+undoTerminalHistory();                                      /**/_`C, X, H, `;
+redoTerminalHistory();                                      /**/_`C, X`;
+writeTerminalLine('A');                                     /**/_`C, X, A`;
+writeTerminalLine('B');                                     /**/_`C, X, A, B`;
+writeTerminalLine('C');                                     /**/_`C, X, A, B, C`;
+writeTerminalLine('D');                                     /**/_`C, X, A, B, C, D`;
+removeTerminalLines(0, 2);                                  /**/_`A, B, C, D`;
+writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });    /**/_`A, B, C, D, E, F, G, H`;
+__`
+X, Y, Z, A
+X, Y, Z, A, B
+X, Z, A, B
+X, Z, B
+X, Z, B, T
+X, Z, T
+A, Z, T
+A, Z, T, B
+A, Z, T, B, C
+A, Z, B, C
+A, B, B, C
+A, B, Q, C
+X, X, X, X
+E, D, C, X
+E, D, C, X, , H, , J
+E, D, C, X, H, , J
+E, D, C, X, H, 
+C, X, H, 
+C, X
+C, X, A
+C, X, A, B
+C, X, A, B, C
+C, X, A, B, C, D
+A, B, C, D
+A, B, C, D, E, F, G, H
+`;
 
 export function openTerminal() {
     terminal.isOpen = true;
