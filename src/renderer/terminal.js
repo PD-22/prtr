@@ -59,7 +59,11 @@ removeTerminalLines(0, 2);                                  /**/_`C X H `;
 removeTerminalLines(-2, 2);                                 /**/_`C X`;
 writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/_`C X`;
 undoTerminalHistory();                                      /**/_`C X H `;
-writeTerminalLines({ 0: 'C', 1: 'X', 2: 'H' });             /**/_`C X H `;
+redoTerminalHistory();                                      /**/_`C X`;
+writeTerminalLine('A');                                     /**/_`C X A`;
+writeTerminalLine('B');                                     /**/_`C X A B`;
+writeTerminalLine('C');                                     /**/_`C X A B C`;
+writeTerminalLine('D');                                     /**/_`C X A B C D`;
 
 export function openTerminal() {
     terminal.isOpen = true;
@@ -291,6 +295,13 @@ function pushHistory(snapshot) {
     if (size === prevSize && !Object.entries(newDict).length) return;
 
     history.splice(historyIndex, Infinity, snapshot);
+
+    const overflow = history.length - maxHistoryLength;
+    if (overflow > 0) {
+        const snaps = history.splice(0, overflow);
+        snaps.forEach(snap => historyBase = applySnapshot(snap, historyBase));
+        historyIndex -= overflow;
+    }
 
     redoTerminalHistory();
 }
