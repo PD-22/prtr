@@ -2,7 +2,7 @@ import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { remindShortcuts } from "./shortcuts.js";
-import { openTerminal, terminal, writeTerminalLines } from "./terminal.js";
+import { openTerminal, terminal, writeTerminal } from "./terminal.js";
 
 export default [
     ['Alt+/', 'Shortcuts', remindShortcuts],
@@ -53,7 +53,7 @@ export default [
             const parsedLines = await window.electron.recognize(dataURL);
             if (!parsedLines) return;
 
-            writeTerminalLines(parsedLines);
+            writeTerminal(parsedLines.join('\n'));
             if (terminal.isOpen) return;
             openTerminal();
         } catch (error) {
