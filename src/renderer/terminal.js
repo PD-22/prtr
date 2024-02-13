@@ -9,10 +9,10 @@ export const maxHistoryLength = 33;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
-// const inputDebounce = 500;
-// let inputLoading = false;
+const inputDebounce = 500;
+let inputLoading = false;
+let inputTimer;
 // const lockedLines = new Set();
-// let debounceId;
 export const terminal = { element, isOpen: false };
 
 testTerminal(); logHistory();
@@ -24,13 +24,13 @@ export function openTerminal() {
 }
 
 export function closeTerminal() {
-    // commitInputHistory();
     terminal.isOpen = false;
     element.classList.remove('is-open');
 }
 
-export function getTerminalValue() {
-    return element.value;
+export function getTerminalValue(live = false) {
+    if (live) return element.value;
+    return calculateTerminalLines(historyIndex - 1).join('\n');
 }
 
 function setTerminalValue(newValue) {
@@ -39,35 +39,23 @@ function setTerminalValue(newValue) {
 
 export function undoTerminalHistory() {
     if (historyIndex <= 0) return;
-    const { size, entries } = parseSnapshot(history[historyIndex - 1]);
-    const changedRows = entries.map(([row]) => row);
-
-    const lastSize = latestSize();
-    const removedCount = Math.max(0, lastSize - size);
-    // TODO: may need edge fillSnaps
-    const removedRows = Array.from({ length: removedCount }, (_, i) => size + i);
-
-    const restoreRowsInit = changedRows.concat(removedRows).filter(x => x < lastSize);
-    const restoreRows = Array.from(new Set(restoreRowsInit)).toSorted((a, b) => a - b);
-
-    const lines = getTerminalLines();
-    restoreRows.forEach(row => lines[row] = latestText(row));
-    lines.length = lastSize;
-    setTerminalValue(lines.join('\n'));
+    setTerminalValue(calculateTerminalLines(historyIndex - 2).join('\n'));
     historyIndex--;
 }
 
-function latestSize() {
-    for (let i = historyIndex - 2; i >= 0; i--) {
-        const { size } = parseSnapshot(history[i]);
-        return size;
-    }
-    return getTerminalLines(historyBase).length;
+function calculateTerminalLines(index) {
+    return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
-function latestText(row) {
-    for (let i = historyIndex - 2; i >= 0; i--) {
-        const { size, entries } = parseSnapshot(history[i]);
+function latestSize(index) {
+    const snapshotSize = parseSnapshot(history[index])?.size;
+    const baseSize = getTerminalLines(historyBase).length;
+    return snapshotSize ?? baseSize;
+}
+
+function latestText(row, index) {
+    for (let i = index; i >= 0; i--) {
+        const entries = parseSnapshot(history[i])?.entries;
         for (let j = 0; j < entries.length; j++) {
             const operation = entries[j];
             const [curRow, text] = operation;
@@ -96,7 +84,7 @@ export function applySnapshot(snapshot, text) {
     return lines.join('\n');
 }
 
-function parseSnapshot(snapshot) {
+function parseSnapshot(snapshot = {}) {
     const intKey = ([row, text]) => [parseInt(row), text];
     const isValidRow = ([row]) => Number.isInteger(row) && row >= 0;
     const byFirst = (a, b) => a[0] - b[0];
@@ -178,12 +166,12 @@ function pushHistory(snapshotDict) {
     let { size, entries } = parseSnapshot(snapshotDict);
     const lines = getTerminalLines();
 
-    entries = entries.filter(([row, text]) => lines[row] !== text);
-    const dictionary = Object.fromEntries(entries);
-    entries = Object.entries(dictionary);
+    const filteredEntries = entries.filter(([row, text]) => lines[row] !== text);
+    const dictionary = Object.fromEntries(filteredEntries);
+    const cleanEntries = Object.entries(dictionary);
 
     const prevSize = history[historyIndex - 1]?.size;
-    if (size === prevSize && !entries.length) return;
+    if (size === prevSize && !cleanEntries.length) return;
 
     const snapshot = { size, ...dictionary };
     history.splice(historyIndex, Infinity, snapshot);
@@ -197,6 +185,21 @@ function pushHistory(snapshotDict) {
 
     redoTerminalHistory();
 }
+
+export function onTerminalInput() {
+    cancelInputHistory();
+    inputLoading = true;
+    inputTimer = setTimeout(commitInputHistory, inputDebounce);
+}
+function commitInputHistory() {
+    if (!inputLoading) return;
+    cancelInputHistory();
+    writeTerminal(getTerminalValue(true));
+}
+function cancelInputHistory() {
+    inputLoading = false;
+    return clearTimeout(inputTimer);
+};
 
 export function caretToPos(lines, caret) {
     let index = 0;
