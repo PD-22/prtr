@@ -1,10 +1,12 @@
+import shortcutsTerminal from "./shortcutsTerminal.js";
+
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "X\nY\nZ\nA";
 // let historyBase = "";
-const maxHistoryLength = 25;
+const maxHistoryLength = 28;
 let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -14,102 +16,115 @@ const lockedLines = new Set();
 let debounceId;
 export const terminal = { element, isOpen: false };
 
-const assert = (actual, expected) => {
-    if (actual === expected) return;
-    throw new Error(`expected ${expected} but got ${actual}`);
+const assert = (expected, actual) => {
+    if (expected === actual) return;
+    expected = JSON.stringify(expected);
+    actual = JSON.stringify(actual);
+    throw new Error(`Expected: ${expected} Got: ${actual}`);
 }
-const _ = ([input]) => {
-    const expected = JSON.stringify(input.replaceAll(', ', '\n'));
-    const actual = JSON.stringify(getTerminalValue());
-    assert(actual, expected);
-    logHistory();
-};
-const __ = ([inputs]) => {
-    const arr = inputs.slice(1, -1).split('\n');
+const assertTerminal = text => { assert(text, getTerminalValue()); logHistory(); };
+const assertUndoRedoTerminal = (...arr) => {
+    assert(arr.length, maxHistoryLength);
+    assert(maxHistoryLength, historyIndex);
     const indexList = arr.map((_v, i) => i);
 
-    assert(maxHistoryLength, arr.length);
-    assert(historyIndex, maxHistoryLength);
+    indexList.toReversed().slice(1).forEach(i => {
+        undoTerminalHistory();
+        assert(i, historyIndex - 1);
+        assertTerminal(arr[i]);
+    });
 
-    const undoArr = indexList.toReversed().slice(1);
-    const redoArr = indexList.slice(1);
-
-    undoArr.forEach(index => { undoTerminalHistory(); _([arr[index]]); });
-    redoArr.forEach(index => { redoTerminalHistory(); _([arr[index]]); });
+    indexList.slice(1).forEach(i => {
+        redoTerminalHistory();
+        assert(i, historyIndex - 1);
+        assertTerminal(arr[i]);
+    });
 };
-// TODO: test clear all
-openTerminal();                                             /**/_`X, Y, Z, A`;
-writeTerminalLine('N', 3);                                  /**/_`X, Y, Z, N`;
-removeTerminalLines(3);                                     /**/_`X, Y, Z`;
-writeTerminalLine('B', 0);                                  /**/_`B, Y, Z`;
-writeTerminalLine('C', 1);                                  /**/_`B, C, Z`;
-writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/_`D, E, F, G`;
-undoTerminalHistory();                                      /**/_`B, C, Z`;
-undoTerminalHistory();                                      /**/_`B, Y, Z`;
-undoTerminalHistory();                                      /**/_`X, Y, Z`;
-undoTerminalHistory();                                      /**/_`X, Y, Z, N`;
-writeTerminalLine('B');                                     /**/_`X, Y, Z, N, B`;
-removeTerminalLines(1);                                     /**/_`X, Z, N, B`;
-removeTerminalLines(2);                                     /**/_`X, Z, B`;
-removeTerminalLines(0);                                     /**/_`Z, B`;
-undoTerminalHistory();                                      /**/_`X, Z, B`;
-writeTerminalLine('T');                                     /**/_`X, Z, B, T`;
-writeTerminalLine('R');                                     /**/_`X, Z, B, T, R`;
-undoTerminalHistory();                                      /**/_`X, Z, B, T`;
-removeTerminalLines(2);                                     /**/_`X, Z, T`;
-writeTerminalLine("A", 0);                                  /**/_`A, Z, T`;
-writeTerminalLine("B");                                     /**/_`A, Z, T, B`;
-writeTerminalLine("C");                                     /**/_`A, Z, T, B, C`;
-removeTerminalLines(2);                                     /**/_`A, Z, B, C`;
-writeTerminalLine("B", 1);                                  /**/_`A, B, B, C`;
-writeTerminalLine("Q", 2);                                  /**/_`A, B, Q, C`;
-writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/_`C, D, E, F`;
-undoTerminalHistory();                                      /**/_`A, B, Q, C`;
-writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/_`X, X, X, X`;
-writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/_`E, D, C, X`;
-writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/_`E, D, C, X, , H, , J`;
-removeTerminalLines(4);                                     /**/_`E, D, C, X, H, , J`;
-removeTerminalLines(6);                                     /**/_`E, D, C, X, H, `;
-removeTerminalLines(0, 2);                                  /**/_`C, X, H, `;
-removeTerminalLines(-2, 2);                                 /**/_`C, X`;
-writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/_`C, X`;
-undoTerminalHistory();                                      /**/_`C, X, H, `;
-redoTerminalHistory();                                      /**/_`C, X`;
-writeTerminalLine('A');                                     /**/_`C, X, A`;
-writeTerminalLine('B');                                     /**/_`C, X, A, B`;
-writeTerminalLine('C');                                     /**/_`C, X, A, B, C`;
-writeTerminalLine('D');                                     /**/_`C, X, A, B, C, D`;
-removeTerminalLines(0, 2);                                  /**/_`A, B, C, D`;
-writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });    /**/_`A, B, C, D, E, F, G, H`;
-writeTerminal('A\nB\nC\nD\nE\nF\nG\nH');                    /**/_`A, B, C, D, E, F, G, H`;
-writeTerminal('H\nG\nF\nE\nD\nC\nB\nA');                    /**/_`H, G, F, E, D, C, B, A`;
-__`
-X, Y, Z, N, B
-X, Z, N, B
-X, Z, B
-X, Z, B, T
-X, Z, T
-A, Z, T
-A, Z, T, B
-A, Z, T, B, C
-A, Z, B, C
-A, B, B, C
-A, B, Q, C
-X, X, X, X
-E, D, C, X
-E, D, C, X, , H, , J
-E, D, C, X, H, , J
-E, D, C, X, H, 
-C, X, H, 
-C, X
-C, X, A
-C, X, A, B
-C, X, A, B, C
-C, X, A, B, C, D
-A, B, C, D
-A, B, C, D, E, F, G, H
-H, G, F, E, D, C, B, A
-`;
+openTerminal();                                             /**/assertTerminal('X\nY\nZ\nA');
+writeTerminalLine('N', 3);                                  /**/assertTerminal('X\nY\nZ\nN');
+removeTerminalLines(3);                                     /**/assertTerminal('X\nY\nZ');
+writeTerminalLine('B', 0);                                  /**/assertTerminal('B\nY\nZ');
+writeTerminalLine('C', 1);                                  /**/assertTerminal('B\nC\nZ');
+writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/assertTerminal('D\nE\nF\nG');
+undoTerminalHistory();                                      /**/assertTerminal('B\nC\nZ');
+undoTerminalHistory();                                      /**/assertTerminal('B\nY\nZ');
+undoTerminalHistory();                                      /**/assertTerminal('X\nY\nZ');
+undoTerminalHistory();                                      /**/assertTerminal('X\nY\nZ\nN');
+writeTerminalLine('B');                                     /**/assertTerminal('X\nY\nZ\nN\nB');
+removeTerminalLines(1);                                     /**/assertTerminal('X\nZ\nN\nB');
+removeTerminalLines(2);                                     /**/assertTerminal('X\nZ\nB');
+removeTerminalLines(0);                                     /**/assertTerminal('Z\nB');
+undoTerminalHistory();                                      /**/assertTerminal('X\nZ\nB');
+writeTerminalLine('T');                                     /**/assertTerminal('X\nZ\nB\nT');
+writeTerminalLine('R');                                     /**/assertTerminal('X\nZ\nB\nT\nR');
+undoTerminalHistory();                                      /**/assertTerminal('X\nZ\nB\nT');
+removeTerminalLines(2);                                     /**/assertTerminal('X\nZ\nT');
+writeTerminalLine("A", 0);                                  /**/assertTerminal('A\nZ\nT');
+writeTerminalLine("B");                                     /**/assertTerminal('A\nZ\nT\nB');
+writeTerminalLine("C");                                     /**/assertTerminal('A\nZ\nT\nB\nC');
+removeTerminalLines(2);                                     /**/assertTerminal('A\nZ\nB\nC');
+writeTerminalLine("B", 1);                                  /**/assertTerminal('A\nB\nB\nC');
+writeTerminalLine("Q", 2);                                  /**/assertTerminal('A\nB\nQ\nC');
+writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/assertTerminal('C\nD\nE\nF');
+undoTerminalHistory();                                      /**/assertTerminal('A\nB\nQ\nC');
+writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/assertTerminal('X\nX\nX\nX');
+writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/assertTerminal('E\nD\nC\nX');
+writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/assertTerminal('E\nD\nC\nX\n\nH\n\nJ');
+removeTerminalLines(4);                                     /**/assertTerminal('E\nD\nC\nX\nH\n\nJ');
+removeTerminalLines(6);                                     /**/assertTerminal('E\nD\nC\nX\nH\n');
+removeTerminalLines(0, 2);                                  /**/assertTerminal('C\nX\nH\n');
+removeTerminalLines(-2, 2);                                 /**/assertTerminal('C\nX');
+writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/assertTerminal('C\nX');
+undoTerminalHistory();                                      /**/assertTerminal('C\nX\nH\n');
+redoTerminalHistory();                                      /**/assertTerminal('C\nX');
+writeTerminalLine('A');                                     /**/assertTerminal('C\nX\nA');
+writeTerminalLine('B');                                     /**/assertTerminal('C\nX\nA\nB');
+writeTerminalLine('C');                                     /**/assertTerminal('C\nX\nA\nB\nC');
+writeTerminalLine('D');                                     /**/assertTerminal('C\nX\nA\nB\nC\nD');
+removeTerminalLines(0, 2);                                  /**/assertTerminal('A\nB\nC\nD');
+writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });     /**/assertTerminal('A\nB\nC\nD\nE\nF\nG\nH');
+writeTerminal('A\nB\nC\nD\nE\nF\nG\nH');                    /**/assertTerminal('A\nB\nC\nD\nE\nF\nG\nH');
+writeTerminal('H\nG\nF\nE\nD\nC\nB\nA');                    /**/assertTerminal('H\nG\nF\nE\nD\nC\nB\nA');
+
+writeTerminal('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
+assertTerminal('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
+
+shortcutsTerminal.find(x => x[1] === 'Clean')[2]();
+assertTerminal('Username\nUsername1\nUsername2\nUserName3 - ...\nUsername123\nUsername-Name - 123\nUsername4\nUserName5 - 123');
+
+shortcutsTerminal.find(x => x[1] === 'Clear')[2]();
+assertTerminal('Username\nUsername1\nUsername2\nUserName3\nUsername123\nUsername-Name\nUsername4\nUserName5');
+
+assertUndoRedoTerminal(
+    'X\nY\nZ\nN\nB',
+    'X\nZ\nN\nB',
+    'X\nZ\nB',
+    'X\nZ\nB\nT',
+    'X\nZ\nT',
+    'A\nZ\nT',
+    'A\nZ\nT\nB',
+    'A\nZ\nT\nB\nC',
+    'A\nZ\nB\nC',
+    'A\nB\nB\nC',
+    'A\nB\nQ\nC',
+    'X\nX\nX\nX',
+    'E\nD\nC\nX',
+    'E\nD\nC\nX\n\nH\n\nJ',
+    'E\nD\nC\nX\nH\n\nJ',
+    'E\nD\nC\nX\nH\n',
+    'C\nX\nH\n',
+    'C\nX',
+    'C\nX\nA',
+    'C\nX\nA\nB',
+    'C\nX\nA\nB\nC',
+    'C\nX\nA\nB\nC\nD',
+    'A\nB\nC\nD',
+    'A\nB\nC\nD\nE\nF\nG\nH',
+    'H\nG\nF\nE\nD\nC\nB\nA',
+    '  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123',
+    'Username\nUsername1\nUsername2\nUserName3 - ...\nUsername123\nUsername-Name - 123\nUsername4\nUserName5 - 123',
+    'Username\nUsername1\nUsername2\nUserName3\nUsername123\nUsername-Name\nUsername4\nUserName5'
+);
 
 export function openTerminal() {
     terminal.isOpen = true;
@@ -334,8 +349,8 @@ export function removeTerminalLines(start, end = start + 1) {
     pushHistory({ size, ...newDict });
 }
 
-function pushHistory(snapshot) {
-    let { size, entries } = parseSnapshot(snapshot);
+function pushHistory(snapshotDict) {
+    let { size, entries } = parseSnapshot(snapshotDict);
     const lines = getTerminalLines();
 
     entries = entries.filter(([row, text]) => lines[row] !== text);
@@ -345,6 +360,7 @@ function pushHistory(snapshot) {
     const prevSize = history[historyIndex - 1]?.size;
     if (size === prevSize && !entries.length) return;
 
+    const snapshot = { size, ...dictionary };
     history.splice(historyIndex, Infinity, snapshot);
 
     const overflow = history.length - maxHistoryLength;
