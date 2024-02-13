@@ -1,13 +1,12 @@
-import shortcutsTerminal from "./shortcutsTerminal.js";
+import testTerminal from "./terminal.test.js";
 
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
 
 const history = [];
-let historyBase = "X\nY\nZ\nA";
-// let historyBase = "";
-const maxHistoryLength = 28;
-let historyIndex = 0;
+let historyBase = "";
+export const maxHistoryLength = 28;
+export let historyIndex = 0;
 setTerminalValue(historyBase);
 
 const inputDebounce = 500;
@@ -16,115 +15,7 @@ const lockedLines = new Set();
 let debounceId;
 export const terminal = { element, isOpen: false };
 
-const assert = (expected, actual) => {
-    if (expected === actual) return;
-    expected = JSON.stringify(expected);
-    actual = JSON.stringify(actual);
-    throw new Error(`Expected: ${expected} Got: ${actual}`);
-}
-const assertTerminal = text => { assert(text, getTerminalValue()); logHistory(); };
-const assertUndoRedoTerminal = (...arr) => {
-    assert(arr.length, maxHistoryLength);
-    assert(maxHistoryLength, historyIndex);
-    const indexList = arr.map((_v, i) => i);
-
-    indexList.toReversed().slice(1).forEach(i => {
-        undoTerminalHistory();
-        assert(i, historyIndex - 1);
-        assertTerminal(arr[i]);
-    });
-
-    indexList.slice(1).forEach(i => {
-        redoTerminalHistory();
-        assert(i, historyIndex - 1);
-        assertTerminal(arr[i]);
-    });
-};
-openTerminal();                                             /**/assertTerminal('X\nY\nZ\nA');
-writeTerminalLine('N', 3);                                  /**/assertTerminal('X\nY\nZ\nN');
-removeTerminalLines(3);                                     /**/assertTerminal('X\nY\nZ');
-writeTerminalLine('B', 0);                                  /**/assertTerminal('B\nY\nZ');
-writeTerminalLine('C', 1);                                  /**/assertTerminal('B\nC\nZ');
-writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/assertTerminal('D\nE\nF\nG');
-undoTerminalHistory();                                      /**/assertTerminal('B\nC\nZ');
-undoTerminalHistory();                                      /**/assertTerminal('B\nY\nZ');
-undoTerminalHistory();                                      /**/assertTerminal('X\nY\nZ');
-undoTerminalHistory();                                      /**/assertTerminal('X\nY\nZ\nN');
-writeTerminalLine('B');                                     /**/assertTerminal('X\nY\nZ\nN\nB');
-removeTerminalLines(1);                                     /**/assertTerminal('X\nZ\nN\nB');
-removeTerminalLines(2);                                     /**/assertTerminal('X\nZ\nB');
-removeTerminalLines(0);                                     /**/assertTerminal('Z\nB');
-undoTerminalHistory();                                      /**/assertTerminal('X\nZ\nB');
-writeTerminalLine('T');                                     /**/assertTerminal('X\nZ\nB\nT');
-writeTerminalLine('R');                                     /**/assertTerminal('X\nZ\nB\nT\nR');
-undoTerminalHistory();                                      /**/assertTerminal('X\nZ\nB\nT');
-removeTerminalLines(2);                                     /**/assertTerminal('X\nZ\nT');
-writeTerminalLine("A", 0);                                  /**/assertTerminal('A\nZ\nT');
-writeTerminalLine("B");                                     /**/assertTerminal('A\nZ\nT\nB');
-writeTerminalLine("C");                                     /**/assertTerminal('A\nZ\nT\nB\nC');
-removeTerminalLines(2);                                     /**/assertTerminal('A\nZ\nB\nC');
-writeTerminalLine("B", 1);                                  /**/assertTerminal('A\nB\nB\nC');
-writeTerminalLine("Q", 2);                                  /**/assertTerminal('A\nB\nQ\nC');
-writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/assertTerminal('C\nD\nE\nF');
-undoTerminalHistory();                                      /**/assertTerminal('A\nB\nQ\nC');
-writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/assertTerminal('X\nX\nX\nX');
-writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/assertTerminal('E\nD\nC\nX');
-writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/assertTerminal('E\nD\nC\nX\n\nH\n\nJ');
-removeTerminalLines(4);                                     /**/assertTerminal('E\nD\nC\nX\nH\n\nJ');
-removeTerminalLines(6);                                     /**/assertTerminal('E\nD\nC\nX\nH\n');
-removeTerminalLines(0, 2);                                  /**/assertTerminal('C\nX\nH\n');
-removeTerminalLines(-2, 2);                                 /**/assertTerminal('C\nX');
-writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/assertTerminal('C\nX');
-undoTerminalHistory();                                      /**/assertTerminal('C\nX\nH\n');
-redoTerminalHistory();                                      /**/assertTerminal('C\nX');
-writeTerminalLine('A');                                     /**/assertTerminal('C\nX\nA');
-writeTerminalLine('B');                                     /**/assertTerminal('C\nX\nA\nB');
-writeTerminalLine('C');                                     /**/assertTerminal('C\nX\nA\nB\nC');
-writeTerminalLine('D');                                     /**/assertTerminal('C\nX\nA\nB\nC\nD');
-removeTerminalLines(0, 2);                                  /**/assertTerminal('A\nB\nC\nD');
-writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });     /**/assertTerminal('A\nB\nC\nD\nE\nF\nG\nH');
-writeTerminal('A\nB\nC\nD\nE\nF\nG\nH');                    /**/assertTerminal('A\nB\nC\nD\nE\nF\nG\nH');
-writeTerminal('H\nG\nF\nE\nD\nC\nB\nA');                    /**/assertTerminal('H\nG\nF\nE\nD\nC\nB\nA');
-
-writeTerminal('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
-assertTerminal('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
-
-shortcutsTerminal.find(x => x[1] === 'Clean')[2]();
-assertTerminal('Username\nUsername1\nUsername2\nUserName3 - ...\nUsername123\nUsername-Name - 123\nUsername4\nUserName5 - 123');
-
-shortcutsTerminal.find(x => x[1] === 'Clear')[2]();
-assertTerminal('Username\nUsername1\nUsername2\nUserName3\nUsername123\nUsername-Name\nUsername4\nUserName5');
-
-assertUndoRedoTerminal(
-    'X\nY\nZ\nN\nB',
-    'X\nZ\nN\nB',
-    'X\nZ\nB',
-    'X\nZ\nB\nT',
-    'X\nZ\nT',
-    'A\nZ\nT',
-    'A\nZ\nT\nB',
-    'A\nZ\nT\nB\nC',
-    'A\nZ\nB\nC',
-    'A\nB\nB\nC',
-    'A\nB\nQ\nC',
-    'X\nX\nX\nX',
-    'E\nD\nC\nX',
-    'E\nD\nC\nX\n\nH\n\nJ',
-    'E\nD\nC\nX\nH\n\nJ',
-    'E\nD\nC\nX\nH\n',
-    'C\nX\nH\n',
-    'C\nX',
-    'C\nX\nA',
-    'C\nX\nA\nB',
-    'C\nX\nA\nB\nC',
-    'C\nX\nA\nB\nC\nD',
-    'A\nB\nC\nD',
-    'A\nB\nC\nD\nE\nF\nG\nH',
-    'H\nG\nF\nE\nD\nC\nB\nA',
-    '  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123',
-    'Username\nUsername1\nUsername2\nUserName3 - ...\nUsername123\nUsername-Name - 123\nUsername4\nUserName5 - 123',
-    'Username\nUsername1\nUsername2\nUserName3\nUsername123\nUsername-Name\nUsername4\nUserName5'
-);
+testTerminal(); logHistory();
 
 export function openTerminal() {
     terminal.isOpen = true;
