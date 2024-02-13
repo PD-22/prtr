@@ -5,7 +5,7 @@ const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
-export const maxHistoryLength = 28;
+export const maxHistoryLength = 32;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -302,6 +302,6 @@ export function getTerminalSelection() {
     return { start: selectionStart, end: selectionEnd, dir: selectionDirection, caret };
 }
 
-export function setTerminalSelection(start, end, dir) {
+export function setTerminalSelection(start, end = start, dir) {
     element.setSelectionRange(start, end, dir);
 }
