@@ -30,7 +30,7 @@ export function closeTerminal() {
 
 export function getTerminalValue(live = false) {
     if (live) return element.value;
-    return calculateTerminalLines(historyIndex - 1).join('\n');
+    return calculateTerminalLines().join('\n');
 }
 
 function setTerminalValue(newValue) {
@@ -43,7 +43,7 @@ export function undoTerminalHistory() {
     historyIndex--;
 }
 
-function calculateTerminalLines(index) {
+export function calculateTerminalLines(index = historyIndex - 1) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
@@ -54,7 +54,7 @@ function latestSize(index) {
 }
 
 function latestText(row, index) {
-    for (let i = index; i >= 0; i--) {
+    for (let i = Math.min(index, history.length - 1); i >= 0; i--) {
         const entries = parseSnapshot(history[i])?.entries;
         for (let j = 0; j < entries.length; j++) {
             const operation = entries[j];

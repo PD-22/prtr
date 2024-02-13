@@ -1,5 +1,6 @@
 import shortcutsTerminal from "./shortcutsTerminal.js";
 import {
+    calculateTerminalLines,
     getTerminalValue,
     historyIndex,
     maxHistoryLength,
@@ -104,7 +105,7 @@ export default function testTerminal() {
     // NOOP
     setTerminalSelection(0, 0); shortcut('Up');
     test('Username4\nUserName5\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name');
-    
+
     writeTerminal('');
     test('');
 
@@ -169,11 +170,13 @@ function testUndoRedo(...arr) {
         undoTerminalHistory();
         assert(i, historyIndex - 1);
         test(arr[i]);
+        test(calculateTerminalLines(i).join('\n'));
     });
 
     indexList.slice(1).forEach(i => {
         redoTerminalHistory();
         assert(i, historyIndex - 1);
         test(arr[i]);
+        test(calculateTerminalLines(i).join('\n'));
     });
 }
