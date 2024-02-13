@@ -104,6 +104,9 @@ export default function testTerminal() {
     // NOOP
     setTerminalSelection(0, 0); shortcut('Up');
     test('Username4\nUserName5\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name');
+    
+    writeTerminal('');
+    test('');
 
     testUndoRedo(
         'X\nY\nZ\nN\nB',
@@ -138,6 +141,7 @@ export default function testTerminal() {
         'UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername',
         'UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name',
         'Username4\nUserName5\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name',
+        '',
     );
 }
 
