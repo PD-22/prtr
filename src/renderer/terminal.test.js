@@ -92,11 +92,11 @@ export default function testTerminal() {
     shortcut('Descending');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername');
 
-    setTerminalSelection(getTerminalValue().length); shortcut('Up');
+    setTerminalSelection(getTerminalValue(true).length); shortcut('Up');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name');
 
     // NOOP
-    setTerminalSelection(getTerminalValue().length); shortcut('Down');
+    setTerminalSelection(getTerminalValue(true).length); shortcut('Down');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name');
 
     setTerminalSelection(0, 0); shortcut('Down');
@@ -158,7 +158,7 @@ function assert(expected, actual) {
 }
 
 function test(text) {
-    assert(text, getTerminalValue());
+    assert(text, getTerminalValue(true));
 }
 
 function testUndoRedo(...arr) {

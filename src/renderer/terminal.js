@@ -102,10 +102,19 @@ export function logHistory() {
         return indent + `snap#${i}: size=${size} ${entries.map(operation).join(' ')}`
     };
     const base = indent + `base: ${JSON.stringify(historyBase)}`;
-    const value = indent + `value: ${JSON.stringify(getTerminalValue())}`;
+
+    const value = JSON.stringify(getTerminalValue());
+    const valueStr = indent + `value: ${value}`;
+
+    const live = JSON.stringify(getTerminalValue(true));
+    const liveStr = indent + `live: ${live}`;
+
+    const matches = value === live;
+    if (!matches) console.warn('value and live do not match', value, live);
+
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
     const historyStr = history.map(snapshot).join('\n');
-    const logs = [`History:`, base, historyStr, historyIndexStr, value];
+    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr];
     console.log(logs.filter(Boolean).join('\n'));
 }
 
@@ -194,6 +203,7 @@ export function onTerminalInput() {
 function commitInputHistory() {
     if (!inputLoading) return;
     cancelInputHistory();
+    console.log('commitInputHistory');
     writeTerminal(getTerminalValue(true));
 }
 function cancelInputHistory() {
