@@ -5,7 +5,7 @@ const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
-export const maxHistoryLength = 33;
+export const maxHistoryLength = 34;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
