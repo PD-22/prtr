@@ -184,19 +184,16 @@ function testUndoRedo(...arr) {
     assert(maxHistoryLength, historyIndex);
     const indexList = arr.map((_v, i) => i);
 
-    indexList.toReversed().slice(1).forEach(i => {
-        undoTerminalHistory();
+    const f = i => {
         assert(i, historyIndex - 1);
         const [text, start, end] = arr[i];
         test(text, start, end);
         test(calculateTerminalLines(i).join('\n'), false);
-    });
+    }
 
-    indexList.slice(1).forEach(i => {
-        redoTerminalHistory();
-        assert(i, historyIndex - 1);
-        const [text, start, end] = arr[i];
-        test(text, start, end);
-        test(calculateTerminalLines(i).join('\n'), false);
-    });
+    indexList.reverse();
+    indexList.slice(1).forEach(i => { undoTerminalHistory(); f(i); });
+
+    indexList.reverse();
+    indexList.slice(1).forEach(i => { redoTerminalHistory(); f(i); });
 }

@@ -4,6 +4,7 @@ import {
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
+    getTerminalValue,
     logHistory,
     openTerminal,
     posToCaret,
@@ -56,9 +57,20 @@ export default [
     [['Ctrl+Z', 'Meta+Z'], 'Undo', undoTerminalHistory],
     [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', redoTerminalHistory],
 
-    ['Ctrl+H', 'History', logHistory],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
-    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)]
+    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
+
+    ['Ctrl+H', 'History', logHistory],
+    ['Ctrl+T', 'Selection', () => {
+        const { start, end, dir, caret } = getTerminalSelection();
+        const lines = getTerminalLines(getTerminalValue(true));
+        const startPos = caretToPos(lines, start);
+        const endPos = caretToPos(lines, end);
+        const result = { start, end, dir, caret };
+        const posStr = [startPos, endPos].map(x => x.join(':')).join('-');
+        console.log(posStr, result);
+    }],
+    ['Ctrl+L', 'Wipe', () => console.clear()],
 ];
 
 function moveLines(change) {
