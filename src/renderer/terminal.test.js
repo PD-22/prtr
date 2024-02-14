@@ -61,7 +61,7 @@ export default function testTerminal() {
     removeTerminalLines(4);                                     /**/test('E\nD\nC\nX\nH\n\nJ');
     removeTerminalLines(6);                                     /**/test('E\nD\nC\nX\nH\n');
     removeTerminalLines(0, 2);                                  /**/test('C\nX\nH\n');
-    removeTerminalLines(-2, 2);                                 /**/test('C\nX');
+    removeTerminalLines(2, 4);                                  /**/test('C\nX');
     writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/test('C\nX');
 
     // NOOP

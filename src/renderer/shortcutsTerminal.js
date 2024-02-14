@@ -6,6 +6,7 @@ import {
     getTerminalSelection,
     logHistory,
     openTerminal,
+    posToCaret,
     redoTerminalHistory,
     setTerminalSelection,
     terminal,
@@ -63,8 +64,8 @@ export default [
 function moveLines(change) {
     const lines = getTerminalLines();
     const { start, end } = getTerminalSelection();
-    const [startRow] = caretToPos(lines, start);
-    const [endRow] = caretToPos(lines, end);
+    const [startRow, startCol] = caretToPos(lines, start);
+    const [endRow, endCol] = caretToPos(lines, end);
 
     const newStartRow = startRow + change;
     const newEndRow = endRow + change;
@@ -72,9 +73,9 @@ function moveLines(change) {
 
     const movedLines = lines.splice(startRow, endRow - startRow + 1);
     lines.splice(newStartRow, 0, ...movedLines);
-    // const newStart = posToCaret(lines, newStartRow, 0);
-    // const newEnd = posToCaret(lines, newEndRow, Infinity);
-    writeTerminal(lines.join('\n'));
+    const newStart = posToCaret(lines, newStartRow, startCol);
+    const newEnd = posToCaret(lines, newEndRow, endCol);
+    writeTerminal(lines.join('\n'), newStart, newEnd);
 }
 
 function sortData(ascending = true) {

@@ -39,12 +39,28 @@ function setTerminalValue(newValue) {
 
 export function undoTerminalHistory() {
     if (historyIndex <= 0) return;
-    setTerminalValue(calculateTerminalLines(historyIndex - 2).join('\n'));
+    const index = historyIndex - 2;
+    setTerminalValue(calculateTerminalLines(index).join('\n'));
+    const { start, end } = calculateSelection(index);
+    setTerminalSelection(start, end);
     historyIndex--;
 }
 
 export function calculateTerminalLines(index = historyIndex - 1) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
+}
+
+function calculateSelection(index) {
+    let { size, entries, start, end } = parseSnapshot(history[index]);
+    const lines = calculateTerminalLines(index);
+    if (index < 0 || index >= history.length) {
+        start = end = lines.join('\n').length;
+    } else if (start == null || end == null) {
+        const rows = entries.map(([row]) => row);
+        const lastRow = rows.length ? Math.max(...rows) : size - 1;
+        start = end = posToCaret(lines, lastRow, Infinity);
+    }
+    return { start, end };
 }
 
 function latestSize(index) {
@@ -67,12 +83,17 @@ function latestText(row, index) {
 
 export function redoTerminalHistory() {
     if (historyIndex >= history.length) return;
-    setTerminalValue(applySnapshot(history[historyIndex], getTerminalValue()));
+    const { text } = applySnapshot(history[historyIndex], getTerminalValue())
+    setTerminalValue(text);
+    const { start, end } = calculateSelection(historyIndex);
+    history[historyIndex].start = start;
+    history[historyIndex].end = end;
+    setTerminalSelection(start, end);
     historyIndex++;
 }
 
 export function applySnapshot(snapshot, text) {
-    const { size, ...dict } = snapshot;
+    const { size, start, end, ...dict } = snapshot;
     const lines = getTerminalLines(text);
 
     parseSnapshot(dict).entries.forEach(operation => {
@@ -81,7 +102,8 @@ export function applySnapshot(snapshot, text) {
     });
 
     lines.length = size;
-    return lines.join('\n');
+
+    return { text: lines.join('\n'), start, end };
 }
 
 function parseSnapshot(snapshot = {}) {
@@ -89,17 +111,18 @@ function parseSnapshot(snapshot = {}) {
     const isValidRow = ([row]) => Number.isInteger(row) && row >= 0;
     const byFirst = (a, b) => a[0] - b[0];
 
-    const { size, ...dict } = snapshot;
+    const { size, start, end, ...dict } = snapshot;
     const entries = Object.entries(dict).map(intKey).filter(isValidRow).toSorted(byFirst);
-    return { size, entries };
+    return { size, start, end, entries };
 }
 
 export function logHistory() {
     const operation = ([row, text]) => `${row}=${text.length === 1 ? text : `"${text}"`}`;
     const indent = ' '.repeat(2);
     const snapshot = (s, i) => {
-        const { size, entries } = parseSnapshot(s);
-        return indent + `snap#${i}: size=${size} ${entries.map(operation).join(' ')}`
+        const { size, start, end, entries } = parseSnapshot(s);
+        const selection = start === end ? `caret=${start}` : `start=${start} end=${end}`;
+        return indent + `snap#${i}: size=${size} ${selection} ${entries.map(operation).join(' ')}`
     };
     const base = indent + `base: ${JSON.stringify(historyBase)}`;
 
@@ -107,7 +130,6 @@ export function logHistory() {
     const valueStr = indent + `value: ${value}`;
 
     const live = JSON.stringify(getTerminalValue(true));
-    const liveStr = indent + `live: ${live}`;
 
     const matches = value === live;
     if (!matches) console.warn('value and live do not match', value, live);
@@ -122,11 +144,11 @@ export function getTerminalLines(value = getTerminalValue()) {
     return value.replace(/\r/g, "\n").split('\n');
 }
 
-export function writeTerminal(text) {
+export function writeTerminal(text, start, end) {
     const lines = getTerminalLines(text);
     const size = lines.length;
     const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
-    pushHistory({ size, ...dictionary });
+    pushHistory({ size, start, end, ...dictionary });
 }
 
 export function writeTerminalLines(rowTextDict) {
@@ -155,10 +177,11 @@ export function writeTerminalLine(text, row = getTerminalLines().length) {
     return writeTerminalLines({ [row]: text });
 }
 
-export function removeTerminalLines(start, end = start + 1) {
+export function removeTerminalLines(startRow, endRow = startRow + 1) {
     const lines = getTerminalLines();
-    const deleteCount = Math.max(0, end - start);
-    const newLines = lines.toSpliced(start, deleteCount);
+    if (startRow < 0 || endRow > lines.length) return;
+    const deleteCount = Math.max(0, endRow - startRow);
+    const newLines = lines.toSpliced(startRow, deleteCount);
     if (newLines.length === lines.length) return;
 
     const entries = newLines
@@ -168,11 +191,14 @@ export function removeTerminalLines(start, end = start + 1) {
     const size = newLines.length
     const newDict = Object.fromEntries(entries);
 
-    pushHistory({ size, ...newDict });
+    const caret = startRow === newLines.length ?
+        newLines.join('\n').length :
+        posToCaret(newLines, startRow, 0);
+    pushHistory({ size, start: caret, end: caret, ...newDict });
 }
 
 function pushHistory(snapshotDict) {
-    let { size, entries } = parseSnapshot(snapshotDict);
+    let { size, start, end, entries } = parseSnapshot(snapshotDict);
     const lines = getTerminalLines();
 
     const filteredEntries = entries.filter(([row, text]) => lines[row] !== text);
@@ -182,13 +208,13 @@ function pushHistory(snapshotDict) {
     const prevSize = history[historyIndex - 1]?.size;
     if (size === prevSize && !cleanEntries.length) return;
 
-    const snapshot = { size, ...dictionary };
+    const snapshot = { size, start, end, ...dictionary };
     history.splice(historyIndex, Infinity, snapshot);
 
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) {
         const snaps = history.splice(0, overflow);
-        snaps.forEach(snap => historyBase = applySnapshot(snap, historyBase));
+        snaps.forEach(snap => historyBase = applySnapshot(snap, historyBase).text);
         historyIndex -= overflow;
     }
 
