@@ -75,7 +75,7 @@ export default [
 
 function moveLines(change) {
     const lines = getTerminalLines();
-    const { start, end } = getTerminalSelection();
+    const { start, end, dir } = getTerminalSelection();
     const [startRow, startCol] = caretToPos(lines, start);
     const [endRow, endCol] = caretToPos(lines, end);
 
@@ -87,7 +87,7 @@ function moveLines(change) {
     lines.splice(newStartRow, 0, ...movedLines);
     const newStart = posToCaret(lines, newStartRow, startCol);
     const newEnd = posToCaret(lines, newEndRow, endCol);
-    writeTerminal(lines.join('\n'), newStart, newEnd);
+    writeTerminal(lines.join('\n'), newStart, newEnd, dir);
 }
 
 function sortData(ascending = true) {
