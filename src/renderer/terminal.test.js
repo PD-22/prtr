@@ -166,7 +166,7 @@ function shortcut(name) {
     shortcutsTerminal.find(x => x[1] === name)[2]();
 }
 
-function assert(expected, actual) {
+export function assert(expected, actual) {
     if (expected === actual) return;
     expected = JSON.stringify(expected);
     actual = JSON.stringify(actual);
