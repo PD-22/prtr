@@ -81,8 +81,8 @@ export function redoTerminalHistory() {
     historyIndex++;
 }
 
-export function applyEntries(snapshot, text) {
-    const lines = getTerminalLines(text);
+export function applyEntries(snapshot, value) {
+    const lines = getTerminalLines(value);
     const { size, entries } = parseSnapshot(snapshot);
     entries.forEach(([row, text]) => lines[row] = text);
     lines.length = size;
@@ -124,7 +124,8 @@ export function logHistory() {
     console.log(logs.filter(Boolean).join('\n'));
 }
 
-export function getTerminalLines(value = getTerminalValue()) {
+export function getTerminalLines(value) {
+    if (typeof value !== 'string') value = getTerminalValue(value);
     return value.replace(/\r/g, "\n").split('\n');
 }
 
