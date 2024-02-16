@@ -115,13 +115,11 @@ export function logHistory() {
     const valueStr = indent + `value: ${value}`;
 
     const live = JSON.stringify(getTerminalValue(true));
-
-    const matches = value === live;
-    if (!matches) console.warn('value and live do not match', value, live);
+    const liveStr = live !== value && indent + `live: ${live}`;
 
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
     const historyStr = history.map(snapshot).join('\n');
-    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr];
+    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, liveStr];
     console.log(logs.filter(Boolean).join('\n'));
 }
 
