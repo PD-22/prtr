@@ -10,14 +10,14 @@ import {
     removeTerminalLines,
     setTerminalSelection,
     undoTerminalHistory,
-    writeTerminal,
+    writeTerminalText,
     writeTerminalLine,
     writeTerminalLines
 } from "./terminal.js";
 
 export default function testTerminal() {
     openTerminal();                                             /**/test('', 0);
-    writeTerminal('X\nY\nZ\nA');                                /**/test('X\nY\nZ\nA', 7);
+    writeTerminalText('X\nY\nZ\nA');                            /**/test('X\nY\nZ\nA', 7);
     writeTerminalLine('N', 3);                                  /**/test('X\nY\nZ\nN', 7);
     // CUT
 
@@ -81,11 +81,11 @@ export default function testTerminal() {
     writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });     /**/test('A\nB\nC\nD\nE\nF\nG\nH', 15);
 
     // NOOP
-    writeTerminal('A\nB\nC\nD\nE\nF\nG\nH');                    /**/test('A\nB\nC\nD\nE\nF\nG\nH', 15);
+    writeTerminalText('A\nB\nC\nD\nE\nF\nG\nH');                /**/test('A\nB\nC\nD\nE\nF\nG\nH', 15);
 
-    writeTerminal('H\nG\nF\nE\nD\nC\nB\nA');                    /**/test('H\nG\nF\nE\nD\nC\nB\nA', 15);
+    writeTerminalText('H\nG\nF\nE\nD\nC\nB\nA');                /**/test('H\nG\nF\nE\nD\nC\nB\nA', 15);
 
-    writeTerminal('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
+    writeTerminalText('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
     test('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
 
     shortcut('Clean');
@@ -117,8 +117,7 @@ export default function testTerminal() {
     shortcut('Up');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', 70);
 
-    writeTerminal('');
-    test('');
+    writeTerminalText('');                                      /**/test('');
 
     testUndoRedo(
         // ['X\nY\nZ\nA', 7],

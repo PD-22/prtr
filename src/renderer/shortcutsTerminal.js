@@ -4,7 +4,6 @@ import {
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
-    getTerminalValue,
     logHistory,
     openTerminal,
     posToCaret,
@@ -12,8 +11,8 @@ import {
     setTerminalSelection,
     terminal,
     undoTerminalHistory,
-    writeTerminal,
-    writeTerminalLine
+    writeTerminalLine,
+    writeTerminalText
 } from "./terminal.js";
 
 export default [
@@ -46,12 +45,12 @@ export default [
     ['Alt+C', 'Clean', () => {
         const parsedLines = parseLines(getTerminalLines());
         const newLines = parsedLines.map(x => fkv(x.username, x.data));
-        writeTerminal(newLines.join('\n'));
+        writeTerminalText(newLines.join('\n'));
     }],
     ['Alt+Shift+C', 'Clear', () => {
         const parsedLines = parseLines(getTerminalLines());
         const newLines = parsedLines.map(x => x.username);
-        writeTerminal(newLines.join('\n'));
+        writeTerminalText(newLines.join('\n'));
     }],
 
     [['Ctrl+Z', 'Meta+Z'], 'Undo', undoTerminalHistory],
@@ -75,7 +74,7 @@ export default [
 
 function moveLines(change) {
     const lines = getTerminalLines();
-    const { start, end, dir } = getTerminalSelection();
+    let { start, end, dir } = getTerminalSelection();
     const [startRow, startCol] = caretToPos(lines, start);
     const [endRow, endCol] = caretToPos(lines, end);
 
@@ -85,9 +84,9 @@ function moveLines(change) {
 
     const movedLines = lines.splice(startRow, endRow - startRow + 1);
     lines.splice(newStartRow, 0, ...movedLines);
-    const newStart = posToCaret(lines, newStartRow, startCol);
-    const newEnd = posToCaret(lines, newEndRow, endCol);
-    writeTerminal(lines.join('\n'), newStart, newEnd, dir);
+    start = posToCaret(lines, newStartRow, startCol);
+    end = posToCaret(lines, newEndRow, endCol);
+    writeTerminalText(lines.join('\n'), { start, end, dir });
 }
 
 function sortData(ascending = true) {
@@ -97,14 +96,14 @@ function sortData(ascending = true) {
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
-    writeTerminal(lines.join('\n'));
+    writeTerminalText(lines.join('\n'));
 }
 
 async function scrape(removeData = false) {
     const parsedLines = parseLines(getTerminalLines());
     const lines = parsedLines.map(x => fkv(x.username, x.data));
     window.electron.status('Scrape: INIT', lines);
-    writeTerminal(lines.join('\n'));
+    writeTerminalText(lines.join('\n'));
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
