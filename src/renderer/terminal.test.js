@@ -117,7 +117,31 @@ export default function testTerminal() {
     shortcut('Up');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', 70);
 
-    writeTerminalText('');                                      /**/test('');
+    writeTerminalText('User1\nUser2');                          /**/test('User1\nUser2');
+    writeTerminalLine('Target', 0);                             /**/test('Target\nUser2', 6);
+
+    // NOOP
+    writeTerminalLine('Target...', 0, true);
+    test2({
+        text: 'Target...\nUser2',
+        commited: 'Target\nUser2',
+        start: 9
+    });
+    undoTerminalHistory();                                      /**/test('User1\nUser2');
+    writeTerminalLine('User1...', 0, true);
+    test2({
+        text: 'User1...\nUser2',
+        commited: 'User1\nUser2',
+        start: 8
+    });
+    writeTerminalLine('User1', 0, true);
+    test2({
+        text: 'User1\nUser2',
+        commited: 'User1\nUser2',
+        start: 5
+    });
+
+    redoTerminalHistory();                                      /**/test('Target\nUser2', 6);
 
     testUndoRedo(
         // ['X\nY\nZ\nA', 7],
@@ -157,7 +181,8 @@ export default function testTerminal() {
         ['UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', 70],
         ['UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername'],
         ['UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', 70],
-        ['']
+        ['User1\nUser2'],
+        ['Target\nUser2', 6]
     );
 }
 
@@ -172,8 +197,19 @@ export function assert(expected, actual) {
     throw new Error(`Expected: ${expected} Actual: ${actual}`);
 }
 
-function test(text, start = text.length, end = start, dir = 'forward') {
+function test(text, start, end, dir) {
+    return test2({ text, start, end, dir });
+}
+
+function test2(options) {
+    let { text, commited, start, end, dir } = options;
+    commited ??= text;
+    start ??= text.length;
+    end ??= start;
+    dir ??= 'forward';
+
     assert(text, getTerminalValue());
+    assert(commited, getTerminalValue(false));
     if (start === false) return;
 
     const sel = getTerminalSelection();

@@ -113,15 +113,15 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const writeLine = line => writeTerminalLine(line, index);
+        const writeLine = (line, skipHistory) => writeTerminalLine(line, index, skipHistory);
         try {
-            writeLine(fkv(username, '...'));
+            writeLine(fkv(username, '...'), true);
             // lockTerminalLine(index);
 
             const newData = await window.electron.scrape(index, username);
             if (newData == null) {
                 window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
-                return writeLine(username);
+                return writeLine(username, true);
             }
 
             window.electron.status(`Scrape: ${fkv(username, newData)}`);
