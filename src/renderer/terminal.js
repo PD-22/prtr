@@ -12,6 +12,7 @@ setTerminalValue(historyBase);
 const inputDebounce = 500;
 let inputLoading = false;
 let inputTimer;
+let lastOnInputSelection;
 // const lockedLines = new Set();
 export const terminal = { element, isOpen: false };
 
@@ -28,9 +29,8 @@ export function closeTerminal() {
     element.classList.remove('is-open');
 }
 
-export function getTerminalValue(live = false) {
-    if (live) return element.value;
-    return calculateTerminalLines().join('\n');
+export function getTerminalValue(live = true) {
+    return live ? element.value : calculateTerminalLines().join('\n');
 }
 
 function setTerminalValue(newValue) {
@@ -114,12 +114,12 @@ export function logHistory() {
     const value = JSON.stringify(getTerminalValue());
     const valueStr = indent + `value: ${value}`;
 
-    const live = JSON.stringify(getTerminalValue(true));
-    const liveStr = live !== value && indent + `live: ${live}`;
+    const committed = JSON.stringify(getTerminalValue(false));
+    const committedStr = value !== committed && (indent + `committed: ${committed}`);
 
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
     const historyStr = history.map(snapshot).join('\n');
-    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, liveStr];
+    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, committedStr];
     console.log(logs.filter(Boolean).join('\n'));
 }
 
@@ -226,7 +226,6 @@ function pushHistory(snapshotDict) {
     return true;
 }
 
-let lastOnInputSelection;
 export function onTerminalInput() {
     cancelInputHistory();
     inputLoading = true;
@@ -237,7 +236,7 @@ export function onTerminalInput() {
 function commitInputHistory() {
     if (!inputLoading) return;
     cancelInputHistory();
-    const text = getTerminalValue(true);
+    const text = getTerminalValue();
     assert(true, Boolean(lastOnInputSelection));
     const { start, end, dir } = lastOnInputSelection;
     console.log('Input: Done');

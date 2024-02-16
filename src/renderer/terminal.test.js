@@ -173,7 +173,7 @@ export function assert(expected, actual) {
 }
 
 function test(text, start = text.length, end = start, dir = 'forward') {
-    assert(text, getTerminalValue(true));
+    assert(text, getTerminalValue());
     if (start === false) return;
 
     const sel = getTerminalSelection();

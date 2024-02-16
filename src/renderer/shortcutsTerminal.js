@@ -62,7 +62,7 @@ export default [
     ['Ctrl+H', 'History', logHistory],
     ['Ctrl+T', 'Selection', () => {
         const { start, end, dir, caret } = getTerminalSelection();
-        const lines = getTerminalLines(true);
+        const lines = getTerminalLines();
         const startPos = caretToPos(lines, start);
         const endPos = caretToPos(lines, end);
         const result = { start, end, dir, caret };
