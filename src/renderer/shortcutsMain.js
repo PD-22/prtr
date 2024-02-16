@@ -50,6 +50,7 @@ export default [
     ['Enter', 'Recognize', async () => {
         try {
             const dataURL = getRectCanvasDataURL();
+            if (!dataURL) return window.electron.status('Recognize: EMPTY');
             const parsedLines = await window.electron.recognize(dataURL);
             if (!parsedLines) return;
 
