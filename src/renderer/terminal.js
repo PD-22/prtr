@@ -29,8 +29,8 @@ export function closeTerminal() {
     element.classList.remove('is-open');
 }
 
-export function getTerminalValue(live = true) {
-    return live ? element.value : calculateTerminalLines().join('\n');
+export function getTerminalValue(commited = false) {
+    return commited ? calculateTerminalLines().join('\n') : element.value;
 }
 
 function setTerminalValue(newValue) {
@@ -90,14 +90,15 @@ export function applyEntries(snapshot, value) {
     return lines;
 }
 
-function parseSnapshot(snapshot = {}) {
+function parseSnapshot(snapshot = {}, value) {
     const intKey = ([row, text]) => [parseInt(row), text];
     const isValidRow = ([row]) => Number.isInteger(row) && row >= 0;
     const byFirst = (a, b) => a[0] - b[0];
 
     const { size, start, end, dir, ...dict } = snapshot;
     const entries = Object.entries(dict).map(intKey).filter(isValidRow).toSorted(byFirst);
-    return { size, start, end, dir, entries };
+    const lines = getTerminalLines(value);
+    return { size, start, end, dir, entries, lines };
 }
 
 export function logHistory() {
@@ -114,7 +115,7 @@ export function logHistory() {
     const value = JSON.stringify(getTerminalValue());
     const valueStr = indent + `value: ${value}`;
 
-    const committed = JSON.stringify(getTerminalValue(false));
+    const committed = JSON.stringify(getTerminalValue(true));
     const committedStr = value !== committed && (indent + `committed: ${committed}`);
 
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
@@ -129,7 +130,7 @@ export function getTerminalLines(value) {
 }
 
 function writeTerminal(snapshotDict, skipHistory) {
-    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict, true), true);
+    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict));
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
@@ -146,7 +147,7 @@ export function writeTerminalText(text, selection, skipHistory) {
 }
 
 export function writeTerminalLines(rowTextDict, skipHistory) {
-    const lines = getTerminalLines(true);
+    const lines = getTerminalLines();
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
 
@@ -185,25 +186,26 @@ export function removeTerminalLines(startRow, endRow = startRow + 1, skipHistory
     const size = newLines.length
     const newDict = Object.fromEntries(entries);
 
-    const caret = startRow === newLines.length ?
-        newLines.join('\n').length :
-        posToCaret(newLines, startRow, 0);
-    writeTerminal({ size, start: caret, end: caret, ...newDict }, skipHistory);
+    const pos = startRow === newLines.length ?
+        caretToPos(newLines, Infinity) :
+        [startRow, 0];
+    writeTerminal({ size, start: pos, end: pos, ...newDict }, skipHistory);
 }
 
 function generateSnapshot(dict, value) {
-    let { size, start, end, dir, entries } = parseSnapshot(dict);
-    const lines = getTerminalLines(value);
+    let { size, start, end, dir, entries, lines } = parseSnapshot(dict, value);
 
     const filteredEntries = entries.filter(([row, text]) => lines[row] !== text);
     const dictionary = Object.fromEntries(filteredEntries);
     const cleanEntries = parseSnapshot(dictionary).entries;
 
-    if (start == null || end == null) {
+    end ??= start;
+    if (start == null) {
         const newLines = applyEntries({ size, ...dictionary });
+        // const rows = cleanEntries.map(([row, text]) => newLines[row] !== text);
         const rows = cleanEntries.map(([row]) => row);
         const lastRow = rows.length ? Math.max(...rows) : size - 1;
-        start = end = posToCaret(newLines, lastRow, Infinity);
+        start = end = [lastRow, newLines[lastRow].length];
     }
 
     return { size, start, end, dir, ...dictionary };
@@ -250,6 +252,7 @@ function cancelInputHistory() {
 };
 
 export function caretToPos(lines, caret) {
+    caret = clamp(caret, 0, lines.join('\n').length);
     let index = 0;
     let row;
 
@@ -284,9 +287,18 @@ export function clamp(value, min, max) {
 export function getTerminalSelection() {
     const { selectionDirection, selectionStart, selectionEnd } = element;
     const caret = selectionDirection === 'forward' ? selectionEnd : selectionStart;
-    return { start: selectionStart, end: selectionEnd, dir: selectionDirection, caret };
+    const lines = getTerminalLines();
+    const pos = caret => caretToPos(lines, caret);
+    return {
+        start: pos(selectionStart),
+        end: pos(selectionEnd),
+        caret: pos(caret),
+        dir: selectionDirection
+    };
 }
 
 export function setTerminalSelection(start, end = start, dir) {
-    element.setSelectionRange(start, end, dir);
+    const lines = getTerminalLines();
+    const caret = pos => posToCaret(lines, pos[0], pos[1]);
+    element.setSelectionRange(caret(start), caret(end), dir);
 }

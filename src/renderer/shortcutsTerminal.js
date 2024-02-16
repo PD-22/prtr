@@ -63,10 +63,10 @@ export default [
     ['Ctrl+T', 'Selection', () => {
         const { start, end, dir, caret } = getTerminalSelection();
         const lines = getTerminalLines();
-        const startPos = caretToPos(lines, start);
-        const endPos = caretToPos(lines, end);
-        const result = { start, end, dir, caret };
-        const posStr = [startPos, endPos].map(x => x.join(':')).join('-');
+        const startCaret = posToCaret(lines, start[0], start[1]);
+        const endCaret = posToCaret(lines, end[0], end[1]);
+        const result = { startCaret, endCaret, dir, caret };
+        const posStr = [start, end].map(x => x.join(':')).join('-');
         console.log(posStr, result);
     }],
     ['Ctrl+L', 'Wipe', () => console.clear()],
@@ -75,8 +75,8 @@ export default [
 function moveLines(change) {
     const lines = getTerminalLines();
     let { start, end, dir } = getTerminalSelection();
-    const [startRow, startCol] = caretToPos(lines, start);
-    const [endRow, endCol] = caretToPos(lines, end);
+    const [startRow, startCol] = start;
+    const [endRow, endCol] = end;
 
     const newStartRow = startRow + change;
     const newEndRow = endRow + change;
@@ -84,8 +84,8 @@ function moveLines(change) {
 
     const movedLines = lines.splice(startRow, endRow - startRow + 1);
     lines.splice(newStartRow, 0, ...movedLines);
-    start = posToCaret(lines, newStartRow, startCol);
-    end = posToCaret(lines, newEndRow, endCol);
+    start = [newStartRow, startCol];
+    end = [newEndRow, endCol];
     writeTerminalText(lines.join('\n'), { start, end, dir });
 }
 
