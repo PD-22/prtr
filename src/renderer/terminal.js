@@ -5,7 +5,7 @@ const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
-export const maxHistoryLength = 37;
+export const maxHistoryLength = 39;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -29,6 +29,10 @@ export function closeTerminal() {
     element.classList.remove('is-open');
 }
 
+export function restoreTerminalValue() {
+    setTerminalValue(getTerminalValue(true));
+}
+
 export function getTerminalValue(commited = false) {
     return commited ? calculateTerminalLines().join('\n') : element.value;
 }
@@ -42,13 +46,19 @@ export function undoTerminalHistory() {
     const index = historyIndex - 2;
     const { start, end, dir } = parseSnapshot(history[index]);
 
-    setTerminalValue(calculateTerminalLines(index).join('\n'));
+    setTerminalValue(calculateTerminalLines(index, true).join('\n'));
     setTerminalSelection(start, end, dir);
     historyIndex--;
 }
 
-export function calculateTerminalLines(index = historyIndex - 1) {
-    return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
+export function calculateTerminalLines(index = historyIndex - 1, onlyChanged) {
+    const { entries, lines } = parseSnapshot(history[index + 1]);
+    const changedRows = new Map(entries);
+    return Array.from({ length: latestSize(index) }, (v, row) => {
+        if (onlyChanged && !changedRows.has(row))
+            return lines[row] ?? latestText(row, index);
+        return latestText(row, index);
+    });
 }
 
 function latestSize(index) {
@@ -202,7 +212,6 @@ function generateSnapshot(dict, value) {
     end ??= start;
     if (start == null) {
         const newLines = applyEntries({ size, ...dictionary });
-        // const rows = cleanEntries.map(([row, text]) => newLines[row] !== text);
         const rows = cleanEntries.map(([row]) => row);
         const lastRow = rows.length ? Math.max(...rows) : size - 1;
         start = end = [lastRow, newLines[lastRow].length];

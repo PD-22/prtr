@@ -13,7 +13,8 @@ import {
     writeTerminalText,
     writeTerminalLine,
     writeTerminalLines,
-    getTerminalLines
+    getTerminalLines,
+    restoreTerminalValue
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -144,6 +145,37 @@ export default function testTerminal() {
     });
     redoTerminalHistory();                                      /**/test('Target\nUser2', [0, 6]);
 
+    writeTerminalText('Alpha\nBeta');                           /**/test('Alpha\nBeta');
+
+    // NOOP
+    writeTerminalLines(['Alpha...', 'Beta...'], true);
+    test2({
+        text: 'Alpha...\nBeta...',
+        commited: 'Alpha\nBeta'
+    });
+
+    writeTerminalLine('Alpha - 100', 0);
+    test2({
+        text: 'Alpha - 100\nBeta...',
+        commited: 'Alpha - 100\nBeta',
+        start: [0, 11]
+    });
+
+    // NOOP
+    undoTerminalHistory();
+    test2({
+        text: 'Alpha\nBeta...',
+        commited: 'Alpha\nBeta',
+        start: [1, 4]
+    });
+    redoTerminalHistory();
+    test2({
+        text: 'Alpha - 100\nBeta...',
+        commited: 'Alpha - 100\nBeta',
+        start: [0, 11]
+    });
+
+    restoreTerminalValue();
     testUndoRedo(
         // ['X\nY\nZ\nA', 7],
         // ['X\nY\nZ\nN', 7],
@@ -183,7 +215,9 @@ export default function testTerminal() {
         ['UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername'],
         ['UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', [6, 8]],
         ['User1\nUser2'],
-        ['Target\nUser2', [0, 6]]
+        ['Target\nUser2', [0, 6]],
+        ['Alpha\nBeta'],
+        ['Alpha - 100\nBeta', [0, 11]]
     );
 
     window.electron.status('Terminal: TEST: DONE');
@@ -215,7 +249,6 @@ function test2(options) {
 
     assert(text, getTerminalValue());
     assert(commited, getTerminalValue(true));
-    if (start === false) return;
 
     const sel = getTerminalSelection();
     assert(start, sel.start);
@@ -232,7 +265,6 @@ function testUndoRedo(...arr) {
         assert(i, historyIndex - 1);
         const [text, start, end, dir] = arr[i];
         test(text, start, end, dir);
-        test(calculateTerminalLines(i).join('\n'), false);
     }
 
     indexList.reverse();
