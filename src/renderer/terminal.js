@@ -13,7 +13,7 @@ const inputDebounce = 500;
 let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
-// const lockedLines = new Set();
+const lockedLines = new Map();
 export const terminal = { element, isOpen: false };
 
 testTerminal(); logHistory();
@@ -139,14 +139,30 @@ export function getTerminalLines(value) {
     return value.replace(/\r/g, "\n").split('\n');
 }
 
+export function getTerminalLine(row, value) {
+    return getTerminalLines(value)[row];
+}
+
 function writeTerminal(snapshotDict, skipHistory) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict));
+    if (abortLockedLine(snapshotDict)) return;
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
 
     redoTerminalHistory();
 }
+
+function abortLockedLine(snapshotDict) {
+    const newLines = applyEntries(snapshotDict);
+    const rowChanged = ([row, line]) => newLines[row] !== line;
+    const abortRows = Array.from(lockedLines).filter(rowChanged);
+    return Boolean(abortRows.length);
+}
+
+export function getLockedTerminalLines() { return new Map(lockedLines); }
+export function lockTerminalLine(row) { lockedLines.set(row, getTerminalLine(row)); }
+export function unlockTerminalLine(row) { lockedLines.delete(row); }
 
 export function writeTerminalText(text, selection, skipHistory) {
     const { start, end, dir } = selection ?? {};
@@ -252,6 +268,7 @@ function commitInputHistory() {
     const text = getTerminalValue();
     assert(true, Boolean(lastOnInputSelection));
     const { start, end, dir } = lastOnInputSelection;
+    restoreTerminalValue();
     console.log('Input: Done');
     writeTerminalText(text, { start, end, dir });
 }

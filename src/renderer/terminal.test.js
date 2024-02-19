@@ -14,7 +14,10 @@ import {
     writeTerminalLine,
     writeTerminalLines,
     getTerminalLines,
-    restoreTerminalValue
+    restoreTerminalValue,
+    lockTerminalLine,
+    getLockedTerminalLines,
+    unlockTerminalLine
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -219,6 +222,22 @@ export default function testTerminal() {
         ['Alpha\nBeta'],
         ['Alpha - 100\nBeta', [0, 11]]
     );
+
+    writeTerminalLine('Beta...', 1, true);
+    test2({
+        text: 'Alpha - 100\nBeta...',
+        commited: 'Alpha - 100\nBeta',
+    });
+    assert(false, getLockedTerminalLines().has(1));
+    lockTerminalLine(1);
+    assert(true, getLockedTerminalLines().has(1));
+    writeTerminalLine('Text', 1);
+    test2({
+        text: 'Alpha - 100\nBeta...',
+        commited: 'Alpha - 100\nBeta',
+    });
+    unlockTerminalLine(1);
+    assert(false, getLockedTerminalLines().has(1));
 
     window.electron.status('Terminal: TEST: DONE');
 }
