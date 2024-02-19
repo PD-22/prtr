@@ -175,7 +175,7 @@ function unique(arr, getKey) {
 }
 
 function fkv(k, v) {
-    return v ? `${k} - ${v}` : k;
+    return v != null ? `${k} - ${v}` : k;
 }
 
 function whitespace(str) {
