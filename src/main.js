@@ -1,5 +1,5 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
-const { join } = require('path');
+const { join, resolve } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
@@ -154,12 +154,12 @@ function addListeners() {
             });
         })();
 
-        const abortPromise = new Promise((_, reject) => {
+        const abortPromise = new Promise((resolve) => {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);
-                reject(new Error(`Scrape: ABORT: ${username}`));
-            })
+                resolve(false);
+            });
         });
 
         return Promise.race([scrapePromise, abortPromise]);

@@ -155,16 +155,23 @@ function writeTerminal(snapshotDict, skipHistory) {
 
 function abortLockedLine(snapshotDict) {
     const newLines = applyEntries(snapshotDict);
+    const format = ([row, { line, onPrevent }]) => [row, line, onPrevent];
     const rowChanged = ([row, line]) => newLines[row] !== line;
-    const abortRows = Array.from(lockedLines).filter(rowChanged);
+    const abortRows = Array.from(lockedLines).map(format).filter(rowChanged);
+
     const lines = getTerminalLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
     setTerminalValue(lines.join('\n'));
+
+    abortRows.forEach(([, , onPrevent]) => onPrevent?.());
     return Boolean(abortRows.length);
 }
 
 export function getLockedTerminalLines() { return new Map(lockedLines); }
-export function lockTerminalLine(row) { lockedLines.set(row, getTerminalLine(row)); }
+export function lockTerminalLine(row, onPrevent) {
+    const line = getTerminalLine(row);
+    lockedLines.set(row, { line, onPrevent });
+}
 export function unlockTerminalLine(row) { lockedLines.delete(row); }
 
 export function writeTerminalText(text, selection, skipHistory) {
@@ -271,7 +278,7 @@ function commitInputHistory() {
     const text = getTerminalValue();
     assert(true, Boolean(lastOnInputSelection));
     const { start, end, dir } = lastOnInputSelection;
-    restoreTerminalValue();
+    // restoreTerminalValue();
     console.log('Input: Done');
     writeTerminalText(text, { start, end, dir });
 }

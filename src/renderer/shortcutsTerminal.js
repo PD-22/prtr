@@ -1,6 +1,5 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
-    caretToPos,
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
@@ -116,7 +115,8 @@ async function scrape(removeData = false) {
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
         const write = (line, skip) => writeTerminalLine(line, index, skip);
-        const lock = () => lockTerminalLine(index);
+        const abort = () => window.electron.abortScrape(index);
+        const lock = () => lockTerminalLine(index, abort);
         const unlock = () => unlockTerminalLine(index);
 
         try {
@@ -124,7 +124,9 @@ async function scrape(removeData = false) {
             lock(index);
 
             const newData = await window.electron.scrape(index, username);
-            if (newData == null) {
+            if (newData === false) {
+                throw new Error(`Scrape: ABORT: ${username}`);
+            } else if (newData == null) {
                 window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
                 return write(username, true);
             }
@@ -137,7 +139,7 @@ async function scrape(removeData = false) {
             unlock();
             write(username);
 
-            console.error(error);
+            console.error(error?.message ?? error);
             throw error;
         } finally {
             unlock();
