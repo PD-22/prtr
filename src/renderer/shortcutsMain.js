@@ -54,7 +54,7 @@ export default [
             const parsedLines = await window.electron.recognize(dataURL);
             if (!parsedLines) return;
 
-            writeTerminalText(parsedLines.join('\n'));
+            writeTerminalText(parsedLines.join('\n'), null, null, true);
             if (terminal.isOpen) return;
             openTerminal();
         } catch (error) {

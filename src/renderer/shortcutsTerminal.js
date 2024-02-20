@@ -46,12 +46,12 @@ export default [
     ['Alt+C', 'Clean', () => {
         const parsedLines = parseLines(getTerminalLines());
         const newLines = parsedLines.map(x => fkv(x.username, x.data));
-        writeTerminalText(newLines.join('\n'));
+        writeTerminalText(newLines.join('\n'), null, null, true);
     }],
     ['Alt+Shift+C', 'Clear', () => {
         const parsedLines = parseLines(getTerminalLines());
         const newLines = parsedLines.map(x => x.username);
-        writeTerminalText(newLines.join('\n'));
+        writeTerminalText(newLines.join('\n'), null, null, true);
     }],
 
     [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoTerminalHistory()],
@@ -97,14 +97,14 @@ function sortData(ascending = true) {
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
-    writeTerminalText(lines.join('\n'));
+    writeTerminalText(lines.join('\n'), null, null, true);
 }
 
 async function scrape(removeData = false) {
     const parsedLines = parseLines(getTerminalLines());
     const lines = parsedLines.map(x => fkv(x.username, x.data));
     window.electron.status('Scrape: INIT', lines);
-    writeTerminalText(lines.join('\n'));
+    writeTerminalText(lines.join('\n'), null, null, true);
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
