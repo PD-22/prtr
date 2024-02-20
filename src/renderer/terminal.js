@@ -5,7 +5,7 @@ const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
-export const maxHistoryLength = 39;
+export const maxHistoryLength = 40;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -29,16 +29,23 @@ export function closeTerminal() {
     element.classList.remove('is-open');
 }
 
-export function restoreTerminalValue() {
+export function restoreTerminal() {
     setTerminalValue(getTerminalValue(true));
+    const { start, end, dir } = parseSnapshot(history[historyIndex - 1]);
+    setTerminalSelection(start, end, dir);
 }
 
 export function getTerminalValue(commited = false) {
     return commited ? calculateTerminalLines().join('\n') : element.value;
 }
 
-function setTerminalValue(newValue) {
+function setTerminalValue(newValue, skipSelection) {
+    if (!skipSelection) return element.value = newValue;
+
+    const selection = getTerminalSelection();
+    let { start, end, dir } = selection;
     element.value = newValue;
+    setTerminalSelection(start, end, dir);
 }
 
 export function undoTerminalHistory() {
@@ -79,16 +86,17 @@ function latestText(row, index) {
     return getTerminalLines(historyBase)[row];
 }
 
-export function redoTerminalHistory() {
+export function redoTerminalHistory(skipSelection) {
     if (historyIndex >= history.length) return;
-    applySnapshot(history[historyIndex]);
+    applySnapshot(history[historyIndex], null, skipSelection);
     historyIndex++;
 }
 
-function applySnapshot(snapshot, value) {
+function applySnapshot(snapshot, value, skipSelection) {
     let { start, end, dir } = parseSnapshot(snapshot);
 
-    setTerminalValue(applyEntries(snapshot, value).join('\n'));
+    setTerminalValue(applyEntries(snapshot, value).join('\n'), skipSelection);
+    if (skipSelection) return;
     setTerminalSelection(start, end, dir);
 }
 
@@ -143,14 +151,14 @@ export function getTerminalLine(row, value) {
     return getTerminalLines(value)[row];
 }
 
-function writeTerminal(snapshotDict, skipHistory) {
-    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict));
+function writeTerminal(snapshotDict, skipHistory, skipSelection) {
+    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
     if (abortLockedLine(snapshotDict)) return;
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
 
-    redoTerminalHistory();
+    redoTerminalHistory(skipSelection);
 }
 
 function abortLockedLine(snapshotDict) {
@@ -161,7 +169,8 @@ function abortLockedLine(snapshotDict) {
 
     const lines = getTerminalLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
-    setTerminalValue(lines.join('\n'));
+
+    setTerminalValue(lines.join('\n'), true);
 
     abortRows.forEach(([, , onPrevent]) => onPrevent?.());
     return Boolean(abortRows.length);
@@ -174,15 +183,15 @@ export function lockTerminalLine(row, onPrevent) {
 }
 export function unlockTerminalLine(row) { lockedLines.delete(row); }
 
-export function writeTerminalText(text, selection, skipHistory) {
+export function writeTerminalText(text, selection, skipHistory, skipSelection) {
     const { start, end, dir } = selection ?? {};
     const lines = getTerminalLines(text);
     const size = lines.length;
     const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
-    writeTerminal({ size, start, end, dir, ...dictionary }, skipHistory);
+    writeTerminal({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection);
 }
 
-export function writeTerminalLines(rowTextDict, skipHistory) {
+export function writeTerminalLines(rowTextDict, skipHistory, skipSelection) {
     const lines = getTerminalLines();
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
@@ -192,7 +201,7 @@ export function writeTerminalLines(rowTextDict, skipHistory) {
     const size = Math.max(prevSize ?? baseSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
-    writeTerminal({ size, ...newDict }, skipHistory);
+    writeTerminal({ size, ...newDict }, skipHistory, skipSelection);
 }
 
 /** @param {[Number, any][]} rowTextPairs */
@@ -204,9 +213,9 @@ function fillSnaps(rowTextPairs) {
     return Array.from({ length }, mapfn);
 }
 
-export function writeTerminalLine(text, row, skipHistory) {
+export function writeTerminalLine(text, row, skipHistory, skipSelection) {
     row ??= getTerminalLines().length;
-    return writeTerminalLines({ [row]: text }, skipHistory);
+    return writeTerminalLines({ [row]: text }, skipHistory, skipSelection);
 }
 
 export function removeTerminalLines(startRow, endRow = startRow + 1, skipHistory) {

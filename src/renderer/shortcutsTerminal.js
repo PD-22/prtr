@@ -114,7 +114,7 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const write = (line, skip) => writeTerminalLine(line, index, skip);
+        const write = (line, skip) => writeTerminalLine(line, index, skip, true);
         const abort = () => window.electron.abortScrape(index);
         const lock = () => lockTerminalLine(index, abort);
         const unlock = () => unlockTerminalLine(index);

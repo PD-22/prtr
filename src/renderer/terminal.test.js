@@ -14,7 +14,7 @@ import {
     writeTerminalLine,
     writeTerminalLines,
     getTerminalLines,
-    restoreTerminalValue,
+    restoreTerminal,
     lockTerminalLine,
     getLockedTerminalLines,
     unlockTerminalLine
@@ -194,8 +194,15 @@ export default function testTerminal() {
     });
     unlockTerminalLine(1);
     assert(false, getLockedTerminalLines().has(1));
+    restoreTerminal();
+    test('Alpha - 100\nBeta', [0, 11]);
+    writeTerminalText('Alpha\nBeta\nCharlie', null, null, true);
+    test('Alpha\nBeta\nCharlie', [0, 5]);
 
-    restoreTerminalValue();
+    restoreTerminal();
+    test('Alpha\nBeta\nCharlie', [2, 7]);
+
+    restoreTerminal();
     testUndoRedo(
         // ['X\nY\nZ\nA', 7],
         // ['X\nY\nZ\nN', 7],
@@ -237,7 +244,8 @@ export default function testTerminal() {
         ['User1\nUser2'],
         ['Target\nUser2', [0, 6]],
         ['Alpha\nBeta'],
-        ['Alpha - 100\nBeta', [0, 11]]
+        ['Alpha - 100\nBeta', [0, 11]],
+        ['Alpha\nBeta\nCharlie', [2, 7]],
     );
 
     window.electron.status('Terminal: TEST: DONE');
