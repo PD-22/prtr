@@ -17,8 +17,8 @@ import {
 } from "./terminal.js";
 
 export default [
-    ['Alt+/', 'Shortcuts', remindShortcuts],
-    ['Tab', 'Close', closeTerminal],
+    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
+    ['Tab', 'Close', () => closeTerminal()],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -54,13 +54,13 @@ export default [
         writeTerminalText(newLines.join('\n'));
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', undoTerminalHistory],
-    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', redoTerminalHistory],
+    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoTerminalHistory()],
+    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', () => redoTerminalHistory()],
 
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
 
-    ['Ctrl+H', 'History', logHistory],
+    ['Ctrl+H', 'History', () => logHistory()],
     ['Ctrl+T', 'Selection', () => {
         const { start, end, dir, caret } = getTerminalSelection();
         const lines = getTerminalLines();
