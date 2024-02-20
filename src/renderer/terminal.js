@@ -157,6 +157,9 @@ function abortLockedLine(snapshotDict) {
     const newLines = applyEntries(snapshotDict);
     const rowChanged = ([row, line]) => newLines[row] !== line;
     const abortRows = Array.from(lockedLines).filter(rowChanged);
+    const lines = getTerminalLines();
+    abortRows.forEach(([row, line]) => lines[row] = line);
+    setTerminalValue(lines.join('\n'));
     return Boolean(abortRows.length);
 }
 

@@ -4,6 +4,7 @@ import {
     closeTerminal,
     getTerminalLines,
     getTerminalSelection,
+    lockTerminalLine,
     logHistory,
     openTerminal,
     posToCaret,
@@ -11,6 +12,7 @@ import {
     setTerminalSelection,
     terminal,
     undoTerminalHistory,
+    unlockTerminalLine,
     writeTerminalLine,
     writeTerminalText
 } from "./terminal.js";
@@ -113,27 +115,32 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const writeLine = (line, skipHistory) => writeTerminalLine(line, index, skipHistory);
+        const write = (line, skip) => writeTerminalLine(line, index, skip);
+        const lock = () => lockTerminalLine(index);
+        const unlock = () => unlockTerminalLine(index);
+
         try {
-            writeLine(fkv(username, '...'), true);
-            // lockTerminalLine(index);
+            write(fkv(username, '...'), true);
+            lock(index);
 
             const newData = await window.electron.scrape(index, username);
             if (newData == null) {
                 window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
-                return writeLine(username, true);
+                return write(username, true);
             }
 
             window.electron.status(`Scrape: ${fkv(username, newData)}`);
-            writeLine(fkv(username, newData));
+            unlock();
+            write(fkv(username, newData));
         } catch (error) {
             window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
-            writeLine(username);
+            unlock();
+            write(username);
 
             console.error(error);
             throw error;
         } finally {
-            // unlockTerminalLine(index);
+            unlock();
         }
     }));
 
