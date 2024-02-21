@@ -290,11 +290,12 @@ function commitInputHistory() {
     if (!inputLoading) return;
     cancelInputHistory();
     const text = getTerminalValue();
-    assert(true, Boolean(lastOnInputSelection));
-    const { start, end, dir } = lastOnInputSelection;
+    const selection = getTerminalSelection();
     restoreTerminal();
     console.log('Input: Done');
-    writeTerminalText(text, { start, end, dir });
+    writeTerminalText(text, lastOnInputSelection);
+    const { start, end, dir } = selection;
+    setTerminalSelection(start, end, dir);
 }
 function cancelInputHistory() {
     inputLoading = false;
