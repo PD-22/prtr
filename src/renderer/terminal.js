@@ -5,7 +5,7 @@ const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
-export const maxHistoryLength = 40;
+export const maxHistoryLength = 41;
 export let historyIndex = 0;
 setTerminalValue(historyBase);
 
@@ -53,17 +53,20 @@ export function undoTerminalHistory() {
     const index = historyIndex - 2;
     const { start, end, dir } = parseSnapshot(history[index]);
 
-    setTerminalValue(calculateTerminalLines(index, true).join('\n'));
+    setTerminalValue(revertTerminalLines(index).join('\n'));
     setTerminalSelection(start, end, dir);
     historyIndex--;
 }
 
-export function calculateTerminalLines(index = historyIndex - 1, onlyChanged) {
+export function calculateTerminalLines(index = historyIndex - 1) {
+    return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
+}
+
+export function revertTerminalLines(index = historyIndex - 1) {
     const { entries, lines } = parseSnapshot(history[index + 1]);
     const changedRows = new Map(entries);
     return Array.from({ length: latestSize(index) }, (v, row) => {
-        if (onlyChanged && !changedRows.has(row))
-            return lines[row] ?? latestText(row, index);
+        if (!changedRows.has(row)) return lines[row] ?? latestText(row, index);
         return latestText(row, index);
     });
 }
@@ -224,6 +227,8 @@ export function removeTerminalLines(startRow, endRow = startRow + 1, skipHistory
     const deleteCount = Math.max(0, endRow - startRow);
     const newLines = lines.toSpliced(startRow, deleteCount);
 
+    if (newLines.length === 0) newLines[0] = '';
+
     const entries = newLines
         .map((text, row) => [row, text])
         .filter(([row, text]) => text !== lines[row]);
@@ -287,7 +292,7 @@ function commitInputHistory() {
     const text = getTerminalValue();
     assert(true, Boolean(lastOnInputSelection));
     const { start, end, dir } = lastOnInputSelection;
-    // restoreTerminalValue();
+    restoreTerminal();
     console.log('Input: Done');
     writeTerminalText(text, { start, end, dir });
 }

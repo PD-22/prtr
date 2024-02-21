@@ -1,23 +1,23 @@
 import shortcutsTerminal from "./shortcutsTerminal.js";
 import {
-    calculateTerminalLines,
+    getLockedTerminalLines,
+    getTerminalLines,
     getTerminalSelection,
     getTerminalValue,
     historyIndex,
+    lockTerminalLine,
     maxHistoryLength,
     openTerminal,
     redoTerminalHistory,
     removeTerminalLines,
+    restoreTerminal,
     setTerminalSelection,
+    terminal,
     undoTerminalHistory,
-    writeTerminalText,
+    unlockTerminalLine,
     writeTerminalLine,
     writeTerminalLines,
-    getTerminalLines,
-    restoreTerminal,
-    lockTerminalLine,
-    getLockedTerminalLines,
-    unlockTerminalLine
+    writeTerminalText
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -202,6 +202,14 @@ export default function testTerminal() {
     restoreTerminal();
     test('Alpha\nBeta\nCharlie', [2, 7]);
 
+    removeTerminalLines(0, 3);
+    test('');
+
+    // NOOP
+    undoTerminalHistory();
+    test('Alpha\nBeta\nCharlie');
+    redoTerminalHistory();
+
     restoreTerminal();
     testUndoRedo(
         // ['X\nY\nZ\nA', 7],
@@ -246,6 +254,7 @@ export default function testTerminal() {
         ['Alpha\nBeta'],
         ['Alpha - 100\nBeta', [0, 11]],
         ['Alpha\nBeta\nCharlie', [2, 7]],
+        [''],
     );
 
     window.electron.status('Terminal: TEST: DONE');
