@@ -12,7 +12,6 @@ import {
     removeTerminalLines,
     restoreTerminal,
     setTerminalSelection,
-    terminal,
     undoTerminalHistory,
     unlockTerminalLine,
     writeTerminalLine,
@@ -212,8 +211,7 @@ export default function testTerminal() {
 
     restoreTerminal();
     testUndoRedo(
-        // ['X\nY\nZ\nA', 7],
-        // ['X\nY\nZ\nN', 7],
+        ['X\nY\nZ\nN'],
         ['X\nY\nZ\nN\nB', [4, 1]],
         ['X\nZ\nN\nB', [1, 0]],
         ['X\nZ\nB', [2, 0]],
@@ -294,19 +292,18 @@ function test2(options) {
 }
 
 function testUndoRedo(...arr) {
-    assert(arr.length, maxHistoryLength);
+    assert(arr.length, maxHistoryLength + 1);
     assert(maxHistoryLength, historyIndex);
     const indexList = arr.map((_v, i) => i);
 
     const f = i => {
-        assert(i, historyIndex - 1);
+        assert(i, historyIndex);
         const [text, start, end, dir] = arr[i];
         test(text, start, end, dir);
     }
 
-    indexList.reverse();
-    indexList.slice(1).forEach(i => { undoTerminalHistory(); f(i); });
-
-    indexList.reverse();
-    indexList.slice(1).forEach(i => { redoTerminalHistory(); f(i); });
+    indexList.toReversed()
+        .forEach(i => { f(i); undoTerminalHistory(); });
+    indexList
+        .forEach(i => { f(i); redoTerminalHistory(); });
 }

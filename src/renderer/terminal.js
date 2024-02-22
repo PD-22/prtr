@@ -1,4 +1,4 @@
-import testTerminal, { assert } from "./terminal.test.js";
+import testTerminal from "./terminal.test.js";
 
 /** @type {HTMLTextAreaElement} */
 const element = document.querySelector('textarea.terminal');
@@ -49,13 +49,15 @@ function setTerminalValue(newValue, skipSelection) {
 }
 
 export function undoTerminalHistory() {
-    if (historyIndex <= 0) return;
     const index = historyIndex - 2;
-    const { start, end, dir } = parseSnapshot(history[index]);
+    if (index < -1) return;
 
     setTerminalValue(revertTerminalLines(index).join('\n'));
-    setTerminalSelection(start, end, dir);
     historyIndex--;
+
+    if (index < 0) return;
+    const { start, end, dir } = parseSnapshot(history[index]);
+    setTerminalSelection(start, end, dir);
 }
 
 export function calculateTerminalLines(index = historyIndex - 1) {
