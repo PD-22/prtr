@@ -114,35 +114,23 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const write = (line, skip) => writeTerminalLine(line, index, skip, true);
-        const abort = () => window.electron.abortScrape(index);
-        const lock = () => lockTerminalLine(index, abort);
-        const unlock = () => unlockTerminalLine(index);
+        const write = (line, skipHistory) => writeTerminalLine(line, index, skipHistory, true);
 
         try {
             write(fkv(username, '...'), true);
-            lock(index);
+            lockTerminalLine(index, () => window.electron.abortScrape(index));
 
-            const newData = await window.electron.scrape(index, username);
-            if (newData === false) {
-                throw new Error(`Scrape: ABORT: ${username}`);
-            } else if (newData == null) {
-                window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
-                return write(username, true);
-            }
+            const data = await window.electron.scrape(index, username);
+            if (data == null) throw Error('Scrape failed');
 
-            window.electron.status(`Scrape: ${fkv(username, newData)}`);
-            unlock();
-            write(fkv(username, newData));
+            window.electron.status(`Scrape: ${fkv(username, data)}`);
+            unlockTerminalLine(index);
+            write(fkv(username, data));
         } catch (error) {
             window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
-            unlock();
-            write(username);
-
-            console.error(error?.message ?? error);
-            throw error;
+            write(username, true);
         } finally {
-            unlock();
+            unlockTerminalLine(index);
         }
     }));
 

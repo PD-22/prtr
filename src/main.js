@@ -154,11 +154,11 @@ function addListeners() {
             });
         })();
 
-        const abortPromise = new Promise((resolve) => {
+        const abortPromise = new Promise((_resolve, reject) => {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);
-                resolve(false);
+                reject('abort');
             });
         });
 
