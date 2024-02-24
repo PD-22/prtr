@@ -30,7 +30,9 @@ export function closeTerminal() {
 }
 
 export function restoreTerminal() {
-    setTerminalValue(getTerminalValue(true));
+    const lines = getTerminalLines(true);
+    Array.from(lockedLines).map(([row, data]) => lines[row] = data.line);
+    setTerminalValue(lines.join('\n'));
     const { start, end, dir } = parseSnapshot(history[historyIndex - 1]);
     setTerminalSelection(start, end, dir);
 }
