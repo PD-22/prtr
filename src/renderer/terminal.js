@@ -162,7 +162,7 @@ export function getLine(row, value) {
 
 function write(snapshotDict, skipHistory, skipSelection) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
-    if (abortLockedLine(snapshotDict)) return;
+    if (abortLockedLine(getAbortRows(applyEntries(snapshotDict)))) return;
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
@@ -170,10 +170,7 @@ function write(snapshotDict, skipHistory, skipSelection) {
     redoHistory(skipSelection);
 }
 
-function abortLockedLine(snapshotDict) {
-    const newLines = applyEntries(snapshotDict);
-    const abortRows = getAbortRows(newLines);
-
+function abortLockedLine(abortRows) {
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
 
@@ -294,6 +291,10 @@ export function onInput() {
     inputLoading = true;
     lastOnInputSelection = getSelection();
     console.log('Input: Wait');
+
+    const abortRows = getAbortRows(getLines());
+    if (abortRows.length) return abortLockedLine(abortRows);
+
     inputTimer = setTimeout(commitInput, inputDebounce);
 }
 function commitInput() {
