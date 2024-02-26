@@ -4,17 +4,17 @@ import testTerminal from "./terminal.test.js";
 export const element = document.querySelector('textarea.terminal');
 
 const history = [];
-let historyBase = "";
-export const maxHistoryLength = 41;
-export let historyIndex = 0;
-setValue(historyBase);
-
 const inputDebounce = 500;
+const lockedLines = new Map();
+let historyBase = "";
 let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
-const lockedLines = new Map();
+export const maxHistoryLength = 41;
+export let historyIndex = 0;
 export const state = { isOpen: false };
+
+setValue(historyBase);
 
 testTerminal(); logHistory();
 
@@ -42,6 +42,8 @@ export function getValue(commited = false) {
 }
 
 function setValue(newValue, skipSelection) {
+    if (getAbortRows(getLines(newValue)).length) throw new Error('Locked line');
+
     if (!skipSelection) return element.value = newValue;
 
     const selection = getSelection();
@@ -170,9 +172,7 @@ function write(snapshotDict, skipHistory, skipSelection) {
 
 function abortLockedLine(snapshotDict) {
     const newLines = applyEntries(snapshotDict);
-    const format = ([row, { line, onPrevent }]) => [row, line, onPrevent];
-    const rowChanged = ([row, line]) => newLines[row] !== line;
-    const abortRows = Array.from(lockedLines).map(format).filter(rowChanged);
+    const abortRows = getAbortRows(newLines);
 
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
@@ -181,6 +181,12 @@ function abortLockedLine(snapshotDict) {
 
     abortRows.forEach(([, , onPrevent]) => onPrevent?.());
     return Boolean(abortRows.length);
+}
+
+function getAbortRows(newLines) {
+    const format = ([row, { line, onPrevent }]) => [row, line, onPrevent];
+    const rowChanged = ([row, line]) => newLines[row] !== line;
+    return Array.from(lockedLines).map(format).filter(rowChanged);
 }
 
 export function getLockedLines() { return new Map(lockedLines); }

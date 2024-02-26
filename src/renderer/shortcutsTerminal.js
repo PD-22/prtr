@@ -128,6 +128,7 @@ async function scrape(removeData = false) {
             write(fkv(username, data));
         } catch (error) {
             window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
+            unlockLine(index);
             write(username, true);
         } finally {
             unlockLine(index);
