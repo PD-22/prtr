@@ -2,11 +2,11 @@ import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { remindShortcuts } from "./shortcuts.js";
-import { openTerminal, terminal, writeTerminalText } from "./terminal.js";
+import * as terminal from "./terminal.js";
 
 export default [
     ['Alt+/', 'Shortcuts', () => remindShortcuts()],
-    ['Tab', 'Terminal', () => openTerminal()],
+    ['Tab', 'Terminal', () => terminal.open()],
     ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
@@ -54,9 +54,9 @@ export default [
             const parsedLines = await window.electron.recognize(dataURL);
             if (!parsedLines) return;
 
-            writeTerminalText(parsedLines.join('\n'), null, null, true);
-            if (terminal.isOpen) return;
-            openTerminal();
+            terminal.writeText(parsedLines.join('\n'), null, null, true);
+            if (terminal.state.isOpen) return;
+            terminal.open();
         } catch (error) {
             window.electron.status('Recognize: ERROR');
             throw error;

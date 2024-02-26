@@ -1,96 +1,96 @@
 import shortcutsTerminal from "./shortcutsTerminal.js";
 import {
-    getLockedTerminalLines,
-    getTerminalLines,
-    getTerminalSelection,
-    getTerminalValue,
+    getLockedLines,
+    getLines,
+    getSelection,
+    getValue,
     historyIndex,
-    lockTerminalLine,
+    lockLine,
     maxHistoryLength,
-    openTerminal,
-    redoTerminalHistory,
-    removeTerminalLines,
-    restoreTerminal,
-    setTerminalSelection,
-    undoTerminalHistory,
-    unlockTerminalLine,
-    writeTerminalLine,
-    writeTerminalLines,
-    writeTerminalText
+    open,
+    redoHistory,
+    removeLines,
+    restore,
+    setSelection,
+    undoHistory,
+    unlockLine,
+    writeLine,
+    writeLines,
+    writeText
 } from "./terminal.js";
 
 export default function testTerminal() {
-    openTerminal();                                             /**/test('', [0, 0]);
-    writeTerminalText('X\nY\nZ\nA');                            /**/test('X\nY\nZ\nA', [3, 1]);
-    writeTerminalLine('N', 3);                                  /**/test('X\nY\nZ\nN', [3, 1]);
+    open();                                             /**/test('', [0, 0]);
+    writeText('X\nY\nZ\nA');                            /**/test('X\nY\nZ\nA', [3, 1]);
+    writeLine('N', 3);                                  /**/test('X\nY\nZ\nN', [3, 1]);
     // CUT
 
     // NOOP
-    removeTerminalLines(3);                                     /**/test('X\nY\nZ', [2, 1]);
-    writeTerminalLine('B', 0);                                  /**/test('B\nY\nZ', [0, 1]);
-    writeTerminalLine('C', 1);                                  /**/test('B\nC\nZ', [1, 1]);
-    writeTerminalLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/test('D\nE\nF\nG', [3, 1]);
-    undoTerminalHistory();                                      /**/test('B\nC\nZ', [1, 1]);
-    undoTerminalHistory();                                      /**/test('B\nY\nZ', [0, 1]);
-    undoTerminalHistory();                                      /**/test('X\nY\nZ', [2, 1]);
-    undoTerminalHistory();                                      /**/test('X\nY\nZ\nN', [3, 1]);
+    removeLines(3);                                     /**/test('X\nY\nZ', [2, 1]);
+    writeLine('B', 0);                                  /**/test('B\nY\nZ', [0, 1]);
+    writeLine('C', 1);                                  /**/test('B\nC\nZ', [1, 1]);
+    writeLines({ 0: 'D', 1: 'E', 2: 'F', 3: 'G' });     /**/test('D\nE\nF\nG', [3, 1]);
+    undoHistory();                                      /**/test('B\nC\nZ', [1, 1]);
+    undoHistory();                                      /**/test('B\nY\nZ', [0, 1]);
+    undoHistory();                                      /**/test('X\nY\nZ', [2, 1]);
+    undoHistory();                                      /**/test('X\nY\nZ\nN', [3, 1]);
 
-    writeTerminalLine('B');                                     /**/test('X\nY\nZ\nN\nB', [4, 1]);
-    removeTerminalLines(1);                                     /**/test('X\nZ\nN\nB', [1, 0]);
-    removeTerminalLines(2);                                     /**/test('X\nZ\nB', [2, 0]);
-
-    // NOOP
-    removeTerminalLines(0);                                     /**/test('Z\nB', [0, 0]);
-    undoTerminalHistory();                                      /**/test('X\nZ\nB', [2, 0]);
-
-    writeTerminalLine('T');                                     /**/test('X\nZ\nB\nT', [3, 1]);
+    writeLine('B');                                     /**/test('X\nY\nZ\nN\nB', [4, 1]);
+    removeLines(1);                                     /**/test('X\nZ\nN\nB', [1, 0]);
+    removeLines(2);                                     /**/test('X\nZ\nB', [2, 0]);
 
     // NOOP
-    writeTerminalLine('R');                                     /**/test('X\nZ\nB\nT\nR', [4, 1]);
-    undoTerminalHistory();                                      /**/test('X\nZ\nB\nT', [3, 1]);
+    removeLines(0);                                     /**/test('Z\nB', [0, 0]);
+    undoHistory();                                      /**/test('X\nZ\nB', [2, 0]);
 
-    removeTerminalLines(2);                                     /**/test('X\nZ\nT', [2, 0]);
-    writeTerminalLine("A", 0);                                  /**/test('A\nZ\nT', [0, 1]);
-    writeTerminalLine("B");                                     /**/test('A\nZ\nT\nB', [3, 1]);
-    writeTerminalLine("C");                                     /**/test('A\nZ\nT\nB\nC', [4, 1]);
-    removeTerminalLines(2);                                     /**/test('A\nZ\nB\nC', [2, 0]);
-    writeTerminalLine("B", 1);                                  /**/test('A\nB\nB\nC', [1, 1]);
-    writeTerminalLine("Q", 2);                                  /**/test('A\nB\nQ\nC', [2, 1]);
-    setTerminalSelection([3, 0], [3, 1], 'backward');
+    writeLine('T');                                     /**/test('X\nZ\nB\nT', [3, 1]);
+
+    // NOOP
+    writeLine('R');                                     /**/test('X\nZ\nB\nT\nR', [4, 1]);
+    undoHistory();                                      /**/test('X\nZ\nB\nT', [3, 1]);
+
+    removeLines(2);                                     /**/test('X\nZ\nT', [2, 0]);
+    writeLine("A", 0);                                  /**/test('A\nZ\nT', [0, 1]);
+    writeLine("B");                                     /**/test('A\nZ\nT\nB', [3, 1]);
+    writeLine("C");                                     /**/test('A\nZ\nT\nB\nC', [4, 1]);
+    removeLines(2);                                     /**/test('A\nZ\nB\nC', [2, 0]);
+    writeLine("B", 1);                                  /**/test('A\nB\nB\nC', [1, 1]);
+    writeLine("Q", 2);                                  /**/test('A\nB\nQ\nC', [2, 1]);
+    setSelection([3, 0], [3, 1], 'backward');
     shortcut('Up');                                             /**/test('A\nB\nC\nQ', [2, 0], [2, 1], 'backward');
-    setTerminalSelection([2, 0], [2, 1]); shortcut('Down');     /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
+    setSelection([2, 0], [2, 1]); shortcut('Down');     /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
 
     // NOOP
-    writeTerminalLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/test('C\nD\nE\nF', [3, 1]);
-    undoTerminalHistory();                                      /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
+    writeLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/test('C\nD\nE\nF', [3, 1]);
+    undoHistory();                                      /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
 
-    writeTerminalLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/test('X\nX\nX\nX', [3, 1]);
-    writeTerminalLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/test('E\nD\nC\nX', [2, 1]);
-    writeTerminalLines({ 5: 'H', 7: 'J' });                     /**/test('E\nD\nC\nX\n\nH\n\nJ', [7, 1]);
-    removeTerminalLines(4);                                     /**/test('E\nD\nC\nX\nH\n\nJ', [4, 0]);
-    removeTerminalLines(6);                                     /**/test('E\nD\nC\nX\nH\n', [5, 0]);
-    removeTerminalLines(0, 2);                                  /**/test('C\nX\nH\n', [0, 0]);
-    removeTerminalLines(2, 4);                                  /**/test('C\nX', [1, 1]);
-
-    // NOOP
-    writeTerminalLines({ 0: 'C', 1: 'X' });                     /**/test('C\nX', [1, 1]);
-    removeTerminalLines(-10, 10);                               /**/test('C\nX', [1, 1]);
-    undoTerminalHistory();                                      /**/test('C\nX\nH\n', [0, 0]);
-    redoTerminalHistory();                                      /**/test('C\nX', [1, 1]);
-
-    writeTerminalLine('A');                                     /**/test('C\nX\nA', [2, 1]);
-    writeTerminalLine('B');                                     /**/test('C\nX\nA\nB', [3, 1]);
-    writeTerminalLine('C');                                     /**/test('C\nX\nA\nB\nC', [4, 1]);
-    writeTerminalLine('D');                                     /**/test('C\nX\nA\nB\nC\nD', [5, 1]);
-    removeTerminalLines(0, 2);                                  /**/test('A\nB\nC\nD', [0, 0]);
-    writeTerminalLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });     /**/test('A\nB\nC\nD\nE\nF\nG\nH', [7, 1]);
+    writeLines({ 0: 'X', 1: 'X', 2: 'X', 3: 'X' });     /**/test('X\nX\nX\nX', [3, 1]);
+    writeLines({ 2: 'C', 1: 'D', 0: 'E' });             /**/test('E\nD\nC\nX', [2, 1]);
+    writeLines({ 5: 'H', 7: 'J' });                     /**/test('E\nD\nC\nX\n\nH\n\nJ', [7, 1]);
+    removeLines(4);                                     /**/test('E\nD\nC\nX\nH\n\nJ', [4, 0]);
+    removeLines(6);                                     /**/test('E\nD\nC\nX\nH\n', [5, 0]);
+    removeLines(0, 2);                                  /**/test('C\nX\nH\n', [0, 0]);
+    removeLines(2, 4);                                  /**/test('C\nX', [1, 1]);
 
     // NOOP
-    writeTerminalText('A\nB\nC\nD\nE\nF\nG\nH');                /**/test('A\nB\nC\nD\nE\nF\nG\nH');
+    writeLines({ 0: 'C', 1: 'X' });                     /**/test('C\nX', [1, 1]);
+    removeLines(-10, 10);                               /**/test('C\nX', [1, 1]);
+    undoHistory();                                      /**/test('C\nX\nH\n', [0, 0]);
+    redoHistory();                                      /**/test('C\nX', [1, 1]);
 
-    writeTerminalText('H\nG\nF\nE\nD\nC\nB\nA');                /**/test('H\nG\nF\nE\nD\nC\nB\nA');
+    writeLine('A');                                     /**/test('C\nX\nA', [2, 1]);
+    writeLine('B');                                     /**/test('C\nX\nA\nB', [3, 1]);
+    writeLine('C');                                     /**/test('C\nX\nA\nB\nC', [4, 1]);
+    writeLine('D');                                     /**/test('C\nX\nA\nB\nC\nD', [5, 1]);
+    removeLines(0, 2);                                  /**/test('A\nB\nC\nD', [0, 0]);
+    writeLines({ 4: 'E', 5: 'F', 6: 'G', 7: 'H' });     /**/test('A\nB\nC\nD\nE\nF\nG\nH', [7, 1]);
 
-    writeTerminalText('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
+    // NOOP
+    writeText('A\nB\nC\nD\nE\nF\nG\nH');                /**/test('A\nB\nC\nD\nE\nF\nG\nH');
+
+    writeText('H\nG\nF\nE\nD\nC\nB\nA');                /**/test('H\nG\nF\nE\nD\nC\nB\nA');
+
+    writeText('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
     test('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
 
     shortcut('Clean');
@@ -114,49 +114,49 @@ export default function testTerminal() {
     // NOOP
     shortcut('Down');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername');
-    setTerminalSelection([0, 0]);
+    setSelection([0, 0]);
     shortcut('Up');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername', [0, 0]);
 
-    setTerminalSelection([7, 8]);
+    setSelection([7, 8]);
     shortcut('Up');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', [6, 8]);
 
-    writeTerminalText('User1\nUser2');                          /**/test('User1\nUser2');
-    writeTerminalLine('Target', 0);                             /**/test('Target\nUser2', [0, 6]);
+    writeText('User1\nUser2');                          /**/test('User1\nUser2');
+    writeLine('Target', 0);                             /**/test('Target\nUser2', [0, 6]);
 
     // NOOP
-    writeTerminalLine('Target...', 0, true);
+    writeLine('Target...', 0, true);
     test2({
         text: 'Target...\nUser2',
         commited: 'Target\nUser2',
         start: [0, 9]
     });
-    undoTerminalHistory();                                      /**/test('User1\nUser2');
-    writeTerminalLine('User1...', 0, true);
+    undoHistory();                                      /**/test('User1\nUser2');
+    writeLine('User1...', 0, true);
     test2({
         text: 'User1...\nUser2',
         commited: 'User1\nUser2',
         start: [0, 8]
     });
-    writeTerminalLine('User1', 0, true);
+    writeLine('User1', 0, true);
     test2({
         text: 'User1\nUser2',
         commited: 'User1\nUser2',
         start: [0, 5]
     });
-    redoTerminalHistory();                                      /**/test('Target\nUser2', [0, 6]);
+    redoHistory();                                      /**/test('Target\nUser2', [0, 6]);
 
-    writeTerminalText('Alpha\nBeta');                           /**/test('Alpha\nBeta');
+    writeText('Alpha\nBeta');                           /**/test('Alpha\nBeta');
 
     // NOOP
-    writeTerminalLines(['Alpha...', 'Beta...'], true);
+    writeLines(['Alpha...', 'Beta...'], true);
     test2({
         text: 'Alpha...\nBeta...',
         commited: 'Alpha\nBeta'
     });
 
-    writeTerminalLine('Alpha - 100', 0);
+    writeLine('Alpha - 100', 0);
     test2({
         text: 'Alpha - 100\nBeta...',
         commited: 'Alpha - 100\nBeta',
@@ -164,13 +164,13 @@ export default function testTerminal() {
     });
 
     // NOOP
-    undoTerminalHistory();
+    undoHistory();
     test2({
         text: 'Alpha\nBeta...',
         commited: 'Alpha\nBeta',
         start: [1, 4]
     });
-    redoTerminalHistory();
+    redoHistory();
     test2({
         text: 'Alpha - 100\nBeta...',
         commited: 'Alpha - 100\nBeta',
@@ -178,38 +178,38 @@ export default function testTerminal() {
     });
 
     // NOOP
-    writeTerminalLine('Beta...', 1, true);
+    writeLine('Beta...', 1, true);
     test2({
         text: 'Alpha - 100\nBeta...',
         commited: 'Alpha - 100\nBeta',
     });
-    assert(false, getLockedTerminalLines().has(1));
-    lockTerminalLine(1);
-    assert(true, getLockedTerminalLines().has(1));
-    writeTerminalLine('Text', 1);
+    assert(false, getLockedLines().has(1));
+    lockLine(1);
+    assert(true, getLockedLines().has(1));
+    writeLine('Text', 1);
     test2({
         text: 'Alpha - 100\nBeta...',
         commited: 'Alpha - 100\nBeta',
     });
-    unlockTerminalLine(1);
-    assert(false, getLockedTerminalLines().has(1));
-    restoreTerminal();
+    unlockLine(1);
+    assert(false, getLockedLines().has(1));
+    restore();
     test('Alpha - 100\nBeta', [0, 11]);
-    writeTerminalText('Alpha\nBeta\nCharlie', null, null, true);
+    writeText('Alpha\nBeta\nCharlie', null, null, true);
     test('Alpha\nBeta\nCharlie', [0, 5]);
 
-    restoreTerminal();
+    restore();
     test('Alpha\nBeta\nCharlie', [2, 7]);
 
-    removeTerminalLines(0, 3);
+    removeLines(0, 3);
     test('');
 
     // NOOP
-    undoTerminalHistory();
+    undoHistory();
     test('Alpha\nBeta\nCharlie');
-    redoTerminalHistory();
+    redoHistory();
 
-    restoreTerminal();
+    restore();
     testUndoRedo(
         ['X\nY\nZ\nN'],
         ['X\nY\nZ\nN\nB', [4, 1]],
@@ -276,16 +276,16 @@ function test(text, start, end, dir) {
 function test2(options) {
     let { text, commited, start, end, dir } = options;
     commited ??= text;
-    const lines = getTerminalLines(text);
+    const lines = getLines(text);
     const lastIndex = lines.length - 1;
     start ??= [lastIndex, lines[lastIndex].length];
     end ??= start;
     dir ??= 'forward';
 
-    assert(text, getTerminalValue());
-    assert(commited, getTerminalValue(true));
+    assert(text, getValue());
+    assert(commited, getValue(true));
 
-    const sel = getTerminalSelection();
+    const sel = getSelection();
     assert(start, sel.start);
     assert(end, sel.end);
     assert(dir, sel.dir);
@@ -303,7 +303,7 @@ function testUndoRedo(...arr) {
     }
 
     indexList.toReversed()
-        .forEach(i => { f(i); undoTerminalHistory(); });
+        .forEach(i => { f(i); undoHistory(); });
     indexList
-        .forEach(i => { f(i); redoTerminalHistory(); });
+        .forEach(i => { f(i); redoHistory(); });
 }

@@ -1,24 +1,24 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
-    closeTerminal,
-    getTerminalLines,
-    getTerminalSelection,
-    lockTerminalLine,
+    close,
+    getLines,
+    getSelection,
+    lockLine,
     logHistory,
-    openTerminal,
+    open,
     posToCaret,
-    redoTerminalHistory,
-    setTerminalSelection,
-    terminal,
-    undoTerminalHistory,
-    unlockTerminalLine,
-    writeTerminalLine,
-    writeTerminalText
+    redoHistory,
+    setSelection,
+    state,
+    undoHistory,
+    unlockLine,
+    writeLine,
+    writeText
 } from "./terminal.js";
 
 export default [
     ['Alt+/', 'Shortcuts', () => remindShortcuts()],
-    ['Tab', 'Close', () => closeTerminal()],
+    ['Tab', 'Close', () => close()],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -37,33 +37,33 @@ export default [
     }],
 
     ['Escape', 'Deselect', () => {
-        const { caret } = getTerminalSelection();
-        setTerminalSelection(caret, caret);
+        const { caret } = getSelection();
+        setSelection(caret, caret);
     }],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+C', 'Clean', () => {
-        const parsedLines = parseLines(getTerminalLines());
+        const parsedLines = parseLines(getLines());
         const newLines = parsedLines.map(x => fkv(x.username, x.data));
-        writeTerminalText(newLines.join('\n'), null, null, true);
+        writeText(newLines.join('\n'), null, null, true);
     }],
     ['Alt+Shift+C', 'Clear', () => {
-        const parsedLines = parseLines(getTerminalLines());
+        const parsedLines = parseLines(getLines());
         const newLines = parsedLines.map(x => x.username);
-        writeTerminalText(newLines.join('\n'), null, null, true);
+        writeText(newLines.join('\n'), null, null, true);
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoTerminalHistory()],
-    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', () => redoTerminalHistory()],
+    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoHistory()],
+    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', () => redoHistory()],
 
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
 
     ['Ctrl+H', 'History', () => logHistory()],
     ['Ctrl+T', 'Selection', () => {
-        const { start, end, dir, caret } = getTerminalSelection();
-        const lines = getTerminalLines();
+        const { start, end, dir, caret } = getSelection();
+        const lines = getLines();
         const startCaret = posToCaret(lines, start[0], start[1]);
         const endCaret = posToCaret(lines, end[0], end[1]);
         const result = { startCaret, endCaret, dir, caret };
@@ -74,8 +74,8 @@ export default [
 ];
 
 function moveLines(change) {
-    const lines = getTerminalLines();
-    let { start, end, dir } = getTerminalSelection();
+    const lines = getLines();
+    let { start, end, dir } = getSelection();
     const [startRow, startCol] = start;
     const [endRow, endCol] = end;
 
@@ -87,24 +87,24 @@ function moveLines(change) {
     lines.splice(newStartRow, 0, ...movedLines);
     start = [newStartRow, startCol];
     end = [newEndRow, endCol];
-    writeTerminalText(lines.join('\n'), { start, end, dir });
+    writeText(lines.join('\n'), { start, end, dir });
 }
 
 function sortData(ascending = true) {
-    const parsedLines = parseLines(getTerminalLines());
+    const parsedLines = parseLines(getLines());
     const sorted = parsedLines
         .sort((a, b) => a.username.localeCompare(b.username))
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
-    writeTerminalText(lines.join('\n'), null, null, true);
+    writeText(lines.join('\n'), null, null, true);
 }
 
 async function scrape(removeData = false) {
-    const parsedLines = parseLines(getTerminalLines());
+    const parsedLines = parseLines(getLines());
     const lines = parsedLines.map(x => fkv(x.username, x.data));
     window.electron.status('Scrape: INIT', lines);
-    writeTerminalText(lines.join('\n'), null, null, true);
+    writeText(lines.join('\n'), null, null, true);
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
@@ -114,28 +114,28 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const write = (line, skipHistory) => writeTerminalLine(line, index, skipHistory, true);
+        const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
 
         try {
             write(fkv(username, '...'), true);
-            lockTerminalLine(index, () => window.electron.abortScrape(index));
+            lockLine(index, () => window.electron.abortScrape(index));
 
             const data = await window.electron.scrape(index, username);
             if (data == null) throw Error('Scrape failed');
 
             window.electron.status(`Scrape: ${fkv(username, data)}`);
-            unlockTerminalLine(index);
+            unlockLine(index);
             write(fkv(username, data));
         } catch (error) {
             window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
             write(username, true);
         } finally {
-            unlockTerminalLine(index);
+            unlockLine(index);
         }
     }));
 
-    if (terminal.isOpen) return;
-    openTerminal();
+    if (state.isOpen) return;
+    open();
 }
 
 function parseLines(lines) {

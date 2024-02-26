@@ -1,72 +1,72 @@
 import testTerminal from "./terminal.test.js";
 
 /** @type {HTMLTextAreaElement} */
-const element = document.querySelector('textarea.terminal');
+export const element = document.querySelector('textarea.terminal');
 
 const history = [];
 let historyBase = "";
 export const maxHistoryLength = 41;
 export let historyIndex = 0;
-setTerminalValue(historyBase);
+setValue(historyBase);
 
 const inputDebounce = 500;
 let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
 const lockedLines = new Map();
-export const terminal = { element, isOpen: false };
+export const state = { isOpen: false };
 
 testTerminal(); logHistory();
 
-export function openTerminal() {
-    terminal.isOpen = true;
+export function open() {
+    state.isOpen = true;
     element.classList.add('is-open');
     setTimeout(() => element.focus());
 }
 
-export function closeTerminal() {
-    terminal.isOpen = false;
+export function close() {
+    state.isOpen = false;
     element.classList.remove('is-open');
 }
 
-export function restoreTerminal() {
-    const lines = getTerminalLines(true);
+export function restore() {
+    const lines = getLines(true);
     Array.from(lockedLines).map(([row, data]) => lines[row] = data.line);
-    setTerminalValue(lines.join('\n'));
+    setValue(lines.join('\n'));
     const { start, end, dir } = parseSnapshot(history[historyIndex - 1]);
-    setTerminalSelection(start, end, dir);
+    setSelection(start, end, dir);
 }
 
-export function getTerminalValue(commited = false) {
-    return commited ? calculateTerminalLines().join('\n') : element.value;
+export function getValue(commited = false) {
+    return commited ? calculateLines().join('\n') : element.value;
 }
 
-function setTerminalValue(newValue, skipSelection) {
+function setValue(newValue, skipSelection) {
     if (!skipSelection) return element.value = newValue;
 
-    const selection = getTerminalSelection();
+    const selection = getSelection();
     let { start, end, dir } = selection;
     element.value = newValue;
-    setTerminalSelection(start, end, dir);
+    setSelection(start, end, dir);
 }
 
-export function undoTerminalHistory() {
+export function undoHistory() {
     const index = historyIndex - 2;
     if (index < -1) return;
 
-    setTerminalValue(revertTerminalLines(index).join('\n'));
+    setValue(revertLines(index).join('\n'));
     historyIndex--;
 
     if (index < 0) return;
     const { start, end, dir } = parseSnapshot(history[index]);
-    setTerminalSelection(start, end, dir);
+    setSelection(start, end, dir);
 }
 
-export function calculateTerminalLines(index = historyIndex - 1) {
+export function calculateLines(index = historyIndex - 1) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
-export function revertTerminalLines(index = historyIndex - 1) {
+export function revertLines(index = historyIndex - 1) {
     const { entries, lines } = parseSnapshot(history[index + 1]);
     const changedRows = new Map(entries);
     return Array.from({ length: latestSize(index) }, (v, row) => {
@@ -77,7 +77,7 @@ export function revertTerminalLines(index = historyIndex - 1) {
 
 function latestSize(index) {
     const snapshotSize = parseSnapshot(history[index])?.size;
-    const baseSize = getTerminalLines(historyBase).length;
+    const baseSize = getLines(historyBase).length;
     return snapshotSize ?? baseSize;
 }
 
@@ -90,10 +90,10 @@ function latestText(row, index) {
             if (curRow === row) return text;
         }
     }
-    return getTerminalLines(historyBase)[row];
+    return getLines(historyBase)[row];
 }
 
-export function redoTerminalHistory(skipSelection) {
+export function redoHistory(skipSelection) {
     if (historyIndex >= history.length) return;
     applySnapshot(history[historyIndex], null, skipSelection);
     historyIndex++;
@@ -102,13 +102,13 @@ export function redoTerminalHistory(skipSelection) {
 function applySnapshot(snapshot, value, skipSelection) {
     let { start, end, dir } = parseSnapshot(snapshot);
 
-    setTerminalValue(applyEntries(snapshot, value).join('\n'), skipSelection);
+    setValue(applyEntries(snapshot, value).join('\n'), skipSelection);
     if (skipSelection) return;
-    setTerminalSelection(start, end, dir);
+    setSelection(start, end, dir);
 }
 
 export function applyEntries(snapshot, value) {
-    const lines = getTerminalLines(value);
+    const lines = getLines(value);
     const { size, entries } = parseSnapshot(snapshot);
     entries.forEach(([row, text]) => lines[row] = text);
     lines.length = size;
@@ -122,7 +122,7 @@ function parseSnapshot(snapshot = {}, value) {
 
     const { size, start, end, dir, ...dict } = snapshot;
     const entries = Object.entries(dict).map(intKey).filter(isValidRow).toSorted(byFirst);
-    const lines = getTerminalLines(value);
+    const lines = getLines(value);
     return { size, start, end, dir, entries, lines };
 }
 
@@ -137,10 +137,10 @@ export function logHistory() {
     };
     const base = indent + `base: ${JSON.stringify(historyBase)}`;
 
-    const value = JSON.stringify(getTerminalValue());
+    const value = JSON.stringify(getValue());
     const valueStr = indent + `value: ${value}`;
 
-    const committed = JSON.stringify(getTerminalValue(true));
+    const committed = JSON.stringify(getValue(true));
     const committedStr = value !== committed && (indent + `committed: ${committed}`);
 
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
@@ -149,23 +149,23 @@ export function logHistory() {
     console.log(logs.filter(Boolean).join('\n'));
 }
 
-export function getTerminalLines(value) {
-    if (typeof value !== 'string') value = getTerminalValue(value);
+export function getLines(value) {
+    if (typeof value !== 'string') value = getValue(value);
     return value.replace(/\r/g, "\n").split('\n');
 }
 
-export function getTerminalLine(row, value) {
-    return getTerminalLines(value)[row];
+export function getLine(row, value) {
+    return getLines(value)[row];
 }
 
-function writeTerminal(snapshotDict, skipHistory, skipSelection) {
+function write(snapshotDict, skipHistory, skipSelection) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
     if (abortLockedLine(snapshotDict)) return;
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
 
-    redoTerminalHistory(skipSelection);
+    redoHistory(skipSelection);
 }
 
 function abortLockedLine(snapshotDict) {
@@ -174,59 +174,59 @@ function abortLockedLine(snapshotDict) {
     const rowChanged = ([row, line]) => newLines[row] !== line;
     const abortRows = Array.from(lockedLines).map(format).filter(rowChanged);
 
-    const lines = getTerminalLines();
+    const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
 
-    setTerminalValue(lines.join('\n'), true);
+    setValue(lines.join('\n'), true);
 
     abortRows.forEach(([, , onPrevent]) => onPrevent?.());
     return Boolean(abortRows.length);
 }
 
-export function getLockedTerminalLines() { return new Map(lockedLines); }
-export function lockTerminalLine(row, onPrevent) {
-    const line = getTerminalLine(row);
+export function getLockedLines() { return new Map(lockedLines); }
+export function lockLine(row, onPrevent) {
+    const line = getLine(row);
     lockedLines.set(row, { line, onPrevent });
 }
-export function unlockTerminalLine(row) { lockedLines.delete(row); }
+export function unlockLine(row) { lockedLines.delete(row); }
 
-export function writeTerminalText(text, selection, skipHistory, skipSelection) {
+export function writeText(text, selection, skipHistory, skipSelection) {
     const { start, end, dir } = selection ?? {};
-    const lines = getTerminalLines(text);
+    const lines = getLines(text);
     const size = lines.length;
     const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
-    writeTerminal({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection);
+    write({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection);
 }
 
-export function writeTerminalLines(rowTextDict, skipHistory, skipSelection) {
-    const lines = getTerminalLines();
+export function writeLines(rowTextDict, skipHistory, skipSelection) {
+    const lines = getLines();
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
 
-    const baseSize = getTerminalLines(historyBase).length;
+    const baseSize = getLines(historyBase).length;
     const prevSize = history[historyIndex - 1]?.size;
     const size = Math.max(prevSize ?? baseSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
-    writeTerminal({ size, ...newDict }, skipHistory, skipSelection);
+    write({ size, ...newDict }, skipHistory, skipSelection);
 }
 
 /** @param {[Number, any][]} rowTextPairs */
 function fillSnaps(rowTextPairs) {
-    const lines = getTerminalLines();
+    const lines = getLines();
     const end = Math.max(...rowTextPairs.map(([row]) => row));
     const length = end - lines.length;
     const mapfn = (_, i) => [lines.length + i, ''];
     return Array.from({ length }, mapfn);
 }
 
-export function writeTerminalLine(text, row, skipHistory, skipSelection) {
-    row ??= getTerminalLines().length;
-    return writeTerminalLines({ [row]: text }, skipHistory, skipSelection);
+export function writeLine(text, row, skipHistory, skipSelection) {
+    row ??= getLines().length;
+    return writeLines({ [row]: text }, skipHistory, skipSelection);
 }
 
-export function removeTerminalLines(startRow, endRow = startRow + 1, skipHistory) {
-    const lines = getTerminalLines();
+export function removeLines(startRow, endRow = startRow + 1, skipHistory) {
+    const lines = getLines();
     if (startRow < 0 || endRow > lines.length) return;
     const deleteCount = Math.max(0, endRow - startRow);
     const newLines = lines.toSpliced(startRow, deleteCount);
@@ -243,7 +243,7 @@ export function removeTerminalLines(startRow, endRow = startRow + 1, skipHistory
     const pos = startRow === newLines.length ?
         caretToPos(newLines, Infinity) :
         [startRow, 0];
-    writeTerminal({ size, start: pos, end: pos, ...newDict }, skipHistory);
+    write({ size, start: pos, end: pos, ...newDict }, skipHistory);
 }
 
 function generateSnapshot(dict, value) {
@@ -283,25 +283,25 @@ function pushHistory(snapshotDict) {
     return true;
 }
 
-export function onTerminalInput() {
-    cancelInputHistory();
+export function onInput() {
+    cancelInput();
     inputLoading = true;
-    lastOnInputSelection = getTerminalSelection();
+    lastOnInputSelection = getSelection();
     console.log('Input: Wait');
-    inputTimer = setTimeout(commitInputHistory, inputDebounce);
+    inputTimer = setTimeout(commitInput, inputDebounce);
 }
-function commitInputHistory() {
+function commitInput() {
     if (!inputLoading) return;
-    cancelInputHistory();
-    const text = getTerminalValue();
-    const selection = getTerminalSelection();
-    restoreTerminal();
+    cancelInput();
+    const text = getValue();
+    const selection = getSelection();
+    restore();
     console.log('Input: Done');
-    writeTerminalText(text, lastOnInputSelection);
+    writeText(text, lastOnInputSelection);
     const { start, end, dir } = selection;
-    setTerminalSelection(start, end, dir);
+    setSelection(start, end, dir);
 }
-function cancelInputHistory() {
+function cancelInput() {
     inputLoading = false;
     return clearTimeout(inputTimer);
 };
@@ -339,10 +339,10 @@ export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
-export function getTerminalSelection() {
+export function getSelection() {
     const { selectionDirection, selectionStart, selectionEnd } = element;
     const caret = selectionDirection === 'forward' ? selectionEnd : selectionStart;
-    const lines = getTerminalLines();
+    const lines = getLines();
     const pos = caret => caretToPos(lines, caret);
     return {
         start: pos(selectionStart),
@@ -352,8 +352,8 @@ export function getTerminalSelection() {
     };
 }
 
-export function setTerminalSelection(start, end = start, dir) {
-    const lines = getTerminalLines();
+export function setSelection(start, end = start, dir) {
+    const lines = getLines();
     const caret = pos => posToCaret(lines, pos[0], pos[1]);
     element.setSelectionRange(caret(start), caret(end), dir);
 }
