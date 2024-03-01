@@ -16,7 +16,8 @@ import {
     unlockLine,
     writeLine,
     writeLines,
-    writeText
+    writeText,
+    close
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -256,6 +257,7 @@ export default function testTerminal() {
     );
 
     window.electron.status('Terminal: TEST: DONE');
+    close();
 }
 
 function shortcut(name) {

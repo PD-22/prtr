@@ -1,5 +1,5 @@
 const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
-const { join, resolve } = require('path');
+const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
@@ -154,7 +154,7 @@ function addListeners() {
             });
         })();
 
-        const abortPromise = new Promise((_resolve, reject) => {
+        const abortPromise = new Promise((_, reject) => {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);

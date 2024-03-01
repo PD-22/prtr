@@ -1,4 +1,3 @@
-import testTerminal from "./terminal.test.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
@@ -16,7 +15,7 @@ export const state = { isOpen: false };
 
 setValue(historyBase);
 
-testTerminal(); logHistory();
+// testTerminal(); logHistory();
 
 export function open() {
     state.isOpen = true;
@@ -25,6 +24,7 @@ export function open() {
 }
 
 export function close() {
+    commitInput();
     state.isOpen = false;
     element.classList.remove('is-open');
 }
@@ -161,8 +161,9 @@ export function getLine(row, value) {
 }
 
 function write(snapshotDict, skipHistory, skipSelection) {
+    commitInput();
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
-    if (abortLockedLine(getAbortRows(applyEntries(snapshotDict)))) return;
+    if (abortLockedLine(applyEntries(snapshotDict))) return;
 
     const done = pushHistory(snapshotDict);
     if (!done) return;
@@ -170,7 +171,8 @@ function write(snapshotDict, skipHistory, skipSelection) {
     redoHistory(skipSelection);
 }
 
-function abortLockedLine(abortRows) {
+function abortLockedLine(newLines) {
+    const abortRows = getAbortRows(newLines);
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
 
@@ -180,7 +182,7 @@ function abortLockedLine(abortRows) {
     return Boolean(abortRows.length);
 }
 
-function getAbortRows(newLines) {
+function getAbortRows(newLines = getLines()) {
     const format = ([row, { line, onPrevent }]) => [row, line, onPrevent];
     const rowChanged = ([row, line]) => newLines[row] !== line;
     return Array.from(lockedLines).map(format).filter(rowChanged);
@@ -292,8 +294,7 @@ export function onInput() {
     lastOnInputSelection = getSelection();
     console.log('Input: Wait');
 
-    const abortRows = getAbortRows(getLines());
-    if (abortRows.length) return abortLockedLine(abortRows);
+    if (abortLockedLine()) return;
 
     inputTimer = setTimeout(commitInput, inputDebounce);
 }
