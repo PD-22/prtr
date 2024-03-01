@@ -38,7 +38,6 @@ body::-webkit-scrollbar {
     background: rgba(0, 0, 0, 0.5);
     color: #FFF;
     outline: none;
-    box-sizing: border-box;
     padding: 1rem;
     white-space: pre;
     overflow-wrap: normal;
@@ -48,6 +47,7 @@ body::-webkit-scrollbar {
     font-family: Consolas;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    border: none;
 }
 
 .terminal::-webkit-scrollbar {
