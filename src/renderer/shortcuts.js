@@ -1,9 +1,9 @@
 import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
-import { terminal } from "./terminal.js";
+import * as terminal from "./terminal.js";
 
 export const getActiveShortcuts = () => {
-    return terminal.isOpen ? shortcutsTerminal : shortcutsMain
+    return terminal.state.isOpen ? shortcutsTerminal : shortcutsMain
 }
 
 export function onKeyDown(e) {

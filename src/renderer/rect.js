@@ -63,6 +63,7 @@ export function getNormalRect() {
 
 export function getRectCanvasDataURL() {
     const { x, y, w, h } = getNormalRect();
+    if (!w || !h) return;
 
     const rectCanvas = document.createElement('canvas');
     rectCanvas.width = w;

@@ -158,8 +158,8 @@ function addListeners() {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);
-                reject(new Error(`Scrape: ABORT: ${username}`));
-            })
+                reject('abort');
+            });
         });
 
         return Promise.race([scrapePromise, abortPromise]);

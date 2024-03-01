@@ -1,32 +1,34 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-const onScrape = getUserTime => ipcRenderer.on('scrape', (_, row, username) =>
-    new Promise((resolve, reject) => {
-        const scrapeChannel = `scrape:${row}`;
-        const abortChannel = `scrape:abort:${row}`;
+const onScrape = getUserTime => ipcRenderer.on('scrape', (_, row, username) => {
+    const sendChannel = `scrape:${row}`;
+    const abortChannel = `scrape:abort:${row}`;
+    const abortMessage = `Scrape: ABORT: ${username}`;
 
-        const abortHandler = () => {
+    /**@type {[Promise,Function]}*/
+    const [promise, abort] = getUserTime(username);
+
+    return new Promise((resolve, reject) => {
+        const abortListener = () => {
             abort();
-            reject(new Error(`Scrape: ABORT: ${username}`));
+            reject(new Error(abortMessage));
         };
-        const dataHandler = result => {
-            ipcRenderer.send(scrapeChannel, result)
+
+        const onfulfilled = result => {
+            ipcRenderer.send(sendChannel, result);
             resolve();
         };
-        const errorHandler = (error) => {
-            ipcRenderer.send(scrapeChannel, null)
+
+        const onrejected = error => {
+            ipcRenderer.send(sendChannel, error);
             reject(error);
-        }
-        const finalHandler = () => {
-            ipcRenderer.removeListener(abortChannel, abortHandler);
         };
 
-        ipcRenderer.once(abortChannel, abortHandler);
+        const onfinally = () => ipcRenderer.removeListener(abortChannel, abortListener);
 
-        /** @type {Promise} */
-        const [promise, abort] = getUserTime(username);
-        promise.then(dataHandler).catch(errorHandler).finally(finalHandler);
+        ipcRenderer.once(abortChannel, abortListener);
+        promise.then(onfulfilled).catch(onrejected).finally(onfinally);
     })
-);
+});
 
 contextBridge.exposeInMainWorld('electron', { onScrape });

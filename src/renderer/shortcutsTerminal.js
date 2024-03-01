@@ -1,25 +1,24 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
-    caretToPos,
-    closeTerminal,
-    getTerminalLines,
-    getTerminalSelection,
-    lockTerminalLine,
+    close,
+    getLines,
+    getSelection,
+    lockLine,
     logHistory,
-    openTerminal,
+    open,
     posToCaret,
-    redoTerminalHistory,
-    setTerminalSelection,
-    terminal,
-    undoTerminalHistory,
-    unlockTerminalLine,
-    writeTerminalLine,
-    writeTerminalLines
+    redoHistory,
+    setSelection,
+    state,
+    undoHistory,
+    unlockLine,
+    writeLine,
+    writeText
 } from "./terminal.js";
 
 export default [
-    ['Alt+/', 'Shortcuts', remindShortcuts],
-    ['Tab', 'Close', closeTerminal],
+    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
+    ['Tab', 'Close', () => close()],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -38,34 +37,47 @@ export default [
     }],
 
     ['Escape', 'Deselect', () => {
-        const { caret } = getTerminalSelection();
-        setTerminalSelection(caret, caret);
+        const { caret } = getSelection();
+        setSelection(caret, caret);
     }],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+C', 'Clean', () => {
-        const parsedLines = parseLines(getTerminalLines());
-        writeTerminalLines(parsedLines.map(x => fkv(x.username, x.data)));
+        const parsedLines = parseLines(getLines());
+        const newLines = parsedLines.map(x => fkv(x.username, x.data));
+        writeText(newLines.join('\n'), null, null, true);
     }],
     ['Alt+Shift+C', 'Clear', () => {
-        const parsedLines = parseLines(getTerminalLines());
-        writeTerminalLines(parsedLines.map(x => x.username));
+        const parsedLines = parseLines(getLines());
+        const newLines = parsedLines.map(x => x.username);
+        writeText(newLines.join('\n'), null, null, true);
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', undoTerminalHistory],
-    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', redoTerminalHistory],
+    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoHistory()],
+    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', () => redoHistory()],
 
-    ['Ctrl+H', 'History', logHistory],
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
-    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)]
+    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
+
+    ['Ctrl+H', 'History', () => logHistory()],
+    ['Ctrl+T', 'Selection', () => {
+        const { start, end, dir, caret } = getSelection();
+        const lines = getLines();
+        const startCaret = posToCaret(lines, start[0], start[1]);
+        const endCaret = posToCaret(lines, end[0], end[1]);
+        const result = { startCaret, endCaret, dir, caret };
+        const posStr = [start, end].map(x => x.join(':')).join('-');
+        console.log(posStr, result);
+    }],
+    ['Ctrl+L', 'Wipe', () => console.clear()],
 ];
 
 function moveLines(change) {
-    const lines = getTerminalLines();
-    const { start, end } = getTerminalSelection();
-    const [startRow] = caretToPos(lines, start);
-    const [endRow] = caretToPos(lines, end);
+    const lines = getLines();
+    let { start, end, dir } = getSelection();
+    const [startRow, startCol] = start;
+    const [endRow, endCol] = end;
 
     const newStartRow = startRow + change;
     const newEndRow = endRow + change;
@@ -73,26 +85,26 @@ function moveLines(change) {
 
     const movedLines = lines.splice(startRow, endRow - startRow + 1);
     lines.splice(newStartRow, 0, ...movedLines);
-    const newStart = posToCaret(lines, newStartRow, 0);
-    const newEnd = posToCaret(lines, newEndRow, Infinity);
-    writeTerminalLines(lines, { start: newStart, end: newEnd });
+    start = [newStartRow, startCol];
+    end = [newEndRow, endCol];
+    writeText(lines.join('\n'), { start, end, dir });
 }
 
 function sortData(ascending = true) {
-    const parsedLines = parseLines(getTerminalLines());
+    const parsedLines = parseLines(getLines());
     const sorted = parsedLines
         .sort((a, b) => a.username.localeCompare(b.username))
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
-    writeTerminalLines(lines);
+    writeText(lines.join('\n'), null, null, true);
 }
 
 async function scrape(removeData = false) {
-    const parsedLines = parseLines(getTerminalLines());
+    const parsedLines = parseLines(getLines());
     const lines = parsedLines.map(x => fkv(x.username, x.data));
     window.electron.status('Scrape: INIT', lines);
-    writeTerminalLines(lines);
+    writeText(lines.join('\n'), null, null, true);
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
@@ -102,32 +114,31 @@ async function scrape(removeData = false) {
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const writeLine = line => writeTerminalLine(index, line, true, true);
+        const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
+
         try {
-            writeLine(fkv(username, '...'));
-            lockTerminalLine(index);
+            write(fkv(username, '...'), true);
+            lockLine(index, () => window.electron.abortScrape(index));
 
-            const newData = await window.electron.scrape(index, username);
-            if (newData == null) {
-                window.electron.status(`Scrape: ${fkv(username, 'FAIL')}`);
-                return writeLine(username);
-            }
+            const data = await window.electron.scrape(index, username);
+            if (data == null) throw new Error('Scrape failed');
+            if (data instanceof Error) throw data;
 
-            window.electron.status(`Scrape: ${fkv(username, newData)}`);
-            writeLine(fkv(username, newData));
+            window.electron.status(`Scrape: ${fkv(username, data)}`);
+            unlockLine(index);
+            write(fkv(username, data));
         } catch (error) {
-            window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
-            writeLine(username);
-
             console.error(error);
-            throw error;
+            window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
+            unlockLine(index);
+            write(username, true);
         } finally {
-            unlockTerminalLine(index);
+            unlockLine(index);
         }
     }));
 
-    if (terminal.isOpen) return;
-    openTerminal();
+    if (state.isOpen) return;
+    open();
 }
 
 function parseLines(lines) {
@@ -164,7 +175,7 @@ function unique(arr, getKey) {
 }
 
 function fkv(k, v) {
-    return v ? `${k} - ${v}` : k;
+    return v != null ? `${k} - ${v}` : k;
 }
 
 function whitespace(str) {
