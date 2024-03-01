@@ -121,12 +121,14 @@ async function scrape(removeData = false) {
             lockLine(index, () => window.electron.abortScrape(index));
 
             const data = await window.electron.scrape(index, username);
-            if (data == null) throw Error('Scrape failed');
+            if (data == null) throw new Error('Scrape failed');
+            if (data instanceof Error) throw data;
 
             window.electron.status(`Scrape: ${fkv(username, data)}`);
             unlockLine(index);
             write(fkv(username, data));
         } catch (error) {
+            console.error(error);
             window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
             unlockLine(index);
             write(username, true);

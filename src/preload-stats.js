@@ -20,7 +20,7 @@ const onScrape = getUserTime => ipcRenderer.on('scrape', (_, row, username) => {
         };
 
         const onrejected = error => {
-            ipcRenderer.send(sendChannel, null);
+            ipcRenderer.send(sendChannel, error);
             reject(error);
         };
 

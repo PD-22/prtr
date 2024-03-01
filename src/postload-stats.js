@@ -17,6 +17,8 @@ function getToken() {
 async function getUserTime(username, token, signal) {
     const searchResults = await searchUser(username, token, signal);
     const foundUser = searchResults.find(x => x.label === username);
+    if (!foundUser) throw new Error(`User "${username}" not found`);
+
     const userPageUrl = foundUser.value.replace('http', 'https');
     return await extractUserTime(userPageUrl, signal);
 }
