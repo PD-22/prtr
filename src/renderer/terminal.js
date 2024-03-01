@@ -34,7 +34,7 @@ export function restore() {
     Array.from(lockedLines).map(([row, data]) => lines[row] = data.line);
     setValue(lines.join('\n'));
     const { start, end, dir } = parseSnapshot(history[historyIndex - 1]);
-    setSelection(start, end, dir);
+    if (start) setSelection(start, end, dir);
 }
 
 export function getValue(commited = false) {
@@ -360,7 +360,7 @@ export function getSelection() {
     };
 }
 
-export function setSelection(start, end = start, dir) {
+export function setSelection(start, end = start, dir = undefined) {
     const lines = getLines();
     const caret = pos => posToCaret(lines, pos[0], pos[1]);
     element.setSelectionRange(caret(start), caret(end), dir);
