@@ -1,4 +1,4 @@
-import shortcutsTerminal from "./shortcutsTerminal.js";
+import shortcutsTerminal, { parseUser } from "./shortcutsTerminal.js";
 import {
     getLockedLines,
     getLines,
@@ -17,7 +17,9 @@ import {
     writeLine,
     writeLines,
     writeText,
-    close
+    close,
+    clearHistory,
+    logHistory
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -256,8 +258,26 @@ export default function testTerminal() {
         [''],
     );
 
+    const f = (str, expected) => assert(expected, Object.values(parseUser(str)));
+    f("Username",               /**/[null,       /**/"Username",    /**/null]);
+    f("Username",               /**/[null,       /**/"Username",    /**/null]);
+    f("Username-100",           /**/[null,       /**/"Username-100",/**/null]);
+    f("Username- 100",          /**/['Username-',/**/"100",         /**/null]);
+    f("Username ",              /**/[null,       /**/"Username",    /**/null]);
+    f("Username -100",          /**/['Username', /**/"-100",        /**/null]);
+    f("Username -",             /**/[null,       /**/"Username",    /**/null]);
+    f("Username - 100",         /**/[null,       /**/"Username",    /**/"100"]);
+    f("Username - ",            /**/[null,       /**/"Username",    /**/null]);
+    f("Clan Username",          /**/['Clan',     /**/"Username",    /**/null]);
+    f("Clan Username - 100",    /**/['Clan',     /**/"Username",    /**/"100"]);
+    f("Clan Mid Username - 100",/**/['Clan',     /**/"MidUsername", /**/"100"]);
+    f("100",                    /**/[null,       /**/"100",         /**/null]);
+    f("-Username",              /**/[null,       /**/"-Username",   /**/null]);
+    f("- 100",                  /**/[null,       /**/null,          /**/'100']);
+    f(" - 100",                 /**/[null,       /**/null,          /**/'100']);
+
+    clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
-    close();
 }
 
 function shortcut(name) {

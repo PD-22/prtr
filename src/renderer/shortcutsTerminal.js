@@ -1,5 +1,6 @@
 import { remindShortcuts } from "./shortcuts.js";
 import {
+    clearHistory,
     close,
     getLines,
     getSelection,
@@ -70,7 +71,7 @@ export default [
         const posStr = [start, end].map(x => x.join(':')).join('-');
         console.log(posStr, result);
     }],
-    ['Ctrl+L', 'Wipe', () => console.clear()],
+    ['Ctrl+L', 'Wipe', () => { console.clear(); clearHistory(); }],
 ];
 
 function moveLines(change) {
@@ -143,7 +144,7 @@ async function scrape(removeData = false) {
 
 function parseLines(lines) {
     const mappedLines = lines.map(line => {
-        const [username, data] = parseUser(line);
+        const { username, data } = parseUser(line) ?? [];
         return { username, data, line };
     });
 
@@ -152,18 +153,31 @@ function parseLines(lines) {
     return unique(filteredLines, x => x.username);
 }
 
-function parseUser(str) {
+export function parseUser(str) {
     const normal = whitespace(str);
-    const match = normal.match(/^(.*?)((^|\s+)-\s*(\S*))?$/);
-    const user = match?.[1];
-    const data = match?.[4];
 
-    if (!user) return [];
+    const match = normal.match(/(^|\s+)-($|\s+)/);
+    let user, data;
+    if (match) {
+        user = normal.slice(0, match.index);
+        data = normal.slice(match.index + match[0]?.length);
+    } else {
+        user = normal;
+    }
 
-    const [first, ...rest] = user.split(' ');
-    const username = rest.join('') || first;
+    const segments = user.split(' ');
+    let tag, username;
+    if (segments.length <= 1) {
+        username = segments[0];
+    } else {
+        const [first, ...rest] = segments;
+        tag = first;
+        username = rest.join('');
+    }
 
-    return [username, data];
+    tag ||= null; username ||= null; data ||= null;
+
+    return { tag, username, data };
 }
 
 function unique(arr, getKey) {

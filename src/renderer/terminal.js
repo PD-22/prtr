@@ -1,7 +1,7 @@
+import testTerminal from "./terminal.test.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
-
 const history = [];
 const inputDebounce = 500;
 const lockedLines = new Map();
@@ -12,10 +12,9 @@ let lastOnInputSelection;
 export const maxHistoryLength = 41;
 export let historyIndex = 0;
 export const state = { isOpen: false };
-
 setValue(historyBase);
 
-// testTerminal(); logHistory();
+testTerminal();
 
 export function open() {
     state.isOpen = true;
@@ -27,6 +26,12 @@ export function close() {
     commitInput();
     state.isOpen = false;
     element.classList.remove('is-open');
+}
+
+export function clearHistory() {
+    historyBase = getValue(true)
+    historyIndex = 0
+    history.splice(0, Infinity)
 }
 
 export function restore() {
@@ -333,7 +338,7 @@ export function caretToPos(lines, caret) {
 }
 
 export function posToCaret(lines, row, col = 0) {
-    row = clamp(row, 0, lines.length);
+    row = clamp(row, 0, lines.length - 1);
     col = clamp(col, 0, lines[row].length);
 
     const rows = lines.slice(0, row);
