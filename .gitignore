@@ -4,3 +4,5 @@ temp
 *.txt
 *.traineddata
 *.png
+out/
+forge.config.js
