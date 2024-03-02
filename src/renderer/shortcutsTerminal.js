@@ -129,8 +129,10 @@ async function scrape(removeData = false) {
             unlockLine(index);
             write(fkv(username, data));
         } catch (error) {
-            console.error(error);
-            window.electron.status(`Scrape: ${fkv(username, 'ERROR')}`);
+            const isAbort = error.message === "Error invoking remote method 'scrape': abort";
+            if (!isAbort) console.error(error);
+            window.electron.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
+
             unlockLine(index);
             write(username, true);
         } finally {

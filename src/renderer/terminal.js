@@ -152,7 +152,11 @@ export function logHistory() {
 
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
     const historyStr = history.map(snapshot).join('\n');
-    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, committedStr];
+
+    const lockedKeys = Array.from(lockedLines.keys());
+    const locked = lockedKeys.length > 0 && (indent + `locked: ${lockedKeys}`);
+
+    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, committedStr, locked];
     console.log(logs.filter(Boolean).join('\n'));
 }
 
