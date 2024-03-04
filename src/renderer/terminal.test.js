@@ -21,7 +21,8 @@ import {
     clearHistory,
     logHistory,
     mockInput,
-    caretToPos
+    caretToPos,
+    getHistorySize as getHistoryLength
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -341,15 +342,23 @@ function test2({
 }
 
 function testHistory(...arr) {
-    const _ = (i, f, s) => {
+    const validLength = getHistoryLength() + 1;
+    assert(validLength, arr.length, 'history');
+
+    const initIndex = historyIndex;
+
+    for (let i = historyIndex; i < arr.length; i++)
+        _(i, redoHistory, 'redo');
+
+    for (let i = historyIndex; i >= 0; i--)
+        _(i, undoHistory, 'undo');
+
+    for (let i = historyIndex; i < initIndex; i++)
+        _(i, redoHistory, 'redo');
+
+    function _(i, f, s) {
         assert(i, historyIndex, s);
         test(...arr[i]);
         f();
     }
-
-    for (let i = arr.length - 1; i >= 0; i--)
-        _(i, undoHistory, 'undo');
-
-    for (let i = 0; i < arr.length; i++)
-        _(i, redoHistory, 'redo');
 }

@@ -34,6 +34,10 @@ export function clearHistory() {
     history.splice(0, Infinity)
 }
 
+export function getHistorySize() {
+    return history.length;
+}
+
 export function restore(skipSelection) {
     const snapshot = history[historyIndex - 1];
     const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
