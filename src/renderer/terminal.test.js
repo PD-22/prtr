@@ -20,7 +20,8 @@ import {
     close,
     clearHistory,
     logHistory,
-    mockInput
+    mockInput,
+    caretToPos
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -302,46 +303,47 @@ function shortcut(name) {
     shortcutsTerminal.find(x => x[1] === name)[2]();
 }
 
-export function assert(expected, actual) {
+export function assert(expected, actual, name) {
     expected = JSON.stringify(expected);
     actual = JSON.stringify(actual);
     if (expected === actual) return;
-    throw new Error(`Expected: ${expected} Actual: ${actual}`);
+    const message = `Expected: ${expected} Actual: ${actual}`;
+    throw new Error(name ? `${name}: ${message}` : message);
 }
 
-function test(text, start, end, dir) {
-    return test2({ text, start, end, dir });
+function test(text, start, end, dir, name) {
+    return test2({ text, start, end, dir, name });
 }
 
-function test2(options) {
-    let { text, commited, start, end, dir } = options;
-    commited ??= text;
-    const lines = getLines(text);
-    const lastIndex = lines.length - 1;
-    start ??= [lastIndex, lines[lastIndex].length];
-    end ??= start;
-    dir ??= 'forward';
+function test2({
+    text,
+    commited = text,
+    start = caretToPos(getLines(text), Infinity),
+    end = start,
+    dir = 'forward',
+    name = text
+}) {
+    const _ = ([s]) => `${JSON.stringify(name)}.${s}`;
 
-    assert(text, getValue());
-    assert(commited, getValue(true));
+    assert(text, getValue(), _`text`);
+    assert(commited, getValue(true), _`commited`);
 
     const sel = getSelection();
-    assert(start, sel.start);
-    assert(end, sel.end);
-    assert(dir, sel.dir);
+    assert(start, sel.start, _`start`);
+    assert(end, sel.end, _`end`);
+    assert(dir, sel.dir, _`dir`);
 }
 
 function testHistory(...arr) {
-    for (let i = arr.length - 1; i >= 0; i--)
-        assertAt(i, undoHistory);
-
-    for (let i = 0; i < arr.length; i++)
-        assertAt(i, redoHistory);
-
-    function assertAt(i, f) {
-        assert(i, historyIndex);
-        const [text, start, end, dir] = arr[i];
-        test(text, start, end, dir);
+    const _ = (i, f, s) => {
+        assert(i, historyIndex, s);
+        test(...arr[i]);
         f();
     }
+
+    for (let i = arr.length - 1; i >= 0; i--)
+        _(i, undoHistory, 'undo');
+
+    for (let i = 0; i < arr.length; i++)
+        _(i, redoHistory, 'redo');
 }
