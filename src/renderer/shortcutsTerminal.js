@@ -62,6 +62,7 @@ export default [
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
 
     ['Ctrl+H', 'History', () => logHistory()],
+    ['Ctrl+Shift+H', 'Wipe', () => { clearHistory(); }],
     ['Ctrl+T', 'Selection', () => {
         const { start, end, dir, caret } = getSelection();
         const lines = getLines();
@@ -71,7 +72,7 @@ export default [
         const posStr = [start, end].map(x => x.join(':')).join('-');
         console.log(posStr, result);
     }],
-    ['Ctrl+L', 'Wipe', () => { console.clear(); clearHistory(); }],
+    ['Ctrl+L', 'Empty', () => { console.clear(); }],
 ];
 
 function moveLines(change) {

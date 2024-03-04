@@ -38,7 +38,11 @@ export function restore() {
     const lines = getLines(true);
     Array.from(lockedLines).map(([row, data]) => lines[row] = data.line);
     setValue(lines.join('\n'));
-    const { start, end, dir } = parseSnapshot(history[historyIndex - 1]);
+
+    const snapshot = history[historyIndex - 1];
+    if (!snapshot) return setSelectionCaret(getValue().length);
+
+    const { start, end, dir } = parseSnapshot(snapshot);
     if (start) setSelection(start, end, dir);
 }
 
@@ -170,13 +174,10 @@ export function getLine(row, value) {
 }
 
 function write(snapshotDict, skipHistory, skipSelection) {
-    commitInput();
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
+    commitInput();
     if (abortLockedLine(applyEntries(snapshotDict))) return;
-
-    const done = pushHistory(snapshotDict);
-    if (!done) return;
-
+    if (!pushHistory(snapshotDict)) return;
     redoHistory(skipSelection);
 }
 
@@ -321,6 +322,12 @@ function cancelInput() {
     inputLoading = false;
     return clearTimeout(inputTimer);
 };
+export function mockInput(text, start, end, dir) {
+    element.value = text;
+    setSelection(start, end, dir);
+    onInput();
+    commitInput();
+}
 
 export function caretToPos(lines, caret) {
     caret = clamp(caret, 0, lines.join('\n').length);
@@ -368,8 +375,12 @@ export function getSelection() {
     };
 }
 
-export function setSelection(start, end = start, dir = undefined) {
+export function setSelection(start = [0, 0], end = start, dir = undefined) {
     const lines = getLines();
     const caret = pos => posToCaret(lines, pos[0], pos[1]);
-    element.setSelectionRange(caret(start), caret(end), dir);
+    setSelectionCaret(caret(start), caret(end), dir);
+}
+
+export function setSelectionCaret(start = 0, end = start, dir = undefined) {
+    element.setSelectionRange(start, end, dir);
 }

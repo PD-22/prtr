@@ -19,7 +19,8 @@ import {
     writeText,
     close,
     clearHistory,
-    logHistory
+    logHistory,
+    mockInput
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -281,9 +282,17 @@ export default function testTerminal() {
 
     writeText('Sleepy');
     clearHistory();
-    testUndoRedo(['Sleepy', [0, 6]]);
+    testUndoRedo(['Sleepy']);
     writeText('Sleepy');
-    testUndoRedo(['Sleepy', [0, 6]]);
+    testUndoRedo(['Sleepy']);
+
+    writeLine('Sleepy - ...', 0, true, true);
+    lockLine(0, () => {
+        unlockLine(0);
+        writeLine('Sleepy', 0, true, true)
+    });
+    mockInput('Sleep - ...', [0, 5]);
+    testUndoRedo(['Sleepy', [0, 5]]);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
