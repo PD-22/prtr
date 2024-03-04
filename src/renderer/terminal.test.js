@@ -22,7 +22,8 @@ import {
     logHistory,
     mockInput,
     caretToPos,
-    getHistorySize as getHistoryLength
+    getHistoryLength,
+    settleInput
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -293,14 +294,24 @@ export default function testTerminal() {
         unlockLine(0);
         writeLine('Sleepy', 0, true, true)
     });
-    mockInput('Sleep - ...', [0, 5]);
-    testHistory(['Sleepy', [0, 5]]);
+    mockInput('Sleep - ...', { start: [0, 5] });
+    testHistory(['Sleepy']);
 
     writeText('ABC'); clearHistory(); restore();
     writeText('ABC 123', null, true);
 
     undoHistory();
     test('ABC');
+
+    writeText('ABC 123', null, true);
+    redoHistory();
+    test('ABC');
+
+    mockInput('ABC 123', null, () => undoHistory());
+    testHistory(['ABC']);
+
+    mockInput('ABC 123', null, () => redoHistory());
+    testHistory(['ABC'], ['ABC 123']);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
@@ -346,6 +357,7 @@ function testHistory(...arr) {
     assert(validLength, arr.length, 'history');
 
     const initIndex = historyIndex;
+    settleInput();
 
     for (let i = historyIndex; i < arr.length; i++)
         _(i, redoHistory, 'redo');

@@ -34,7 +34,7 @@ export function clearHistory() {
     history.splice(0, Infinity)
 }
 
-export function getHistorySize() {
+export function getHistoryLength() {
     return history.length;
 }
 
@@ -63,19 +63,18 @@ function setValue(newValue, skipSelection) {
 }
 
 export function undoHistory() {
-    if (historyIndex === 0) return restore(true);
-    if (inputLoading) { cancelInput(); return restore(); }
-
     const newIndex = historyIndex - 1
     const prevIndex = newIndex - 1;
+    historyIndex = clamp(newIndex, 0);
+
+    if (newIndex < 0) { return restore(); }
+    if (inputLoading) { return settleInput(); }
 
     setValue(revertLines(prevIndex).join('\n'));
 
     const snapshot = history[prevIndex];
     const { start, end, dir } = parseSnapshot(snapshot);
     if (start) setSelection(start, end, dir);
-
-    historyIndex = clamp(newIndex, 0);
 }
 
 export function calculateLines(index = historyIndex - 1) {
@@ -110,9 +109,14 @@ function latestText(row, index) {
 }
 
 export function redoHistory(skipSelection) {
-    if (historyIndex >= history.length) return;
-    applySnapshot(history[historyIndex], null, skipSelection);
-    historyIndex++;
+    const newIndex = historyIndex + 1;
+    historyIndex = clamp(newIndex, 0, history.length);
+
+    if (inputLoading) return;
+    if (newIndex > history.length) return restore();
+    // if (inputLoading) { return settleInput(); }
+
+    applySnapshot(history[historyIndex - 1], null, skipSelection);
 }
 
 function applySnapshot(snapshot, value, skipSelection) {
@@ -328,10 +332,16 @@ function cancelInput() {
     inputLoading = false;
     return clearTimeout(inputTimer);
 };
-export function mockInput(text, start, end, dir) {
+export function settleInput(skipSelection) {
+    cancelInput();
+    restore(skipSelection);
+}
+export function mockInput(text, selection, preCommit) {
     element.value = text;
+    const { start, end, dir } = selection ?? {};
     setSelection(start, end, dir);
     onInput();
+    preCommit?.(cancelInput);
     commitInput();
 }
 
