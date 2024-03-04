@@ -51,7 +51,8 @@ body::-webkit-scrollbar {
     overflow-x: visible;
     overflow-y: visible;
     resize: none;
-    font-family: Consolas;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 14px;
     -ms-overflow-style: none;
     scrollbar-width: none;
     border: none;
