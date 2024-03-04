@@ -150,16 +150,23 @@ function parseSnapshot(snapshot = {}, value) {
 export function logHistory() {
     const operation = ([row, text]) => `${row}=${text.length === 1 ? text : `"${text}"`}`;
     const indent = ' '.repeat(2);
+    const sel = ({ start, end, dir }) => {
+        const diff = JSON.stringify(start) !== JSON.stringify(end);
+        const list = [start, diff && end, dir?.[0]];
+        return list.filter(Boolean).join('-');
+    };
     const snapshot = (s, i) => {
         const { size, start, end, dir, entries } = parseSnapshot(s);
-        const selection = [start, start !== end && end, dir].filter(Boolean).join('-');
+        const selStr = sel({ start, end, dir });
         const entriesStr = entries.map(operation).join(' ');
-        return indent + `snap#${i}: size=${size} sel=${selection} ${entriesStr}`;
+        return indent + `snap#${i}: size=${size} sel=${selStr} ${entriesStr}`;
     };
     const base = indent + `base: ${JSON.stringify(historyBase)}`;
 
     const value = JSON.stringify(getValue());
     const valueStr = indent + `value: ${value}`;
+
+    const selStr = indent + `sel: ${sel(getSelection())}`;
 
     const committed = JSON.stringify(getValue(true));
     const committedStr = value !== committed && (indent + `committed: ${committed}`);
@@ -170,7 +177,10 @@ export function logHistory() {
     const lockedKeys = Array.from(lockedLines.keys());
     const locked = lockedKeys.length > 0 && (indent + `locked: ${lockedKeys}`);
 
-    const logs = [`History:`, base, historyStr, historyIndexStr, valueStr, committedStr, locked];
+    const logs = [
+        `History:`, base, historyStr, historyIndexStr,
+        valueStr, selStr, committedStr, locked
+    ];
     console.log(logs.filter(Boolean).join('\n'));
 }
 
