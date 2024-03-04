@@ -260,7 +260,7 @@ export default function testTerminal() {
         [''],
     ];
     assert(arr.length, maxHistoryLength + 1);
-    testUndoRedo(...arr);
+    testHistory(...arr);
 
     const f = (str, expected) => assert(expected, Object.values(parseUser(str)));
     f("Username",               /**/[null,       /**/"Username",    /**/null]);
@@ -282,9 +282,9 @@ export default function testTerminal() {
 
     writeText('Sleepy');
     clearHistory();
-    testUndoRedo(['Sleepy']);
+    testHistory(['Sleepy']);
     writeText('Sleepy');
-    testUndoRedo(['Sleepy']);
+    testHistory(['Sleepy']);
 
     writeLine('Sleepy - ...', 0, true, true);
     lockLine(0, () => {
@@ -292,7 +292,7 @@ export default function testTerminal() {
         writeLine('Sleepy', 0, true, true)
     });
     mockInput('Sleep - ...', [0, 5]);
-    testUndoRedo(['Sleepy', [0, 5]]);
+    testHistory(['Sleepy', [0, 5]]);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
@@ -331,17 +331,17 @@ function test2(options) {
     assert(dir, sel.dir);
 }
 
-function testUndoRedo(...arr) {
-    const indexList = arr.map((_v, i) => i);
+function testHistory(...arr) {
+    for (let i = arr.length - 1; i >= 0; i--)
+        assertAt(i, undoHistory);
 
-    const f = i => {
+    for (let i = 0; i < arr.length; i++)
+        assertAt(i, redoHistory);
+
+    function assertAt(i, f) {
         assert(i, historyIndex);
         const [text, start, end, dir] = arr[i];
         test(text, start, end, dir);
+        f();
     }
-
-    indexList.toReversed()
-        .forEach(i => { f(i); undoHistory(); });
-    indexList
-        .forEach(i => { f(i); redoHistory(); });
 }
