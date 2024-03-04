@@ -213,7 +213,8 @@ export default function testTerminal() {
     redoHistory();
 
     restore();
-    testUndoRedo(
+    assert(maxHistoryLength, historyIndex);
+    const arr = [
         ['X\nY\nZ\nN'],
         ['X\nY\nZ\nN\nB', [4, 1]],
         ['X\nZ\nN\nB', [1, 0]],
@@ -256,7 +257,9 @@ export default function testTerminal() {
         ['Alpha - 100\nBeta', [0, 11]],
         ['Alpha\nBeta\nCharlie', [2, 7]],
         [''],
-    );
+    ];
+    assert(arr.length, maxHistoryLength + 1);
+    testUndoRedo(...arr);
 
     const f = (str, expected) => assert(expected, Object.values(parseUser(str)));
     f("Username",               /**/[null,       /**/"Username",    /**/null]);
@@ -276,7 +279,13 @@ export default function testTerminal() {
     f("- 100",                  /**/[null,       /**/null,          /**/'100']);
     f(" - 100",                 /**/[null,       /**/null,          /**/'100']);
 
-    clearHistory(); logHistory(); close();
+    writeText('Sleepy');
+    clearHistory();
+    testUndoRedo(['Sleepy', [0, 6]]);
+    writeText('Sleepy');
+    testUndoRedo(['Sleepy', [0, 6]]);
+
+    restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
 }
 
@@ -314,8 +323,6 @@ function test2(options) {
 }
 
 function testUndoRedo(...arr) {
-    assert(arr.length, maxHistoryLength + 1);
-    assert(maxHistoryLength, historyIndex);
     const indexList = arr.map((_v, i) => i);
 
     const f = i => {

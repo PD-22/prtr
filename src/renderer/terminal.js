@@ -217,9 +217,8 @@ export function writeLines(rowTextDict, skipHistory, skipSelection) {
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
 
-    const baseSize = getLines(historyBase).length;
-    const prevSize = history[historyIndex - 1]?.size;
-    const size = Math.max(prevSize ?? baseSize, ...entries.map(([row]) => row + 1));
+    const prevSize = latestSize(historyIndex - 1);
+    const size = Math.max(prevSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
     write({ size, ...newDict }, skipHistory, skipSelection);
@@ -281,7 +280,7 @@ function generateSnapshot(dict, value) {
 function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);
 
-    const prevSize = history[historyIndex - 1]?.size;
+    const prevSize = latestSize(historyIndex - 1);
     const { size, entries } = parseSnapshot(snapshot);
     if (size === prevSize && !entries.length) return;
 
