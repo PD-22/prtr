@@ -159,10 +159,8 @@ export function logHistory() {
         const { size, start, end, dir, entries } = parseSnapshot(s);
         const selStr = sel({ start, end, dir });
         const entriesStr = entries.map(operation).join(' ');
-        return indent + `snap#${i}: size=${size} sel=${selStr} ${entriesStr}`;
+        return `${i}: size=${size} sel=${selStr} ${entriesStr}`;
     };
-    const base = indent + `base: ${JSON.stringify(historyBase)}`;
-
     const value = JSON.stringify(getValue());
     const valueStr = indent + `value: ${value}`;
 
@@ -171,15 +169,22 @@ export function logHistory() {
     const committed = JSON.stringify(getValue(true));
     const committedStr = value !== committed && (indent + `committed: ${committed}`);
 
+
+    const base = `#: ${JSON.stringify(historyBase)}`;
+    const historyStr = [base, ...history].map((s, i) => {
+        const mid = i-- === historyIndex ? '> ' : '  ';
+        const end = i < 0 ? base : snapshot(s, i);
+        return `${indent}${mid}${end}`;
+    }).join('\n');
+
     const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
-    const historyStr = history.map(snapshot).join('\n');
 
     const lockedKeys = Array.from(lockedLines.keys());
     const locked = lockedKeys.length > 0 && (indent + `locked: ${lockedKeys}`);
 
     const logs = [
-        `History:`, base, historyStr, historyIndexStr,
-        valueStr, selStr, committedStr, locked
+        `History:`, historyStr, historyIndexStr,
+        valueStr, committedStr, selStr, locked
     ];
     console.log(logs.filter(Boolean).join('\n'));
 }
