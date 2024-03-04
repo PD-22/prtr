@@ -34,16 +34,13 @@ export function clearHistory() {
     history.splice(0, Infinity)
 }
 
-export function restore() {
-    const lines = getLines(true);
-    Array.from(lockedLines).map(([row, data]) => lines[row] = data.line);
-    setValue(lines.join('\n'));
-
+export function restore(skipSelection) {
     const snapshot = history[historyIndex - 1];
-    if (!snapshot) return setSelectionCaret(getValue().length);
+    const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
+    const { start, end, dir } = selection;
 
-    const { start, end, dir } = parseSnapshot(snapshot);
-    if (start) setSelection(start, end, dir);
+    setValue(getValue(true));
+    setSelection(start, end, dir);
 }
 
 export function getValue(commited = false) {
@@ -62,15 +59,19 @@ function setValue(newValue, skipSelection) {
 }
 
 export function undoHistory() {
-    const index = historyIndex - 2;
-    if (index < -1) return;
+    if (historyIndex === 0) return restore(true);
+    if (inputLoading) { cancelInput(); return restore(); }
 
-    setValue(revertLines(index).join('\n'));
-    historyIndex--;
+    const newIndex = historyIndex - 1
+    const prevIndex = newIndex - 1;
 
-    if (index < 0) return;
-    const { start, end, dir } = parseSnapshot(history[index]);
-    setSelection(start, end, dir);
+    setValue(revertLines(prevIndex).join('\n'));
+
+    const snapshot = history[prevIndex];
+    const { start, end, dir } = parseSnapshot(snapshot);
+    if (start) setSelection(start, end, dir);
+
+    historyIndex = clamp(newIndex, 0);
 }
 
 export function calculateLines(index = historyIndex - 1) {

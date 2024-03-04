@@ -295,6 +295,12 @@ export default function testTerminal() {
     mockInput('Sleep - ...', [0, 5]);
     testHistory(['Sleepy', [0, 5]]);
 
+    writeText('ABC'); clearHistory(); restore();
+    writeText('ABC 123', null, true);
+
+    undoHistory();
+    test('ABC');
+
     restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
 }
