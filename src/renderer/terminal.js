@@ -4,6 +4,7 @@ import testTerminal from "./terminal.test.js";
 export const element = document.querySelector('textarea.terminal');
 const history = [];
 const inputDebounce = 500;
+/** @type {Map<number, { line: string, onPrevent: Function }} */
 const lockedLines = new Map();
 let historyBase = "";
 let inputLoading = false;
@@ -38,12 +39,17 @@ export function getHistoryLength() {
     return history.length;
 }
 
-export function restore(skipSelection) {
+export function restore(skipSelection, skipLock) {
     const snapshot = history[historyIndex - 1];
     const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
     const { start, end, dir } = selection;
 
-    setValue(getValue(true));
+    const lines = getLines(true);
+    const newLines = skipLock ? lines : lines.map(
+        (text, row) => lockedLines.get(row)?.line ?? text
+    );
+
+    setValue(newLines.join('\n'));
     setSelection(start, end, dir);
 }
 
