@@ -217,7 +217,7 @@ export default function testTerminal() {
     redoHistory();
 
     restore();
-    assert(maxHistoryLength, historyIndex);
+    assert(maxHistoryLength - 1, historyIndex);
     const arr = [
         ['X\nY\nZ\nN'],
         ['X\nY\nZ\nN\nB', [4, 1]],
@@ -367,10 +367,10 @@ function testHistory(...arr) {
     const initIndex = historyIndex;
     settleInput();
 
-    for (let i = historyIndex; i < arr.length; i++)
+    for (let i = historyIndex; i < arr.length - 1; i++)
         _(i, redoHistory, 'redo');
 
-    for (let i = historyIndex; i >= 0; i--)
+    for (let i = historyIndex; i >= -1; i--)
         _(i, undoHistory, 'undo');
 
     for (let i = historyIndex; i < initIndex; i++)
@@ -378,7 +378,7 @@ function testHistory(...arr) {
 
     function _(i, f, s) {
         assert(i, historyIndex, s);
-        test(...arr[i]);
+        test(...arr[i + 1]);
         f();
     }
 }

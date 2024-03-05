@@ -11,7 +11,7 @@ let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
 export const maxHistoryLength = 41;
-export let historyIndex = 0;
+export let historyIndex = -1;
 export const state = { isOpen: false };
 setValue(historyBase);
 
@@ -31,7 +31,7 @@ export function close() {
 
 export function clearHistory() {
     historyBase = getValue(true)
-    historyIndex = 0
+    historyIndex = -1
     history.splice(0, Infinity)
 }
 
@@ -40,7 +40,7 @@ export function getHistoryLength() {
 }
 
 export function restore(skipSelection, skipLock) {
-    const snapshot = history[historyIndex - 1];
+    const snapshot = history[historyIndex];
     const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
     const { start, end, dir } = selection;
 
@@ -70,21 +70,20 @@ function setValue(newValue, skipSelection) {
 
 export function undoHistory() {
     const newIndex = historyIndex - 1
-    const prevIndex = newIndex - 1;
 
-    if (newIndex < 0) { return restore(); }
+    if (newIndex < -1) { return restore(); }
     if (inputLoading) { return settleInput(); }
 
-    historyIndex = clamp(newIndex, 0);
+    historyIndex = clamp(newIndex, -1);
 
-    setValue(revertLines(prevIndex).join('\n'));
+    setValue(revertLines(newIndex).join('\n'));
 
-    const snapshot = history[prevIndex];
+    const snapshot = history[newIndex];
     const { start, end, dir } = parseSnapshot(snapshot);
     if (start) setSelection(start, end, dir);
 }
 
-export function calculateLines(index = historyIndex - 1) {
+export function calculateLines(index = historyIndex) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
@@ -117,13 +116,13 @@ function latestText(row, index) {
 
 export function redoHistory(skipSelection) {
     const newIndex = historyIndex + 1;
-    historyIndex = clamp(newIndex, 0, history.length);
+    historyIndex = clamp(newIndex, -1, history.length - 1);
 
     if (inputLoading) return;
-    if (newIndex > history.length) return restore();
+    if (newIndex > history.length - 1) return restore();
     // if (inputLoading) { return settleInput(); }
 
-    applySnapshot(history[historyIndex - 1], null, skipSelection);
+    applySnapshot(history[historyIndex], null, skipSelection);
 }
 
 function applySnapshot(snapshot, value, skipSelection) {
@@ -179,7 +178,7 @@ export function logHistory() {
 
     const base = `#: ${JSON.stringify(historyBase)}`;
     const historyStr = [base, ...history].map((s, i) => {
-        const mid = i-- === historyIndex ? '> ' : '  ';
+        const mid = --i === historyIndex ? '> ' : '  ';
         const end = i < 0 ? base : snapshot(s, i);
         return `${indent}${mid}${end}`;
     }).join('\n');
@@ -250,7 +249,7 @@ export function writeLines(rowTextDict, skipHistory, skipSelection) {
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
 
-    const prevSize = latestSize(historyIndex - 1);
+    const prevSize = latestSize(historyIndex);
     const size = Math.max(prevSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
@@ -313,11 +312,11 @@ function generateSnapshot(dict, value) {
 function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);
 
-    const prevSize = latestSize(historyIndex - 1);
+    const prevSize = latestSize(historyIndex);
     const { size, entries } = parseSnapshot(snapshot);
     if (size === prevSize && !entries.length) return;
 
-    history.splice(historyIndex, Infinity, snapshot);
+    history.splice(historyIndex + 1, Infinity, snapshot);
 
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) {
