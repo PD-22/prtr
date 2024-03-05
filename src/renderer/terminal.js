@@ -71,10 +71,11 @@ function setValue(newValue, skipSelection) {
 export function undoHistory() {
     const newIndex = historyIndex - 1
     const prevIndex = newIndex - 1;
-    historyIndex = clamp(newIndex, 0);
 
     if (newIndex < 0) { return restore(); }
     if (inputLoading) { return settleInput(); }
+
+    historyIndex = clamp(newIndex, 0);
 
     setValue(revertLines(prevIndex).join('\n'));
 
@@ -362,7 +363,7 @@ export function mockInput(text, selection, preCommit) {
     const { start, end, dir } = selection ?? {};
     setSelection(start, end, dir);
     onInput();
-    preCommit?.(cancelInput);
+    if (preCommit?.(cancelInput) === false) return;
     commitInput();
 }
 

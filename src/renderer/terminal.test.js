@@ -313,6 +313,14 @@ export default function testTerminal() {
     mockInput('ABC 123', null, () => redoHistory());
     testHistory(['ABC'], ['ABC 123']);
 
+    clearHistory();
+    writeLine('A', 0);
+    writeLine('B', 1);
+    writeLine('C', 2);
+    writeLine('D', 1);
+    mockInput('Q\nW\nE\nR\nT\nY', null, () => undoHistory());
+    test('A\nD\nC', [1, 1]);
+
     restore(); writeText(''); clearHistory(); logHistory(); close();
     window.electron.status('Terminal: TEST: DONE');
 }
