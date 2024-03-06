@@ -6,7 +6,7 @@ import {
     getAbortRows,
     getSelection,
     setSelection
-} from "../terminal.js";
+} from "./index.js";
 
 export function getValue(commited = false) {
     return commited ? calculateLines().join('\n') : element.value;

@@ -15,7 +15,7 @@ import {
     unlockLine,
     writeLine,
     writeText
-} from "./terminal.js";
+} from "../terminal/index.js";
 
 export default [
     ['Alt+/', 'Shortcuts', () => remindShortcuts()],

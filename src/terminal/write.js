@@ -11,7 +11,7 @@ import {
     latestSize,
     state,
     caretToPos
-} from "../terminal.js";
+} from "./index.js";
 
 function write(snapshotDict, skipHistory, skipSelection) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);

@@ -24,7 +24,7 @@ import {
     getHistoryLength,
     settleInput,
     state
-} from "./terminal.js";
+} from "./index.js";
 
 export default function testTerminal() {
     open();                                             /**/test('', [0, 0]);

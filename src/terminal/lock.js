@@ -1,4 +1,4 @@
-import { getLine, lockedLines, getLines, setValue } from "../terminal.js";
+import { getLine, lockedLines, getLines, setValue } from "./index.js";
 
 export function lockLine(row, onPrevent) {
     const line = getLine(row);

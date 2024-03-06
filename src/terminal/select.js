@@ -1,4 +1,4 @@
-import { element, getLines, getValue, clamp } from "../terminal.js";
+import { element, getLines, getValue, clamp } from "./index.js";
 
 export function getSelection() {
     const { selectionDirection, selectionStart, selectionEnd } = element;

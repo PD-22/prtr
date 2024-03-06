@@ -13,7 +13,7 @@ import {
     setSelection,
     latestText,
     applySnapshot
-} from "../terminal.js";
+} from "./index.js";
 
 export function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);

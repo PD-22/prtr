@@ -2,7 +2,7 @@ import { canvasBackground } from "./canvas.js";
 import { moveDrag, startDrag, stopDrag } from "./mouse.js";
 import { resizeCanvas } from "./rect.js";
 import { onKeyDown } from "./shortcuts.js";
-import * as terminal from "./terminal.js";
+import * as terminal from "../terminal/index.js";
 
 resizeCanvas(0, 0);
 

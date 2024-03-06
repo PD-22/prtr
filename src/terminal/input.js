@@ -8,7 +8,7 @@ import {
     setSelection,
     element,
     writeText
-} from "../terminal.js";
+} from "./index.js";
 
 export function onInput() {
     cancelInput();

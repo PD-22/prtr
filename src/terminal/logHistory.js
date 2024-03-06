@@ -5,7 +5,7 @@ import {
     lockedLines,
     parseSnapshot,
     state
-} from "../terminal.js";
+} from "./index.js";
 
 export function logHistory() {
     const operation = ([row, text]) => `${row}=${text.length === 1 ? text : `"${text}"`}`;

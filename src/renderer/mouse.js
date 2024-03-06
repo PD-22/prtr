@@ -1,6 +1,6 @@
 import { overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
-import { clamp } from "./terminal.js";
+import { clamp } from "../terminal/index.js";
 
 const mouse = { isHold: false };
 export default mouse;

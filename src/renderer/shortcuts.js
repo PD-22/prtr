@@ -1,6 +1,6 @@
 import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
-import * as terminal from "./terminal.js";
+import * as terminal from "../terminal/index.js";
 
 export const getActiveShortcuts = () => {
     return terminal.state.isOpen ? shortcutsTerminal : shortcutsMain

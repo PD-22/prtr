@@ -2,7 +2,7 @@ import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { remindShortcuts } from "./shortcuts.js";
-import * as terminal from "./terminal.js";
+import * as terminal from "../terminal/index.js";
 
 export default [
     ['Alt+/', 'Shortcuts', () => remindShortcuts()],
