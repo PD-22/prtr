@@ -4,10 +4,11 @@ export * from "./terminal/write.js";
 export * from "./terminal/checkout.js";
 import { commitInput } from "./terminal/input.js";
 export * from "./terminal/input.js";
-import { getAbortRows } from "./terminal/lock.js";
 export * from "./terminal/lock.js";
 export * from "./terminal/select.js";
 import { getSelection, setSelection } from "./terminal/select.js";
+export * from "./terminal/value.js";
+import { setValue, getValue, getLines } from "./terminal/value.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
@@ -62,25 +63,6 @@ export function restore(skipSelection, skipLock) {
 
     setValue(newLines.join('\n'));
     setSelection(start, end, dir);
-}
-
-export function getValue(commited = false) {
-    return commited ? calculateLines().join('\n') : element.value;
-}
-
-export function setValue(newValue, skipSelection) {
-    if (getAbortRows(getLines(newValue)).length) throw new Error('Locked line');
-
-    if (!skipSelection) return element.value = newValue;
-
-    const selection = getSelection();
-    let { start, end, dir } = selection;
-    element.value = newValue;
-    setSelection(start, end, dir);
-}
-
-export function calculateLines(index = state.historyIndex) {
-    return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
 export function latestSize(index) {
@@ -169,15 +151,6 @@ export function logHistory() {
         valueStr, committedStr, selStr, locked
     ];
     console.log(logs.filter(Boolean).join('\n'));
-}
-
-export function getLines(value) {
-    if (typeof value !== 'string') value = getValue(value);
-    return value.replace(/\r/g, "\n").split('\n');
-}
-
-export function getLine(row, value) {
-    return getLines(value)[row];
 }
 
 export function generateSnapshot(dict, value) {
