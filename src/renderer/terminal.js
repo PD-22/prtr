@@ -1,17 +1,18 @@
 import testTerminal from "./terminal.test.js";
 
-import * as input from "./terminal/input.js";
-const { commitInput } = input;
 export * from "./terminal/write.js";
 export * from "./terminal/checkout.js";
+import { commitInput } from "./terminal/input.js";
 export * from "./terminal/input.js";
+import { getAbortRows } from "./terminal/lock.js";
+export * from "./terminal/lock.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
 export const history = [];
 export const inputDebounce = 500;
 /** @type {Map<number, { line: string, onPrevent: Function }} */
-const lockedLines = new Map();
+export const lockedLines = new Map();
 export const maxHistoryLength = 40;
 export const state = {
     isOpen: false,
@@ -176,30 +177,6 @@ export function getLines(value) {
 export function getLine(row, value) {
     return getLines(value)[row];
 }
-
-export function abortLockedLine(newLines) {
-    const abortRows = getAbortRows(newLines);
-    const lines = getLines();
-    abortRows.forEach(([row, line]) => lines[row] = line);
-
-    setValue(lines.join('\n'), true);
-
-    abortRows.forEach(([, , onPrevent]) => onPrevent?.());
-    return Boolean(abortRows.length);
-}
-
-function getAbortRows(newLines = getLines()) {
-    const format = ([row, { line, onPrevent }]) => [row, line, onPrevent];
-    const rowChanged = ([row, line]) => newLines[row] !== line;
-    return Array.from(lockedLines).map(format).filter(rowChanged);
-}
-
-export function getLockedLines() { return new Map(lockedLines); }
-export function lockLine(row, onPrevent) {
-    const line = getLine(row);
-    lockedLines.set(row, { line, onPrevent });
-}
-export function unlockLine(row) { lockedLines.delete(row); }
 
 export function generateSnapshot(dict, value) {
     let { size, start, end, dir, entries, lines } = parseSnapshot(dict, value);
