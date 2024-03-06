@@ -10,7 +10,7 @@ let historyBase = "";
 let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
-export const maxHistoryLength = 41;
+export const maxHistoryLength = 40;
 export let historyIndex = -1;
 export const state = { isOpen: false };
 setValue(historyBase);
@@ -332,7 +332,6 @@ export function onInput() {
     cancelInput();
     inputLoading = true;
     lastOnInputSelection = getSelection();
-    console.log('Input: Wait');
 
     if (abortLockedLine()) return;
 
@@ -344,7 +343,6 @@ function commitInput() {
     const text = getValue();
     const selection = getSelection();
     restore();
-    console.log('Input: Done');
     writeText(text, lastOnInputSelection);
     const { start, end, dir } = selection;
     setSelection(start, end, dir);

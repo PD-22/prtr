@@ -28,14 +28,6 @@ export default [
             throw error;
         }
     }],
-    ['Alt+Enter', 'Rescrape', async () => {
-        try {
-            await scrape(true);
-        } catch (error) {
-            window.electron.status('Scrape: ERROR');
-            throw error;
-        }
-    }],
 
     ['Escape', 'Deselect', () => {
         const { caret } = getSelection();
@@ -45,13 +37,8 @@ export default [
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+C', 'Clean', () => {
-        const parsedLines = parseLines(getLines());
-        const newLines = parsedLines.map(x => fkv(x.username, x.data));
-        writeText(newLines.join('\n'), null, null, true);
-    }],
-    ['Alt+Shift+C', 'Clear', () => {
-        const parsedLines = parseLines(getLines());
-        const newLines = parsedLines.map(x => x.username);
+        const parsedLines = getParsedLines();
+        const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
         writeText(newLines.join('\n'), null, null, true);
     }],
 
@@ -93,7 +80,7 @@ function moveLines(change) {
 }
 
 function sortData(ascending = true) {
-    const parsedLines = parseLines(getLines());
+    const parsedLines = getParsedLines();
     const sorted = parsedLines
         .sort((a, b) => a.username.localeCompare(b.username))
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
@@ -102,15 +89,15 @@ function sortData(ascending = true) {
     writeText(lines.join('\n'), null, null, true);
 }
 
-async function scrape(removeData = false) {
-    const parsedLines = parseLines(getLines());
+async function scrape() {
+    const parsedLines = getParsedLines();
     const lines = parsedLines.map(x => fkv(x.username, x.data));
     window.electron.status('Scrape: INIT', lines);
     writeText(lines.join('\n'), null, null, true);
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
-        .filter(o => removeData || !o.data);
+        .filter(o => o.username);
 
     if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
 
@@ -123,7 +110,7 @@ async function scrape(removeData = false) {
             lockLine(index, () => window.electron.abortScrape(index));
 
             const data = await window.electron.scrape(index, username);
-            if (data == null) throw new Error('Scrape failed');
+            if (typeof data !== 'number') throw new Error('Scrape failed');
             if (data instanceof Error) throw data;
 
             window.electron.status(`Scrape: ${fkv(username, data)}`);
@@ -145,15 +132,11 @@ async function scrape(removeData = false) {
     open();
 }
 
-function parseLines(lines) {
-    const mappedLines = lines.map(line => {
+function getParsedLines() {
+    return getLines().map(line => {
         const { username, data } = parseUser(line) ?? [];
         return { username, data, line };
     });
-
-    const filteredLines = mappedLines.filter(x => x.username)
-
-    return unique(filteredLines, x => x.username);
 }
 
 export function parseUser(str) {
@@ -183,7 +166,7 @@ export function parseUser(str) {
     return { tag, username, data };
 }
 
-function unique(arr, getKey) {
+function unique(arr, getKey = x => x) {
     const entries = arr.map((...args) => {
         const [v] = args;
         return [getKey(...args), v];
