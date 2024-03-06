@@ -1,4 +1,4 @@
-import shortcutsTerminal, { parseUser } from "./shortcutsTerminal.js";
+import shortcutsTerminal, { parseUser } from "../renderer/shortcutsTerminal.js";
 import {
     getLockedLines,
     getLines,

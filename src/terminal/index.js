@@ -1,15 +1,15 @@
-import testTerminal from "./terminal.test.js";
+import testTerminal from "./test.js";
 
-export * from "./terminal/write.js";
-export * from "./terminal/checkout.js";
-import { commitInput } from "./terminal/input.js";
-export * from "./terminal/input.js";
-export * from "./terminal/lock.js";
-export * from "./terminal/select.js";
-import { getSelection, setSelection } from "./terminal/select.js";
-export * from "./terminal/value.js";
-import { setValue, getValue, getLines } from "./terminal/value.js";
-export * from "./terminal/logHistory.js";
+export * from "./write.js";
+export * from "./checkout.js";
+import { commitInput } from "./input.js";
+export * from "./input.js";
+export * from "./lock.js";
+export * from "./select.js";
+import { getSelection, setSelection } from "./select.js";
+export * from "./value.js";
+import { setValue, getValue, getLines } from "./value.js";
+export * from "./logHistory.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
