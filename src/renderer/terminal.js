@@ -11,8 +11,10 @@ let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
 export const maxHistoryLength = 40;
-export let historyIndex = -1;
-export const state = { isOpen: false };
+export const state = {
+    isOpen: false,
+    historyIndex: -1
+};
 setValue(historyBase);
 
 testTerminal();
@@ -31,7 +33,7 @@ export function close() {
 
 export function clearHistory() {
     historyBase = getValue(true)
-    historyIndex = -1
+    state.historyIndex = -1
     history.splice(0, Infinity)
 }
 
@@ -40,7 +42,7 @@ export function getHistoryLength() {
 }
 
 export function restore(skipSelection, skipLock) {
-    const snapshot = history[historyIndex];
+    const snapshot = history[state.historyIndex];
     const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
     const { start, end, dir } = selection;
 
@@ -69,12 +71,12 @@ function setValue(newValue, skipSelection) {
 }
 
 export function undoHistory() {
-    const newIndex = historyIndex - 1
+    const newIndex = state.historyIndex - 1
 
     if (newIndex < -1) { return restore(); }
     if (inputLoading) { return settleInput(); }
 
-    historyIndex = clamp(newIndex, -1);
+    state.historyIndex = clamp(newIndex, -1);
 
     setValue(revertLines(newIndex).join('\n'));
 
@@ -83,11 +85,11 @@ export function undoHistory() {
     if (start) setSelection(start, end, dir);
 }
 
-export function calculateLines(index = historyIndex) {
+export function calculateLines(index = state.historyIndex) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
 }
 
-export function revertLines(index = historyIndex - 1) {
+export function revertLines(index = state.historyIndex - 1) {
     const { entries, lines } = parseSnapshot(history[index + 1]);
     const changedRows = new Map(entries);
     return Array.from({ length: latestSize(index) }, (v, row) => {
@@ -115,14 +117,14 @@ function latestText(row, index) {
 }
 
 export function redoHistory(skipSelection) {
-    const newIndex = historyIndex + 1;
-    historyIndex = clamp(newIndex, -1, history.length - 1);
+    const newIndex = state.historyIndex + 1;
+    state.historyIndex = clamp(newIndex, -1, history.length - 1);
 
     if (inputLoading) return;
     if (newIndex > history.length - 1) return restore();
     // if (inputLoading) { return settleInput(); }
 
-    applySnapshot(history[historyIndex], null, skipSelection);
+    applySnapshot(history[state.historyIndex], null, skipSelection);
 }
 
 function applySnapshot(snapshot, value, skipSelection) {
@@ -178,12 +180,12 @@ export function logHistory() {
 
     const base = `#: ${JSON.stringify(historyBase)}`;
     const historyStr = [base, ...history].map((s, i) => {
-        const mid = --i === historyIndex ? '> ' : '  ';
+        const mid = --i === state.historyIndex ? '> ' : '  ';
         const end = i < 0 ? base : snapshot(s, i);
         return `${indent}${mid}${end}`;
     }).join('\n');
 
-    const historyIndexStr = indent + `historyIndex: ${historyIndex}`;
+    const historyIndexStr = indent + `historyIndex: ${state.historyIndex}`;
 
     const lockedKeys = Array.from(lockedLines.keys());
     const locked = lockedKeys.length > 0 && (indent + `locked: ${lockedKeys}`);
@@ -249,7 +251,7 @@ export function writeLines(rowTextDict, skipHistory, skipSelection) {
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
 
-    const prevSize = latestSize(historyIndex);
+    const prevSize = latestSize(state.historyIndex);
     const size = Math.max(prevSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
@@ -303,17 +305,17 @@ function generateSnapshot(dict, value) {
 function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);
 
-    const prevSize = latestSize(historyIndex);
+    const prevSize = latestSize(state.historyIndex);
     const { size, entries } = parseSnapshot(snapshot);
     if (size === prevSize && !entries.length) return;
 
-    history.splice(historyIndex + 1, Infinity, snapshot);
+    history.splice(state.historyIndex + 1, Infinity, snapshot);
 
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) {
         const snaps = history.splice(0, overflow);
         snaps.forEach(snap => historyBase = applyEntries(snap, historyBase).join('\n'));
-        historyIndex -= overflow;
+        state.historyIndex -= overflow;
     }
 
     return true;

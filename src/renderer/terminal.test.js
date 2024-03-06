@@ -4,7 +4,6 @@ import {
     getLines,
     getSelection,
     getValue,
-    historyIndex,
     lockLine,
     maxHistoryLength,
     open,
@@ -23,7 +22,8 @@ import {
     mockInput,
     caretToPos,
     getHistoryLength,
-    settleInput
+    settleInput,
+    state
 } from "./terminal.js";
 
 export default function testTerminal() {
@@ -214,7 +214,7 @@ export default function testTerminal() {
     redoHistory();
 
     restore();
-    assert(maxHistoryLength - 1, historyIndex);
+    assert(maxHistoryLength - 1, state.historyIndex);
     const arr = [
         ['X\nY\nZ\nN'],
         ['X\nY\nZ\nN\nB', [4, 1]],
@@ -363,20 +363,20 @@ function testHistory(...arr) {
     const validLength = getHistoryLength() + 1;
     assert(validLength, arr.length, 'history');
 
-    const initIndex = historyIndex;
+    const initIndex = state.historyIndex;
     settleInput();
 
-    for (let i = historyIndex; i < arr.length - 1; i++)
+    for (let i = state.historyIndex; i < arr.length - 1; i++)
         _(i, redoHistory, 'redo');
 
-    for (let i = historyIndex; i >= -1; i--)
+    for (let i = state.historyIndex; i >= -1; i--)
         _(i, undoHistory, 'undo');
 
-    for (let i = historyIndex; i < initIndex; i++)
+    for (let i = state.historyIndex; i < initIndex; i++)
         _(i, redoHistory, 'redo');
 
     function _(i, f, s) {
-        assert(i, historyIndex, s);
+        assert(i, state.historyIndex, s);
         test(...arr[i + 1]);
         f();
     }
