@@ -1,14 +1,15 @@
 import testTerminal from "./terminal.test.js";
 
-import * as write from "./terminal/write.js";
+import * as input from "./terminal/input.js";
+const { commitInput } = input;
 export * from "./terminal/write.js";
-const { writeText } = write;
 export * from "./terminal/checkout.js";
+export * from "./terminal/input.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
 export const history = [];
-const inputDebounce = 500;
+export const inputDebounce = 500;
 /** @type {Map<number, { line: string, onPrevent: Function }} */
 const lockedLines = new Map();
 export const maxHistoryLength = 40;
@@ -216,42 +217,6 @@ export function generateSnapshot(dict, value) {
     }
 
     return { size, start, end, dir, ...dictionary };
-}
-
-export function onInput() {
-    cancelInput();
-    state.inputLoading = true;
-    state.lastOnInputSelection = getSelection();
-
-    if (abortLockedLine()) return;
-
-    state.inputTimer = setTimeout(commitInput, inputDebounce);
-}
-export function commitInput() {
-    if (!state.inputLoading) return;
-    cancelInput();
-    const text = getValue();
-    const selection = getSelection();
-    restore();
-    writeText(text, state.lastOnInputSelection);
-    const { start, end, dir } = selection;
-    setSelection(start, end, dir);
-}
-function cancelInput() {
-    state.inputLoading = false;
-    return clearTimeout(state.inputTimer);
-};
-export function settleInput(skipSelection) {
-    cancelInput();
-    restore(skipSelection);
-}
-export function mockInput(text, selection, preCommit) {
-    element.value = text;
-    const { start, end, dir } = selection ?? {};
-    setSelection(start, end, dir);
-    onInput();
-    if (preCommit?.(cancelInput) === false) return;
-    commitInput();
 }
 
 export function caretToPos(lines = getLines(), caret = Infinity) {
