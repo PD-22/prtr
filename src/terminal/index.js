@@ -6,7 +6,7 @@ import { commitInput } from "./input.js";
 export * from "./input.js";
 export * from "./lock.js";
 export * from "./select.js";
-import { getSelection, setSelection } from "./select.js";
+import { setSelection } from "./select.js";
 export * from "./value.js";
 import { setValue, getValue, getLines } from "./value.js";
 export * from "./logHistory.js";
@@ -50,20 +50,6 @@ export function clearHistory() {
 
 export function getHistoryLength() {
     return history.length;
-}
-
-export function restore(skipSelection, skipLock) {
-    const snapshot = history[state.historyIndex];
-    const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
-    const { start, end, dir } = selection;
-
-    const lines = getLines(true);
-    const newLines = skipLock ? lines : lines.map(
-        (text, row) => lockedLines.get(row)?.line ?? text
-    );
-
-    setValue(newLines.join('\n'));
-    setSelection(start, end, dir);
 }
 
 export function latestSize(index) {

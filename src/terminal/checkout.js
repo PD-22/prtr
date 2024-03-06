@@ -1,18 +1,20 @@
 import {
-    generateSnapshot,
-    latestSize,
-    state,
-    parseSnapshot,
-    history,
-    maxHistoryLength,
     applyEntries,
-    restore,
-    settleInput,
+    applySnapshot,
     clamp,
-    setValue,
-    setSelection,
+    generateSnapshot,
+    getLines,
+    getSelection,
+    history,
+    latestSize,
     latestText,
-    applySnapshot
+    lockedLines,
+    maxHistoryLength,
+    parseSnapshot,
+    setSelection,
+    setValue,
+    settleInput,
+    state
 } from "./index.js";
 
 export function pushHistory(snapshotDict) {
@@ -49,7 +51,7 @@ export function undoHistory() {
     if (start) setSelection(start, end, dir);
 }
 
-export function revertLines(index = state.historyIndex - 1) {
+function revertLines(index = state.historyIndex - 1) {
     const { entries, lines } = parseSnapshot(history[index + 1]);
     const changedRows = new Map(entries);
     return Array.from({ length: latestSize(index) }, (v, row) => {
@@ -66,4 +68,18 @@ export function redoHistory(skipSelection) {
     if (newIndex > history.length - 1) return restore();
     // if (state.inputLoading) { return settleInput(); }
     applySnapshot(history[state.historyIndex], null, skipSelection);
+}
+
+export function restore(skipSelection, skipLock) {
+    const snapshot = history[state.historyIndex];
+    const selection = skipSelection ? getSelection() : parseSnapshot(snapshot);
+    const { start, end, dir } = selection;
+
+    const lines = getLines(true);
+    const newLines = skipLock ? lines : lines.map(
+        (text, row) => lockedLines.get(row)?.line ?? text
+    );
+
+    setValue(newLines.join('\n'));
+    setSelection(start, end, dir);
 }

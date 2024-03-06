@@ -1,29 +1,29 @@
 import shortcutsTerminal, { parseUser } from "../renderer/shortcutsTerminal.js";
 import {
-    getLockedLines,
+    caretToPos,
+    clearHistory,
+    close,
+    getHistoryLength,
     getLines,
+    getLockedLines,
     getSelection,
     getValue,
     lockLine,
+    logHistory,
     maxHistoryLength,
+    mockInput,
     open,
     redoHistory,
     removeLines,
     restore,
     setSelection,
+    settleInput,
+    state,
     undoHistory,
     unlockLine,
     writeLine,
     writeLines,
-    writeText,
-    close,
-    clearHistory,
-    logHistory,
-    mockInput,
-    caretToPos,
-    getHistoryLength,
-    settleInput,
-    state
+    writeText
 } from "./index.js";
 
 export default function testTerminal() {

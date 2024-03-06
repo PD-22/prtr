@@ -1,12 +1,12 @@
 import {
-    state,
-    getSelection,
     abortLockedLine,
-    inputDebounce,
+    element,
+    getSelection,
     getValue,
+    inputDebounce,
     restore,
     setSelection,
-    element,
+    state,
     writeText
 } from "./index.js";
 
