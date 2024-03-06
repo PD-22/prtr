@@ -6,16 +6,16 @@ const history = [];
 const inputDebounce = 500;
 /** @type {Map<number, { line: string, onPrevent: Function }} */
 const lockedLines = new Map();
-let historyBase = "";
 let inputLoading = false;
 let inputTimer;
 let lastOnInputSelection;
 export const maxHistoryLength = 40;
 export const state = {
     isOpen: false,
-    historyIndex: -1
+    historyIndex: -1,
+    historyBase: ""
 };
-setValue(historyBase);
+setValue(state.historyBase);
 
 testTerminal();
 
@@ -32,7 +32,7 @@ export function close() {
 }
 
 export function clearHistory() {
-    historyBase = getValue(true)
+    state.historyBase = getValue(true)
     state.historyIndex = -1
     history.splice(0, Infinity)
 }
@@ -100,7 +100,7 @@ export function revertLines(index = state.historyIndex - 1) {
 
 function latestSize(index) {
     const snapshotSize = parseSnapshot(history[index])?.size;
-    const baseSize = getLines(historyBase).length;
+    const baseSize = getLines(state.historyBase).length;
     return snapshotSize ?? baseSize;
 }
 
@@ -113,7 +113,7 @@ function latestText(row, index) {
             if (curRow === row) return text;
         }
     }
-    return getLines(historyBase)[row];
+    return getLines(state.historyBase)[row];
 }
 
 export function redoHistory(skipSelection) {
@@ -178,7 +178,7 @@ export function logHistory() {
     const committedStr = value !== committed && (indent + `committed: ${committed}`);
 
 
-    const base = `#: ${JSON.stringify(historyBase)}`;
+    const base = `#: ${JSON.stringify(state.historyBase)}`;
     const historyStr = [base, ...history].map((s, i) => {
         const mid = --i === state.historyIndex ? '> ' : '  ';
         const end = i < 0 ? base : snapshot(s, i);
@@ -314,7 +314,7 @@ function pushHistory(snapshotDict) {
     const overflow = history.length - maxHistoryLength;
     if (overflow > 0) {
         const snaps = history.splice(0, overflow);
-        snaps.forEach(snap => historyBase = applyEntries(snap, historyBase).join('\n'));
+        snaps.forEach(snap => state.historyBase = applyEntries(snap, state.historyBase).join('\n'));
         state.historyIndex -= overflow;
     }
 
