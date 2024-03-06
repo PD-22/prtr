@@ -261,24 +261,6 @@ export default function testTerminal() {
     assert(arr.length, maxHistoryLength + 1);
     testHistory(...arr);
 
-    const f = (str, expected) => assert(expected, Object.values(parseUser(str)));
-    f("Username",               /**/[null,       /**/"Username",    /**/null]);
-    f("Username",               /**/[null,       /**/"Username",    /**/null]);
-    f("Username-100",           /**/[null,       /**/"Username-100",/**/null]);
-    f("Username- 100",          /**/['Username-',/**/"100",         /**/null]);
-    f("Username ",              /**/[null,       /**/"Username",    /**/null]);
-    f("Username -100",          /**/['Username', /**/"-100",        /**/null]);
-    f("Username -",             /**/[null,       /**/"Username",    /**/null]);
-    f("Username - 100",         /**/[null,       /**/"Username",    /**/"100"]);
-    f("Username - ",            /**/[null,       /**/"Username",    /**/null]);
-    f("Clan Username",          /**/['Clan',     /**/"Username",    /**/null]);
-    f("Clan Username - 100",    /**/['Clan',     /**/"Username",    /**/"100"]);
-    f("Clan Mid Username - 100",/**/['Clan',     /**/"MidUsername", /**/"100"]);
-    f("100",                    /**/[null,       /**/"100",         /**/null]);
-    f("-Username",              /**/[null,       /**/"-Username",   /**/null]);
-    f("- 100",                  /**/[null,       /**/null,          /**/'100']);
-    f(" - 100",                 /**/[null,       /**/null,          /**/'100']);
-
     writeText('Sleepy');
     clearHistory();
     testHistory(['Sleepy']);
@@ -318,6 +300,27 @@ export default function testTerminal() {
     test('A\nD\nC', [1, 1]);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
+
+    const testParseUser = (input, expected) => assert(expected, Object.values(parseUser(input)));
+    [
+        ["Username",               /**/[null,       /**/"Username",    /**/null]],
+        ["Username",               /**/[null,       /**/"Username",    /**/null]],
+        ["Username-100",           /**/[null,       /**/"Username-100",/**/null]],
+        ["Username- 100",          /**/['Username-',/**/"100",         /**/null]],
+        ["Username ",              /**/[null,       /**/"Username",    /**/null]],
+        ["Username -100",          /**/['Username', /**/"-100",        /**/null]],
+        ["Username -",             /**/[null,       /**/"Username",    /**/null]],
+        ["Username - 100",         /**/[null,       /**/"Username",    /**/"100"]],
+        ["Username - ",            /**/[null,       /**/"Username",    /**/null]],
+        ["Clan Username",          /**/['Clan',     /**/"Username",    /**/null]],
+        ["Clan Username - 100",    /**/['Clan',     /**/"Username",    /**/"100"]],
+        ["Clan Mid Username - 100",/**/['Clan',     /**/"MidUsername", /**/"100"]],
+        ["100",                    /**/[null,       /**/"100",         /**/null]],
+        ["-Username",              /**/[null,       /**/"-Username",   /**/null]],
+        ["- 100",                  /**/[null,       /**/null,          /**/'100']],
+        [" - 100",                 /**/[null,       /**/null,          /**/'100']],
+    ].forEach(args => testParseUser(...args));
+
     window.electron.status('Terminal: TEST: DONE');
 }
 
