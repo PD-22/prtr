@@ -97,7 +97,7 @@ async function scrape() {
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
-        .filter(o => o.username);
+        .filter(o => o.username && !o.data);
 
     if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
 
