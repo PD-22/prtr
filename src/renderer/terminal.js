@@ -276,19 +276,10 @@ export function removeLines(startRow, endRow = startRow + 1, skipHistory) {
     const deleteCount = Math.max(0, endRow - startRow);
     const newLines = lines.toSpliced(startRow, deleteCount);
 
-    if (newLines.length === 0) newLines[0] = '';
+    const endCaret = caretToPos(newLines, Infinity);
+    const caret = startRow === newLines.length ? endCaret : [startRow, 0];
 
-    const entries = newLines
-        .map((text, row) => [row, text])
-        .filter(([row, text]) => text !== lines[row]);
-
-    const size = newLines.length
-    const newDict = Object.fromEntries(entries);
-
-    const pos = startRow === newLines.length ?
-        caretToPos(newLines, Infinity) :
-        [startRow, 0];
-    write({ size, start: pos, end: pos, ...newDict }, skipHistory);
+    writeText(newLines.join('\n'), { start: caret, end: caret }, skipHistory);
 }
 
 function generateSnapshot(dict, value) {
