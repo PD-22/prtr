@@ -1,5 +1,9 @@
 import testTerminal from "./terminal.test.js";
 
+import * as write from "./terminal/write.js";
+export * from "./terminal/write.js";
+const { writeText } = write;
+
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
 const history = [];
@@ -98,7 +102,7 @@ export function revertLines(index = state.historyIndex - 1) {
     });
 }
 
-function latestSize(index) {
+export function latestSize(index) {
     const snapshotSize = parseSnapshot(history[index])?.size;
     const baseSize = getLines(state.historyBase).length;
     return snapshotSize ?? baseSize;
@@ -127,7 +131,7 @@ export function redoHistory(skipSelection) {
     applySnapshot(history[state.historyIndex], null, skipSelection);
 }
 
-function applySnapshot(snapshot, value, skipSelection) {
+export function applySnapshot(snapshot, value, skipSelection) {
     let { start, end, dir } = parseSnapshot(snapshot);
 
     setValue(applyEntries(snapshot, value).join('\n'), skipSelection);
@@ -143,7 +147,7 @@ export function applyEntries(snapshot, value) {
     return lines;
 }
 
-function parseSnapshot(snapshot = {}, value) {
+export function parseSnapshot(snapshot = {}, value) {
     const intKey = ([row, text]) => [parseInt(row), text];
     const isValidRow = ([row]) => Number.isInteger(row) && row >= 0;
     const byFirst = (a, b) => a[0] - b[0];
@@ -206,15 +210,7 @@ export function getLine(row, value) {
     return getLines(value)[row];
 }
 
-function write(snapshotDict, skipHistory, skipSelection) {
-    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
-    commitInput();
-    if (abortLockedLine(applyEntries(snapshotDict))) return;
-    if (!pushHistory(snapshotDict)) return;
-    redoHistory(skipSelection);
-}
-
-function abortLockedLine(newLines) {
+export function abortLockedLine(newLines) {
     const abortRows = getAbortRows(newLines);
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
@@ -238,53 +234,7 @@ export function lockLine(row, onPrevent) {
 }
 export function unlockLine(row) { lockedLines.delete(row); }
 
-export function writeText(text, selection, skipHistory, skipSelection) {
-    const { start, end, dir } = selection ?? {};
-    const lines = getLines(text);
-    const size = lines.length;
-    const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
-    write({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection);
-}
-
-export function writeLines(rowTextDict, skipHistory, skipSelection) {
-    const lines = getLines();
-    const changesRow = ([row, text]) => lines[row] !== text;
-    const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
-
-    const prevSize = latestSize(state.historyIndex);
-    const size = Math.max(prevSize, ...entries.map(([row]) => row + 1));
-
-    const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
-    write({ size, ...newDict }, skipHistory, skipSelection);
-}
-
-/** @param {[Number, any][]} rowTextPairs */
-function fillSnaps(rowTextPairs) {
-    const lines = getLines();
-    const end = Math.max(...rowTextPairs.map(([row]) => row));
-    const length = end - lines.length;
-    const mapfn = (_, i) => [lines.length + i, ''];
-    return Array.from({ length }, mapfn);
-}
-
-export function writeLine(text, row, skipHistory, skipSelection) {
-    row ??= getLines().length;
-    return writeLines({ [row]: text }, skipHistory, skipSelection);
-}
-
-export function removeLines(startRow, endRow = startRow + 1, skipHistory) {
-    const lines = getLines();
-    if (startRow < 0 || endRow > lines.length) return;
-    const deleteCount = Math.max(0, endRow - startRow);
-    const newLines = lines.toSpliced(startRow, deleteCount);
-
-    const endCaret = caretToPos(newLines, Infinity);
-    const caret = startRow === newLines.length ? endCaret : [startRow, 0];
-
-    writeText(newLines.join('\n'), { start: caret, end: caret }, skipHistory);
-}
-
-function generateSnapshot(dict, value) {
+export function generateSnapshot(dict, value) {
     let { size, start, end, dir, entries, lines } = parseSnapshot(dict, value);
 
     const filteredEntries = entries.filter(([row, text]) => lines[row] !== text);
@@ -302,7 +252,7 @@ function generateSnapshot(dict, value) {
     return { size, start, end, dir, ...dictionary };
 }
 
-function pushHistory(snapshotDict) {
+export function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);
 
     const prevSize = latestSize(state.historyIndex);
@@ -330,7 +280,7 @@ export function onInput() {
 
     state.inputTimer = setTimeout(commitInput, inputDebounce);
 }
-function commitInput() {
+export function commitInput() {
     if (!state.inputLoading) return;
     cancelInput();
     const text = getValue();
