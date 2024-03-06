@@ -6,14 +6,14 @@ const history = [];
 const inputDebounce = 500;
 /** @type {Map<number, { line: string, onPrevent: Function }} */
 const lockedLines = new Map();
-let inputLoading = false;
-let inputTimer;
-let lastOnInputSelection;
 export const maxHistoryLength = 40;
 export const state = {
     isOpen: false,
     historyIndex: -1,
-    historyBase: ""
+    historyBase: "",
+    lastOnInputSelection: undefined,
+    inputTimer: undefined,
+    inputLoading: false
 };
 setValue(state.historyBase);
 
@@ -74,7 +74,7 @@ export function undoHistory() {
     const newIndex = state.historyIndex - 1
 
     if (newIndex < -1) { return restore(); }
-    if (inputLoading) { return settleInput(); }
+    if (state.inputLoading) { return settleInput(); }
 
     state.historyIndex = clamp(newIndex, -1);
 
@@ -120,9 +120,9 @@ export function redoHistory(skipSelection) {
     const newIndex = state.historyIndex + 1;
     state.historyIndex = clamp(newIndex, -1, history.length - 1);
 
-    if (inputLoading) return;
+    if (state.inputLoading) return;
     if (newIndex > history.length - 1) return restore();
-    // if (inputLoading) { return settleInput(); }
+    // if (state.inputLoading) { return settleInput(); }
 
     applySnapshot(history[state.historyIndex], null, skipSelection);
 }
@@ -323,26 +323,26 @@ function pushHistory(snapshotDict) {
 
 export function onInput() {
     cancelInput();
-    inputLoading = true;
-    lastOnInputSelection = getSelection();
+    state.inputLoading = true;
+    state.lastOnInputSelection = getSelection();
 
     if (abortLockedLine()) return;
 
-    inputTimer = setTimeout(commitInput, inputDebounce);
+    state.inputTimer = setTimeout(commitInput, inputDebounce);
 }
 function commitInput() {
-    if (!inputLoading) return;
+    if (!state.inputLoading) return;
     cancelInput();
     const text = getValue();
     const selection = getSelection();
     restore();
-    writeText(text, lastOnInputSelection);
+    writeText(text, state.lastOnInputSelection);
     const { start, end, dir } = selection;
     setSelection(start, end, dir);
 }
 function cancelInput() {
-    inputLoading = false;
-    return clearTimeout(inputTimer);
+    state.inputLoading = false;
+    return clearTimeout(state.inputTimer);
 };
 export function settleInput(skipSelection) {
     cancelInput();
