@@ -1,6 +1,11 @@
-import { getSelection } from "./select.js";
-import { getValue } from "./value.js";
-import { parseSnapshot, state, history, lockedLines } from "../terminal.js";
+import {
+    getSelection,
+    getValue,
+    history,
+    lockedLines,
+    parseSnapshot,
+    state
+} from "../terminal.js";
 
 export function logHistory() {
     const operation = ([row, text]) => `${row}=${text.length === 1 ? text : `"${text}"`}`;

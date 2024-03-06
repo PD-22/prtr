@@ -15,7 +15,6 @@ import {
     applySnapshot
 } from "../terminal.js";
 
-
 export function pushHistory(snapshotDict) {
     const snapshot = generateSnapshot(snapshotDict);
 

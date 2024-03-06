@@ -1,6 +1,12 @@
-import { element, latestSize, latestText, state } from "../terminal.js";
-import { getAbortRows } from "./lock.js";
-import { getSelection, setSelection } from "./select.js";
+import {
+    element,
+    latestSize,
+    latestText,
+    state,
+    getAbortRows,
+    getSelection,
+    setSelection
+} from "../terminal.js";
 
 export function getValue(commited = false) {
     return commited ? calculateLines().join('\n') : element.value;
