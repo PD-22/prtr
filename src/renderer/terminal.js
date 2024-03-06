@@ -3,10 +3,11 @@ import testTerminal from "./terminal.test.js";
 import * as write from "./terminal/write.js";
 export * from "./terminal/write.js";
 const { writeText } = write;
+export * from "./terminal/checkout.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
-const history = [];
+export const history = [];
 const inputDebounce = 500;
 /** @type {Map<number, { line: string, onPrevent: Function }} */
 const lockedLines = new Map();
@@ -63,7 +64,7 @@ export function getValue(commited = false) {
     return commited ? calculateLines().join('\n') : element.value;
 }
 
-function setValue(newValue, skipSelection) {
+export function setValue(newValue, skipSelection) {
     if (getAbortRows(getLines(newValue)).length) throw new Error('Locked line');
 
     if (!skipSelection) return element.value = newValue;
@@ -74,32 +75,8 @@ function setValue(newValue, skipSelection) {
     setSelection(start, end, dir);
 }
 
-export function undoHistory() {
-    const newIndex = state.historyIndex - 1
-
-    if (newIndex < -1) { return restore(); }
-    if (state.inputLoading) { return settleInput(); }
-
-    state.historyIndex = clamp(newIndex, -1);
-
-    setValue(revertLines(newIndex).join('\n'));
-
-    const snapshot = history[newIndex];
-    const { start, end, dir } = parseSnapshot(snapshot);
-    if (start) setSelection(start, end, dir);
-}
-
 export function calculateLines(index = state.historyIndex) {
     return Array.from({ length: latestSize(index) }, (v, row) => latestText(row, index));
-}
-
-export function revertLines(index = state.historyIndex - 1) {
-    const { entries, lines } = parseSnapshot(history[index + 1]);
-    const changedRows = new Map(entries);
-    return Array.from({ length: latestSize(index) }, (v, row) => {
-        if (!changedRows.has(row)) return lines[row] ?? latestText(row, index);
-        return latestText(row, index);
-    });
 }
 
 export function latestSize(index) {
@@ -108,7 +85,7 @@ export function latestSize(index) {
     return snapshotSize ?? baseSize;
 }
 
-function latestText(row, index) {
+export function latestText(row, index) {
     for (let i = Math.min(index, history.length - 1); i >= 0; i--) {
         const entries = parseSnapshot(history[i])?.entries;
         for (let j = 0; j < entries.length; j++) {
@@ -118,17 +95,6 @@ function latestText(row, index) {
         }
     }
     return getLines(state.historyBase)[row];
-}
-
-export function redoHistory(skipSelection) {
-    const newIndex = state.historyIndex + 1;
-    state.historyIndex = clamp(newIndex, -1, history.length - 1);
-
-    if (state.inputLoading) return;
-    if (newIndex > history.length - 1) return restore();
-    // if (state.inputLoading) { return settleInput(); }
-
-    applySnapshot(history[state.historyIndex], null, skipSelection);
 }
 
 export function applySnapshot(snapshot, value, skipSelection) {
@@ -250,25 +216,6 @@ export function generateSnapshot(dict, value) {
     }
 
     return { size, start, end, dir, ...dictionary };
-}
-
-export function pushHistory(snapshotDict) {
-    const snapshot = generateSnapshot(snapshotDict);
-
-    const prevSize = latestSize(state.historyIndex);
-    const { size, entries } = parseSnapshot(snapshot);
-    if (size === prevSize && !entries.length) return;
-
-    history.splice(state.historyIndex + 1, Infinity, snapshot);
-
-    const overflow = history.length - maxHistoryLength;
-    if (overflow > 0) {
-        const snaps = history.splice(0, overflow);
-        snaps.forEach(snap => state.historyBase = applyEntries(snap, state.historyBase).join('\n'));
-        state.historyIndex -= overflow;
-    }
-
-    return true;
 }
 
 export function onInput() {
