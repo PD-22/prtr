@@ -24,10 +24,7 @@ function handleShortcut(e, shortcut) {
 
 function shortcutMatches(e, str) {
     const [key, mods] = parseShortcut(str);
-    const eventKey = e.key.toLowerCase();
-    const eventCode = String.fromCharCode(e.keyCode || e.which).toLowerCase();
-
-    return modifierMatches(mods, e) && [eventKey, eventCode].includes(key);
+    return modifierMatches(mods, e) && e.key.toLowerCase() === key;
 }
 
 function modifierMatches(mods, event) {
