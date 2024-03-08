@@ -275,6 +275,16 @@ export default function testTerminal() {
     mockInput('Sleep - ...', { start: [0, 5] });
     testHistory(['Sleepy']);
 
+    writeText('AA\nBB - 10\nCC');
+    clearHistory();
+    writeLine('CC - ...', 2, true, true);
+    lockLine(2, () => {
+        unlockLine(2);
+        writeLine('CC', 2, true, true)
+    });
+    mockInput('C - ...', { start: [0, 1] });
+    testHistory(['AA\nBB - 10\nCC']);
+
     writeText('ABC'); clearHistory(); restore();
     writeText('ABC 123', null, true);
 
