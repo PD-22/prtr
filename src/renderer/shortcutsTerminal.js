@@ -1,13 +1,10 @@
-import { remindShortcuts } from "./shortcuts.js";
 import {
     clearHistory,
-    close,
     getLines,
     getSelection,
     lockLine,
     logHistory,
     open,
-    posToCaret,
     redoHistory,
     setSelection,
     state,
@@ -18,8 +15,6 @@ import {
 } from "../terminal/index.js";
 
 export default [
-    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
-    ['Tab', 'Close', () => close()],
     ['Enter', 'Scrape', async () => {
         try {
             await scrape();
@@ -27,11 +22,6 @@ export default [
             window.electron.status('Scrape: ERROR');
             throw error;
         }
-    }],
-
-    ['Escape', 'Deselect', () => {
-        const { caret } = getSelection();
-        setSelection(caret, caret);
     }],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
@@ -50,16 +40,8 @@ export default [
 
     ['Ctrl+H', 'History', () => logHistory()],
     ['Ctrl+Shift+H', 'Wipe', () => { clearHistory(); }],
-    ['Ctrl+T', 'Selection', () => {
-        const { start, end, dir, caret } = getSelection();
-        const lines = getLines();
-        const startCaret = posToCaret(lines, start[0], start[1]);
-        const endCaret = posToCaret(lines, end[0], end[1]);
-        const result = { startCaret, endCaret, dir, caret };
-        const posStr = [start, end].map(x => x.join(':')).join('-');
-        console.log(posStr, result);
-    }],
-    ['Ctrl+L', 'Empty', () => { console.clear(); }],
+
+    ['Escape', 'Deselect', () => { setSelection(getSelection().caret); }],
 ];
 
 function moveLines(change) {
@@ -102,34 +84,38 @@ async function scrape() {
     if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
 
     window.electron.status('Scrape: START', filteredLines.map(x => x.username));
-    await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
-        const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
-
-        try {
-            write(fkv(username, '...'), true);
-            lockLine(index, () => window.electron.abortScrape(index));
-
-            const data = await window.electron.scrape(index, username);
-            if (typeof data !== 'number') throw new Error('Scrape failed');
-            if (data instanceof Error) throw data;
-
-            window.electron.status(`Scrape: ${fkv(username, data)}`);
-            unlockLine(index);
-            write(fkv(username, data));
-        } catch (error) {
-            const isAbort = error.message === "Error invoking remote method 'scrape': abort";
-            if (!isAbort) console.error(error);
-            window.electron.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
-
-            unlockLine(index);
-            write(username, true);
-        } finally {
-            unlockLine(index);
-        }
-    }));
+    await Promise.allSettled(filteredLines.map(
+        ({ username, index }) => scrapeLine(username, index)
+    ));
 
     if (state.isOpen) return;
     open();
+}
+
+async function scrapeLine(username, index) {
+    const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
+
+    try {
+        write(fkv(username, '...'), true);
+        lockLine(index, () => window.electron.abortScrape(index));
+
+        const data = await window.electron.scrape(index, username);
+        if (typeof data !== 'number') throw new Error('Scrape failed');
+        if (data instanceof Error) throw data;
+
+        window.electron.status(`Scrape: ${fkv(username, data)}`);
+        unlockLine(index);
+        write(fkv(username, data));
+    } catch (error) {
+        const isAbort = error.message === "Error invoking remote method 'scrape': abort";
+        if (!isAbort) console.error(error);
+        window.electron.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
+
+        unlockLine(index);
+        write(username, true);
+    } finally {
+        unlockLine(index);
+    }
 }
 
 function getParsedLines() {

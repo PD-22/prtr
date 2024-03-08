@@ -2,8 +2,14 @@ import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
 import * as terminal from "../terminal/index.js";
 
+const commonShortcuts = [
+    ['Tab', 'Toggle', () => terminal.toggle()],
+    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
+]
+
 export const getActiveShortcuts = () => {
-    return terminal.state.isOpen ? shortcutsTerminal : shortcutsMain
+    const openShortcuts = terminal.state.isOpen ? shortcutsTerminal : shortcutsMain;
+    return commonShortcuts.concat(openShortcuts);
 }
 
 export function onKeyDown(e) {

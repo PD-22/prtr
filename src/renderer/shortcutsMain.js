@@ -1,12 +1,9 @@
+import * as terminal from "../terminal/index.js";
 import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
-import { remindShortcuts } from "./shortcuts.js";
-import * as terminal from "../terminal/index.js";
 
 export default [
-    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
-    ['Tab', 'Terminal', () => terminal.open()],
     ['I', 'Import', async () => {
         try {
             const dataURL = await window.electron.import();
@@ -43,10 +40,6 @@ export default [
             throw error;
         }
     }],
-    ['D', 'Deselect', () => {
-        mouse.isHold = false;
-        fitRectToCanvas();
-    }],
     ['Enter', 'Recognize', async () => {
         try {
             const dataURL = getRectCanvasDataURL();
@@ -62,5 +55,6 @@ export default [
             throw error;
         }
     }],
+
     ['Escape', 'Deselect', () => { mouse.isHold = false; fitRectToCanvas(); }]
 ];

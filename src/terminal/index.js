@@ -31,6 +31,10 @@ setValue(state.historyBase);
 
 testTerminal();
 
+export function toggle() {
+    (state.isOpen ? close : open)();
+}
+
 export function open() {
     state.isOpen = true;
     element.classList.add('is-open');
