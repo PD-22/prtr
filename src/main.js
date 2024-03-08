@@ -70,75 +70,53 @@ function addListeners() {
     ipcMain.on('status', (_, ...args) => { status(...args); });
 
     ipcMain.handle('import', async () => {
-        try {
-            status('Import: START');
-            const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
-                title: 'Import',
-                filters: [{ name: 'Images', extensions: ['png'] }],
-                defaultPath: join(__dirname, "init.png")
-            });
-            if (canceled) return status('Import: CANCEL');
+        const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
+            title: 'Import',
+            filters: [{ name: 'Images', extensions: ['png'] }],
+            defaultPath: join(__dirname, "init.png")
+        });
+        if (canceled) return;
 
-            const buffer = await readFile(path);
-            const base64 = buffer.toString('base64');
+        const buffer = await readFile(path);
+        const base64 = buffer.toString('base64');
 
-            if (!base64.length) return status('Import: EMPTY');
+        if (!base64.length) return;
 
-            return `data:image/png;base64,${base64}`;
-        } catch (error) {
-            status('Import: ERROR');
-            throw error;
-        }
+        return `data:image/png;base64,${base64}`;
     });
 
-    ipcMain.on('export', async (_, dataURL) => {
-        try {
-            status('Export: START');
-            const { canceled, filePath } = await dialog.showSaveDialog({
-                title: 'Export',
-                filters: [{ name: 'Images', extensions: ['png'] }],
-                defaultPath: join(__dirname, "output.png")
-            });
-            if (canceled) return status('Export: CANCEL');
+    ipcMain.handle('export', async (_, dataURL) => {
+        const { canceled, filePath } = await dialog.showSaveDialog({
+            title: 'Export',
+            filters: [{ name: 'Images', extensions: ['png'] }],
+            defaultPath: join(__dirname, "output.png")
+        });
+        if (canceled) return;
 
-            const base64 = dataURL.replace(/^data:image\/png;base64,/, '');
-            await writeFile(filePath, base64, 'base64');
-            status(`Export: DONE: "${filePath}"`);
-        } catch (error) {
-            status(`Export: ERROR`);
-            throw error;
-        }
+        const base64 = dataURL.replace(/^data:image\/png;base64,/, '');
+        await writeFile(filePath, base64, 'base64');
+        return filePath;
     });
 
     ipcMain.handle('paste', () => {
-        try {
-            const image = clipboard.readImage();
-            if (image.isEmpty()) return status('Paste: EMPTY');
-            return image.toDataURL('image/png');
-        } catch (error) {
-            status('Paste: ERROR');
-            throw error;
-        }
+        const image = clipboard.readImage();
+        if (image.isEmpty()) return;
+        return image.toDataURL('image/png');
     });
 
     ipcMain.handle('recoginze', async (_, dataURL) => {
-        try {
-            status('Recognize: START');
-            const config = { load_system_dawg: false, load_freq_dawg: false };
-            const worker = await createWorker('eng', undefined, undefined, config);
-            const { data: { lines } } = await worker.recognize(dataURL);
-            await worker.terminate();
+        status('Recognize: START');
+        const config = { load_system_dawg: false, load_freq_dawg: false };
+        const worker = await createWorker('eng', undefined, undefined, config);
+        const { data: { lines } } = await worker.recognize(dataURL);
+        await worker.terminate();
 
-            const whitespace = str => str.trim().replace(/\s+/g, ' ');
-            const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
-            if (!parsedLines?.length) return status('Recognize: EMPTY');
+        const whitespace = str => str.trim().replace(/\s+/g, ' ');
+        const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
+        if (!parsedLines?.length) return status('Recognize: EMPTY');
 
-            status('Recognize: DONE', parsedLines);
-            return parsedLines;
-        } catch (error) {
-            status('Recognize: ERROR');
-            throw error;
-        }
+        status('Recognize: DONE', parsedLines);
+        return parsedLines;
     });
 
     ipcMain.handle('scrape', (_, row, username) => {

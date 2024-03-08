@@ -15,14 +15,7 @@ import {
 } from "../terminal/index.js";
 
 export default [
-    ['Enter', 'Scrape', async () => {
-        try {
-            await scrape();
-        } catch (error) {
-            api.status('Scrape: ERROR');
-            throw error;
-        }
-    }],
+    ['Enter', 'Scrape', scrape],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
@@ -72,49 +65,50 @@ function sortData(ascending = true) {
 }
 
 async function scrape() {
-    const parsedLines = getParsedLines();
-    const lines = parsedLines.map(x => fkv(x.username, x.data));
-    api.status('Scrape: INIT', lines);
-    writeText(lines.join('\n'), null, null, true);
-
-    const filteredLines = parsedLines
-        .map((o, index) => ({ ...o, index }))
-        .filter(o => o.username && !o.data);
-
-    if (!filteredLines.length) return api.status("Scrape: EMPTY");
-
-    api.status('Scrape: START', filteredLines.map(x => x.username));
-    await Promise.allSettled(filteredLines.map(
-        ({ username, index }) => scrapeLine(username, index)
-    ));
-
-    if (state.isOpen) return;
-    open();
-}
-
-async function scrapeLine(username, index) {
-    const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
-
     try {
-        write(fkv(username, '...'), true);
-        lockLine(index, () => api.abortScrape(index));
+        const parsedLines = getParsedLines();
+        const lines = parsedLines.map(x => fkv(x.username, x.data));
+        api.status('Scrape: INIT', lines);
+        writeText(lines.join('\n'), null, null, true);
 
-        const data = await api.scrape(index, username);
-        if (typeof data !== 'number') throw new Error('Scrape failed');
-        if (data instanceof Error) throw data;
+        const filteredLines = parsedLines
+            .map((o, index) => ({ ...o, index }))
+            .filter(o => o.username && !o.data);
 
-        api.status(`Scrape: ${fkv(username, data)}`);
-        unlockLine(index);
-        write(fkv(username, data));
+        if (!filteredLines.length) return api.status("Scrape: EMPTY");
+
+        api.status('Scrape: START', filteredLines.map(x => x.username));
+        await Promise.allSettled(filteredLines.map(async ({ username, index }) => {
+            const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
+
+            try {
+                write(fkv(username, '...'), true);
+                lockLine(index, () => api.abortScrape(index));
+
+                const data = await api.scrape(index, username);
+                if (typeof data !== 'number') throw new Error('Scrape failed');
+                if (data instanceof Error) throw data;
+
+                api.status(`Scrape: ${fkv(username, data)}`);
+                unlockLine(index);
+                write(fkv(username, data));
+            } catch (error) {
+                const isAbort = error.message === "Error invoking remote method 'scrape': abort";
+                if (!isAbort) console.error(error);
+                api.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
+
+                unlockLine(index);
+                write(username, true);
+            } finally {
+                unlockLine(index);
+            }
+        }));
+
+        if (state.isOpen) return;
+        open();
     } catch (error) {
-        const isAbort = error.message === "Error invoking remote method 'scrape': abort";
-        if (!isAbort) console.error(error);
-        api.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
-
-        unlockLine(index);
-        write(username, true);
-    } finally {
-        unlockLine(index);
+        api.status('Scrape: ERROR');
+        throw error;
     }
 }
 
