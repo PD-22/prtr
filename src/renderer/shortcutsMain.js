@@ -6,52 +6,54 @@ import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 export default [
     ['I', 'Import', async () => {
         try {
-            const dataURL = await window.electron.import();
+            const dataURL = await api.import();
             if (!dataURL) return;
             await loadImageOnCanvas(dataURL);
-            window.electron.status('Import: DONE');
+            api.status('Import: DONE');
         } catch (error) {
-            window.electron.status('Import: ERROR');
+            api.status('Import: ERROR');
             throw error;
         }
     }],
     ['E', 'Export', () => {
         const dataURL = getRectCanvasDataURL();
-        window.electron.export(dataURL);
+        api.export(dataURL);
     }],
     ['P', 'Paste', async () => {
         try {
-            const dataURL = await window.electron.paste();
+            const dataURL = await api.paste();
             if (!dataURL) return;
             await loadImageOnCanvas(dataURL);
-            window.electron.status('Paste: DONE');
+            api.status('Paste: DONE');
         } catch (error) {
-            window.electron.status('Paste: ERROR');
+            api.status('Paste: ERROR');
             throw error;
         }
     }],
     ['C', 'Crop', async () => {
         try {
-            window.electron.status('Crop: START');
-            await loadImageOnCanvas(getRectCanvasDataURL());
-            window.electron.status('Crop: DONE');
+            api.status('Crop: START');
+            const dataURL = getRectCanvasDataURL();
+            if (!dataURL) return api.status('Crop: EMPTY');
+            await loadImageOnCanvas(dataURL);
+            api.status('Crop: DONE');
         } catch (error) {
-            window.electron.status('Crop: ERROR');
+            api.status('Crop: ERROR');
             throw error;
         }
     }],
     ['Enter', 'Recognize', async () => {
         try {
             const dataURL = getRectCanvasDataURL();
-            if (!dataURL) return window.electron.status('Recognize: EMPTY');
-            const parsedLines = await window.electron.recognize(dataURL);
+            if (!dataURL) return api.status('Recognize: EMPTY');
+            const parsedLines = await api.recognize(dataURL);
             if (!parsedLines) return;
 
             terminal.writeText(parsedLines.join('\n'), null, null, true);
             if (terminal.state.isOpen) return;
             terminal.open();
         } catch (error) {
-            window.electron.status('Recognize: ERROR');
+            api.status('Recognize: ERROR');
             throw error;
         }
     }],

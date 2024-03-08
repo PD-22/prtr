@@ -1,5 +1,5 @@
 const token = getToken();
-window.electron.onScrape((username) => {
+api.onScrape((username) => {
     const controller = new AbortController();
     const promise = getUserTime(username, token, controller.signal)
     const abort = () => controller.abort();

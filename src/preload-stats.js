@@ -31,4 +31,4 @@ const onScrape = getUserTime => ipcRenderer.on('scrape', (_, row, username) => {
     })
 });
 
-contextBridge.exposeInMainWorld('electron', { onScrape });
+contextBridge.exposeInMainWorld('api', { onScrape });

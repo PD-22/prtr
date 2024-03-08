@@ -24,7 +24,7 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    window.electron.status(`Used: ${formatShortcut([matchedInput, name])}`);
+    api.status(`Used: ${formatShortcut([matchedInput, name])}`);
     callback(e, matchedInput);
 }
 
@@ -60,5 +60,5 @@ export function formatShortcut(shortcut) {
 
 export function remindShortcuts() {
     const shortcuts = getActiveShortcuts();
-    window.electron.status('Shortcuts:', shortcuts.map(formatShortcut));
+    api.status('Shortcuts:', shortcuts.map(formatShortcut));
 }

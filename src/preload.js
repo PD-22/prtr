@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-const api = {
+contextBridge.exposeInMainWorld('api', {
     status: (...args) => ipcRenderer.send('status', ...args),
     onStatus: callback => ipcRenderer.on('status', (_, value) => callback(value)),
     import: () => ipcRenderer.invoke('import'),
@@ -9,6 +9,4 @@ const api = {
     recognize: dataURL => ipcRenderer.invoke('recoginze', dataURL),
     scrape: (row, line) => ipcRenderer.invoke('scrape', row, line),
     abortScrape: row => ipcRenderer.send(`scrape:abort:${row}`)
-};
-
-contextBridge.exposeInMainWorld('electron', api);
+});

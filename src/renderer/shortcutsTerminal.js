@@ -19,7 +19,7 @@ export default [
         try {
             await scrape();
         } catch (error) {
-            window.electron.status('Scrape: ERROR');
+            api.status('Scrape: ERROR');
             throw error;
         }
     }],
@@ -74,16 +74,16 @@ function sortData(ascending = true) {
 async function scrape() {
     const parsedLines = getParsedLines();
     const lines = parsedLines.map(x => fkv(x.username, x.data));
-    window.electron.status('Scrape: INIT', lines);
+    api.status('Scrape: INIT', lines);
     writeText(lines.join('\n'), null, null, true);
 
     const filteredLines = parsedLines
         .map((o, index) => ({ ...o, index }))
         .filter(o => o.username && !o.data);
 
-    if (!filteredLines.length) return window.electron.status("Scrape: EMPTY");
+    if (!filteredLines.length) return api.status("Scrape: EMPTY");
 
-    window.electron.status('Scrape: START', filteredLines.map(x => x.username));
+    api.status('Scrape: START', filteredLines.map(x => x.username));
     await Promise.allSettled(filteredLines.map(
         ({ username, index }) => scrapeLine(username, index)
     ));
@@ -97,19 +97,19 @@ async function scrapeLine(username, index) {
 
     try {
         write(fkv(username, '...'), true);
-        lockLine(index, () => window.electron.abortScrape(index));
+        lockLine(index, () => api.abortScrape(index));
 
-        const data = await window.electron.scrape(index, username);
+        const data = await api.scrape(index, username);
         if (typeof data !== 'number') throw new Error('Scrape failed');
         if (data instanceof Error) throw data;
 
-        window.electron.status(`Scrape: ${fkv(username, data)}`);
+        api.status(`Scrape: ${fkv(username, data)}`);
         unlockLine(index);
         write(fkv(username, data));
     } catch (error) {
         const isAbort = error.message === "Error invoking remote method 'scrape': abort";
         if (!isAbort) console.error(error);
-        window.electron.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
+        api.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
 
         unlockLine(index);
         write(username, true);

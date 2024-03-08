@@ -15,4 +15,4 @@ canvasBackground.addEventListener('mousemove', moveDrag);
 canvasBackground.addEventListener('mouseup', stopDrag);
 canvasBackground.addEventListener('mouseleave', stopDrag);
 
-window.electron.onStatus(console.log);
+api.onStatus(console.log);
