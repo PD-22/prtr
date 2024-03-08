@@ -261,29 +261,29 @@ export default function testTerminal() {
     assert(arr.length, maxHistoryLength + 1);
     testHistory(...arr);
 
-    writeText('Sleepy');
+    writeText('Username');
     clearHistory();
-    testHistory(['Sleepy']);
-    writeText('Sleepy');
-    testHistory(['Sleepy']);
+    testHistory(['Username']);
+    writeText('Username');
+    testHistory(['Username']);
 
-    writeLine('Sleepy - ...', 0, true, true);
+    writeLine('Username - ...', 0, true, true);
     lockLine(0, () => {
         unlockLine(0);
-        writeLine('Sleepy', 0, true, true)
+        writeLine('Username', 0, true, true)
     });
-    mockInput('Sleep - ...', { start: [0, 5] });
-    testHistory(['Sleepy']);
+    mockInput('User - ...', { start: [0, 5] });
+    testHistory(['Username']);
 
-    writeText('AA\nBB - 10\nCC');
+    writeText('Alpha\nBeta - 123\nCharlie');
     clearHistory();
-    writeLine('CC - ...', 2, true, true);
+    writeLine('Charlie - ...', 2, true, true);
     lockLine(2, () => {
         unlockLine(2);
-        writeLine('CC', 2, true, true)
+        writeLine('Charlie', 2, true, true)
     });
-    mockInput('C - ...', { start: [0, 1] });
-    testHistory(['AA\nBB - 10\nCC']);
+    mockInput('Charli - ...', { start: [0, 6] });
+    testHistory(['Alpha\nBeta - 123\nCharlie']);
 
     writeText('ABC'); clearHistory(); restore();
     writeText('ABC 123', null, true);
