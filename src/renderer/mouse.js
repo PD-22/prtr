@@ -2,18 +2,19 @@ import { canvas, canvasContainer, overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 import { clamp } from "../terminal/index.js";
 import { modifierMatches } from "./shortcuts.js";
+import { centerCanvas } from "./canvas.js";
 
 const mouse = { isHold: false };
 export default mouse;
 
-function getCanvasMousePos(e) {
-    const bcr = overlayCanvas.getBoundingClientRect();
+export function getCanvasMousePos(e) {
+    const bcr = canvas.getBoundingClientRect();
 
-    const scaleX = overlayCanvas.width / bcr.width;
-    const scaleY = overlayCanvas.height / bcr.height;
+    const scaleX = canvas.width / bcr.width;
+    const scaleY = canvas.height / bcr.height;
 
-    const x = clamp((e.clientX - bcr.left) * scaleX, 0, overlayCanvas.width);
-    const y = clamp((e.clientY - bcr.top) * scaleY, 0, overlayCanvas.height);
+    const x = clamp((e.clientX - bcr.left) * scaleX, 0, canvas.width);
+    const y = clamp((e.clientY - bcr.top) * scaleY, 0, canvas.height);
 
     return [x, y];
 }
@@ -46,10 +47,12 @@ export function zoom(e) {
         const scale = parsedSize * 2 ** -Math.sign(e.deltaY) / canvasSize;
         const newSize = Math.floor(canvasSize * clamp(scale, 1 / 8, 8));
         if (!newSize) return;
-        
+
         const style = `${newSize}px`;
         canvasContainer.style[dimension] = style;
         canvas.style[dimension] = style;
         overlayCanvas.style[dimension] = style;
     });
+
+    centerCanvas();
 }
