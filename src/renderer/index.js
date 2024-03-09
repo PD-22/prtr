@@ -1,5 +1,5 @@
 import { canvasBackground } from "./canvas.js";
-import { moveDrag, startDrag, stopDrag } from "./mouse.js";
+import { moveDrag, startDrag, stopDrag, zoom } from "./mouse.js";
 import { resizeCanvas } from "./rect.js";
 import { onKeyDown } from "./shortcuts.js";
 import * as terminal from "../terminal/index.js";
@@ -14,5 +14,6 @@ canvasBackground.addEventListener('mousedown', startDrag);
 canvasBackground.addEventListener('mousemove', moveDrag);
 canvasBackground.addEventListener('mouseup', stopDrag);
 canvasBackground.addEventListener('mouseleave', stopDrag);
+window.addEventListener('wheel', zoom);
 
 api.onStatus(console.log);

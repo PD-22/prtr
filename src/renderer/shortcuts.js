@@ -33,7 +33,7 @@ function shortcutMatches(e, str) {
     return modifierMatches(mods, e) && e.key.toLowerCase() === key;
 }
 
-function modifierMatches(mods, event) {
+export function modifierMatches(mods, event) {
     mods = Array.from(new Set(mods));
 
     const allowedMods = ['ctrl', 'shift', 'alt', 'meta'];

@@ -30,11 +30,15 @@ function drawCrop() {
 export function resizeCanvas(w, h) {
     canvasContainer.style.width = w + 'px';
     overlayCanvas.width = w;
+    overlayCanvas.style.width = w + 'px';
     canvas.width = w;
+    canvas.style.width = w + 'px';
 
     canvasContainer.style.height = h + 'px';
     overlayCanvas.height = h;
+    overlayCanvas.style.height = h + 'px';
     canvas.height = h;
+    canvas.style.height = h + 'px';
 
     fitRectToCanvas();
 }
