@@ -34,7 +34,7 @@ function shortcutMatches(e, str) {
 }
 
 export function modifierMatches(mods, event) {
-    mods = Array.from(new Set(mods));
+    mods = Array.from(new Set(mods.map(x => x.toLowerCase())));
 
     const allowedMods = ['ctrl', 'shift', 'alt', 'meta'];
     if (!mods.every(mod => allowedMods.includes(mod))) return false;

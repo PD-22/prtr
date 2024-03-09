@@ -44,7 +44,7 @@ export function zoom(e) {
         const parsedSize = parseInt(canvas.style[dimension] || canvasSize);
 
         const scale = parsedSize * 2 ** -Math.sign(e.deltaY) / canvasSize;
-        const newSize = Math.floor(canvasSize * clamp(scale, 1 / 4, 4));
+        const newSize = Math.floor(canvasSize * clamp(scale, 1 / 8, 8));
         if (!newSize) return;
         
         const style = `${newSize}px`;

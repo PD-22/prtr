@@ -2,6 +2,7 @@ import * as terminal from "../terminal/index.js";
 import { loadImageOnCanvas } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
+import { modifierMatches } from "./shortcuts.js";
 
 export default [
     ['I', 'Import', async () => {
@@ -74,6 +75,18 @@ export default [
             throw error;
         }
     }],
+
+    ...['Up', 'Right', 'Down', 'Left'].map(dir => {
+        const inputs = [null, 'Ctrl', 'Shift'].map(mod => [mod, `Arrow${dir}`].filter(Boolean).join('+'));
+        const callback = e => {
+            const _ = m => modifierMatches([m], e);
+            const amount = _('Ctrl') ? 1 : _('Shift') ? 100 : 10;
+            const x = (({ 'Right': 1, 'Left': -1 })[dir] ?? 0) * amount;
+            const y = (({ 'Down': 1, 'Up': -1 })[dir] ?? 0) * amount;
+            window.scrollBy(x, y);
+        };
+        return [inputs, dir, callback];
+    }),
 
     ['Escape', 'Deselect', () => { mouse.isHold = false; fitRectToCanvas(); }]
 ];
