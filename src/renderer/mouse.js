@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { canvas, canvasContainer, overlayCanvas } from "./canvas.js";
+import { canvas, canvasContainer, centerCanvas, overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
@@ -66,5 +66,10 @@ export function zoom(dir) {
     canvas.style.height = styleHeight;
     overlayCanvas.style.width = styleWidth;
     overlayCanvas.style.height = styleHeight;
+
+    const widthOverflow = newWidth > innerWidth && innerWidth > parsedWidth;
+    const heightOverflow = newHeight > innerHeight && innerHeight > parsedHeight;
+    if (widthOverflow || heightOverflow) return centerCanvas();
+
     window.scroll(x, y);
 }
