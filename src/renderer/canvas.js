@@ -21,14 +21,11 @@ export async function loadImageOnCanvas(dataURL) {
 }
 
 export function centerCanvas() {
-    const { scrollTop, scrollLeft, clientTop, clientLeft } = document.documentElement;
-    const { top, left, height, width } = canvas.getBoundingClientRect();
+    const { height, width } = canvas.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
 
-    const centerY = top + scrollTop - clientTop + height / 2;
-    const centerX = left + scrollLeft - clientLeft + width / 2;
-    const x = centerX - innerWidth / 2;
-    const y = centerY - innerHeight / 2;
+    const x = (width - innerWidth) / 2;
+    const y = (height - innerHeight) / 2;
 
     window.scroll(x, y);
 }
