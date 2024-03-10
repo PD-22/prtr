@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { canvas, canvasContainer, centerCanvas, overlayCanvas } from "./canvas.js";
+import { canvas, canvasContainer, overlayCanvas } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
@@ -37,24 +37,34 @@ export function stopDrag() {
 
 export function zoom(dir) {
     const sign = dir ? 1 : -1;
+
+    const base = 2;
+    const scale = base ** sign;
+
     const canvasWidth = parseInt(canvas.width || 0);
     const canvasHeight = parseInt(canvas.height || 0);
     const parsedWidth = parseInt(canvas.style.width || canvasWidth);
     const parsedHeight = parseInt(canvas.style.height || canvasHeight);
-    const scaleWidth = parsedWidth * 2 ** sign / canvasWidth;
-    const scaleHeight = parsedHeight * 2 ** sign / canvasHeight;
-    const newWidth = Math.floor(canvasWidth * clamp(scaleWidth, 1 / 8, 8));
-    const newHeight = Math.floor(canvasHeight * clamp(scaleHeight, 1 / 8, 8));
-    if (!newWidth && !newHeight) return;
+    const scaleWidth = parsedWidth * scale / canvasWidth;
+    const scaleHeight = parsedHeight * scale / canvasHeight;
+    const newWidth = canvasWidth * scaleWidth;
+    const newHeight = canvasHeight * scaleHeight;
+    const { scrollX, scrollY } = window;
+    const x = dir ?
+        (scrollX + innerWidth / 2) * base - innerWidth / base :
+        (scrollX + innerWidth / base) / base - innerWidth / 2;
+    const y = dir ?
+        (scrollY + innerHeight / 2) * base - innerHeight / base :
+        (scrollY + innerHeight / base) / base - innerHeight / 2;
+    if (!newWidth || !newHeight) return;
 
-    const styleWidth = `${newWidth}px`;
-    const styleHeight = `${newHeight}px`;
+    const styleWidth = `${Math.floor(newWidth)}px`;
+    const styleHeight = `${Math.floor(newHeight)}px`;
     canvasContainer.style.width = styleWidth;
     canvasContainer.style.height = styleHeight;
     canvas.style.width = styleWidth;
     canvas.style.height = styleHeight;
     overlayCanvas.style.width = styleWidth;
     overlayCanvas.style.height = styleHeight;
-
-    centerCanvas();
+    window.scroll(x, y);
 }
