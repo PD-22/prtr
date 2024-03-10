@@ -40,19 +40,24 @@ export function stopDrag() {
 export function zoom(e) {
     if (!modifierMatches(['ctrl'], e)) return;
 
-    ['width', 'height'].forEach(dimension => {
-        const canvasSize = parseInt(canvas[dimension] || 0);
-        const parsedSize = parseInt(canvas.style[dimension] || canvasSize);
+    const canvasWidth = parseInt(canvas.width || 0);
+    const canvasHeight = parseInt(canvas.height || 0);
+    const parsedWidth = parseInt(canvas.style.width || canvasWidth);
+    const parsedHeight = parseInt(canvas.style.height || canvasHeight);
+    const scaleWidth = parsedWidth * 2 ** -Math.sign(e.deltaY) / canvasWidth;
+    const scaleHeight = parsedHeight * 2 ** -Math.sign(e.deltaY) / canvasHeight;
+    const newWidth = Math.floor(canvasWidth * clamp(scaleWidth, 1 / 8, 8));
+    const newHeight = Math.floor(canvasHeight * clamp(scaleHeight, 1 / 8, 8));
+    if (!newWidth && !newHeight) return;
 
-        const scale = parsedSize * 2 ** -Math.sign(e.deltaY) / canvasSize;
-        const newSize = Math.floor(canvasSize * clamp(scale, 1 / 8, 8));
-        if (!newSize) return;
-
-        const style = `${newSize}px`;
-        canvasContainer.style[dimension] = style;
-        canvas.style[dimension] = style;
-        overlayCanvas.style[dimension] = style;
-    });
+    const styleWidth = `${newWidth}px`;
+    const styleHeight = `${newHeight}px`;
+    canvasContainer.style.width = styleWidth;
+    canvasContainer.style.height = styleHeight;
+    canvas.style.width = styleWidth;
+    canvas.style.height = styleHeight;
+    overlayCanvas.style.width = styleWidth;
+    overlayCanvas.style.height = styleHeight;
 
     centerCanvas();
 }
