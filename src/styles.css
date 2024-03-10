@@ -17,6 +17,29 @@ body {
     image-rendering: pixelated;
 }
 
+/* DEBUG */
+.debug-center {
+    z-index: 1;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: white;
+}
+.debug-mouse {
+    font-family: Consolas, 'Courier New', monospace;
+    white-space: pre;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, calc(2 / 3));
+    color: white;
+    padding: .25rem .5rem;
+}
+
 body::-webkit-scrollbar {
     display: none;
 }
