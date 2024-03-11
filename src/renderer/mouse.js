@@ -45,8 +45,10 @@ export function zoom(dir) {
     const canvasHeight = parseInt(canvas.height || 0);
     const parsedWidth = parseInt(canvas.style.width || canvasWidth);
     const parsedHeight = parseInt(canvas.style.height || canvasHeight);
-    const scaleWidth = parsedWidth * scale / canvasWidth;
-    const scaleHeight = parsedHeight * scale / canvasHeight;
+    const zoomWidth = parsedWidth / canvasWidth;
+    const scaleWidth = clamp(zoomWidth * scale, 1 / 8, 8);
+    const zoomHeight = parsedHeight / canvasHeight;
+    const scaleHeight = clamp(zoomHeight * scale, 1 / 8, 8);
     const newWidth = canvasWidth * scaleWidth;
     const newHeight = canvasHeight * scaleHeight;
     const { scrollX, scrollY } = window;
@@ -56,6 +58,7 @@ export function zoom(dir) {
     const y = dir ?
         (scrollY + innerHeight / 2) * base - innerHeight / base :
         (scrollY + innerHeight / base) / base - innerHeight / 2;
+    if (scaleWidth === zoomWidth || scaleHeight === zoomHeight) return;
     if (!newWidth || !newHeight) return;
 
     const styleWidth = `${Math.floor(newWidth)}px`;
