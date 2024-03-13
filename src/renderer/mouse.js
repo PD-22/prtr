@@ -39,6 +39,7 @@ export function zoom(dir) {
     const sign = dir ? 1 : -1;
 
     const base = 2;
+    const limit = base ** 3;
     const scale = base ** sign;
 
     const canvasWidth = parseInt(canvas.width || 0);
@@ -46,18 +47,16 @@ export function zoom(dir) {
     const parsedWidth = parseInt(canvas.style.width || canvasWidth);
     const parsedHeight = parseInt(canvas.style.height || canvasHeight);
     const zoomWidth = parsedWidth / canvasWidth;
-    const scaleWidth = clamp(zoomWidth * scale, 1 / 8, 8);
     const zoomHeight = parsedHeight / canvasHeight;
-    const scaleHeight = clamp(zoomHeight * scale, 1 / 8, 8);
+    const scaleWidth = clamp(zoomWidth * scale, 1 / limit, limit);
+    const scaleHeight = clamp(zoomHeight * scale, 1 / limit, limit);
     const newWidth = canvasWidth * scaleWidth;
     const newHeight = canvasHeight * scaleHeight;
+
     const { scrollX, scrollY } = window;
-    const x = dir ?
-        (scrollX + innerWidth / 2) * base - innerWidth / base :
-        (scrollX + innerWidth / base) / base - innerWidth / 2;
-    const y = dir ?
-        (scrollY + innerHeight / 2) * base - innerHeight / base :
-        (scrollY + innerHeight / base) / base - innerHeight / 2;
+    const dx = (scrollX + innerWidth / 2 - parsedWidth / 2) * newWidth / parsedWidth;
+    const dy = (scrollY + innerHeight / 2 - parsedHeight / 2) * newHeight / parsedHeight;
+
     if (scaleWidth === zoomWidth || scaleHeight === zoomHeight) return;
     if (!newWidth || !newHeight) return;
 
@@ -69,10 +68,9 @@ export function zoom(dir) {
     canvas.style.height = styleHeight;
     overlayCanvas.style.width = styleWidth;
     overlayCanvas.style.height = styleHeight;
+    centerCanvas();
 
     const widthOverflow = newWidth > innerWidth && innerWidth > parsedWidth;
     const heightOverflow = newHeight > innerHeight && innerHeight > parsedHeight;
-    if (widthOverflow || heightOverflow) return centerCanvas();
-
-    window.scroll(x, y);
+    if (!widthOverflow && !heightOverflow) window.scrollBy(dx, dy);
 }
