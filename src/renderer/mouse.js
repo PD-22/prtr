@@ -38,27 +38,30 @@ export function stopDrag() {
 export function zoom(dir) {
     const sign = dir ? 1 : -1;
 
-    const base = 2;
-    const limit = base ** 3;
-    const scale = base ** sign;
+    const zoomStep = 2;
+    const zoomNum = 3
+    const maxScale = zoomStep ** zoomNum;
+    const minScale = 1 / maxScale;
+    const scale = zoomStep ** sign;
 
-    const canvasWidth = parseInt(canvas.width || 0);
-    const canvasHeight = parseInt(canvas.height || 0);
-    const parsedWidth = parseInt(canvas.style.width || canvasWidth);
-    const parsedHeight = parseInt(canvas.style.height || canvasHeight);
-    const zoomWidth = parsedWidth / canvasWidth;
-    const zoomHeight = parsedHeight / canvasHeight;
-    const scaleWidth = clamp(zoomWidth * scale, 1 / limit, limit);
-    const scaleHeight = clamp(zoomHeight * scale, 1 / limit, limit);
-    const newWidth = canvasWidth * scaleWidth;
-    const newHeight = canvasHeight * scaleHeight;
+    const initWidth = parseInt(canvas.width || 0);
+    const initHeight = parseInt(canvas.height || 0);
+    const eltWidth = parseInt(canvas.style.width || initWidth);
+    const eltHeight = parseInt(canvas.style.height || initHeight);
+    const { scrollX, scrollY, innerWidth, innerHeight } = window;
 
-    const { scrollX, scrollY } = window;
-    const dx = (scrollX + innerWidth / 2 - parsedWidth / 2) * newWidth / parsedWidth;
-    const dy = (scrollY + innerHeight / 2 - parsedHeight / 2) * newHeight / parsedHeight;
+    const widthScale = eltWidth / initWidth;
+    const heightScale = eltHeight / initHeight;
+    const newWidthScale = clamp(widthScale * scale, minScale, maxScale);
+    const newHeightScale = clamp(heightScale * scale, minScale, maxScale);
+    const newWidth = initWidth * newWidthScale;
+    const newHeight = initHeight * newHeightScale;
 
-    if (scaleWidth === zoomWidth || scaleHeight === zoomHeight) return;
-    if (!newWidth || !newHeight) return;
+    const dx = (scrollX + innerWidth / 2 - eltWidth / 2) * newWidth / eltWidth;
+    const dy = (scrollY + innerHeight / 2 - eltHeight / 2) * newHeight / eltHeight;
+
+    if (newWidthScale === widthScale || !newWidth) return;
+    if (newHeightScale === heightScale || !newHeight) return;
 
     const styleWidth = `${Math.floor(newWidth)}px`;
     const styleHeight = `${Math.floor(newHeight)}px`;
@@ -68,9 +71,10 @@ export function zoom(dir) {
     canvas.style.height = styleHeight;
     overlayCanvas.style.width = styleWidth;
     overlayCanvas.style.height = styleHeight;
-    centerCanvas();
 
-    const widthOverflow = newWidth > innerWidth && innerWidth > parsedWidth;
-    const heightOverflow = newHeight > innerHeight && innerHeight > parsedHeight;
-    if (!widthOverflow && !heightOverflow) window.scrollBy(dx, dy);
+    centerCanvas();
+    const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
+    const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
+    if (widthOverflow || heightOverflow) return;
+    window.scrollBy(dx, dy);
 }
