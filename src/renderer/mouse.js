@@ -62,8 +62,12 @@ export function zoom(dir, mousePos) {
     const centerY = scrollY + innerHeight / 2;
     const tx = mx == null ? centerX : mx * widthScale;
     const ty = my == null ? centerY : my * heightScale;
-    const dx = (centerX + tx) / 2 - eltWidth / 2;
-    const dy = (centerY + ty) / 2 - eltHeight / 2;
+    const dx = dir ?
+        (centerX + tx) / 2 - eltWidth / 2 :
+        tx + (centerX - tx) * eltWidth / newWidth - newWidth;
+    const dy = dir ?
+        (centerY + ty) / 2 - eltHeight / 2 :
+        ty + (centerY - ty) * eltHeight / newHeight - newHeight;
 
     if (newWidthScale === widthScale || !newWidth) return;
     if (newHeightScale === heightScale || !newHeight) return;
