@@ -16,7 +16,7 @@ canvasBackground.addEventListener('mouseup', stopDrag);
 canvasBackground.addEventListener('mouseleave', stopDrag);
 window.addEventListener('wheel', e => {
     if (!modifierMatches(['ctrl'], e)) return;
-    zoom(Math.sign(e.deltaY) < 0);
+    zoom(Math.sign(e.deltaY) < 0, getCanvasMousePos(e));
 });
 
 // DEBUG

@@ -35,7 +35,7 @@ export function stopDrag() {
     if (w < 1 || h < 1) return fitRectToCanvas();
 }
 
-export function zoom(dir) {
+export function zoom(dir, mousePos) {
     const sign = dir ? 1 : -1;
 
     const zoomStep = 2;
@@ -49,6 +49,7 @@ export function zoom(dir) {
     const eltWidth = parseInt(canvas.style.width || initWidth);
     const eltHeight = parseInt(canvas.style.height || initHeight);
     const { scrollX, scrollY, innerWidth, innerHeight } = window;
+    const [mx, my] = mousePos ?? [];
 
     const widthScale = eltWidth / initWidth;
     const heightScale = eltHeight / initHeight;
@@ -57,8 +58,12 @@ export function zoom(dir) {
     const newWidth = initWidth * newWidthScale;
     const newHeight = initHeight * newHeightScale;
 
-    const dx = (scrollX + innerWidth / 2 - eltWidth / 2) * newWidth / eltWidth;
-    const dy = (scrollY + innerHeight / 2 - eltHeight / 2) * newHeight / eltHeight;
+    const centerX = scrollX + innerWidth / 2;
+    const centerY = scrollY + innerHeight / 2;
+    const tx = mx == null ? centerX : mx * widthScale;
+    const ty = my == null ? centerY : my * heightScale;
+    const dx = (centerX + tx) / 2 - eltWidth / 2;
+    const dy = (centerY + ty) / 2 - eltHeight / 2;
 
     if (newWidthScale === widthScale || !newWidth) return;
     if (newHeightScale === heightScale || !newHeight) return;
@@ -76,5 +81,5 @@ export function zoom(dir) {
     const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
     const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
     if (widthOverflow || heightOverflow) return;
-    window.scrollBy(dx, dy);
+    window.scrollBy(dx * newWidth / eltWidth, dy * newHeight / eltHeight);
 }
