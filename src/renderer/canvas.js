@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { fitRectToCanvas } from "./rect.js";
+import { fitRectToCanvas, scrollToggle } from "./rect.js";
 
 export const canvasBackground = document.querySelector('.canvas-background');
 export const canvasContainer = document.querySelector('.canvas-container');
@@ -40,6 +40,7 @@ export function setScroll(x, y) {
     const lh = canvas.height * state.s / 2 + innerHeight / 2 - 1;
     state.x = clamp(x, -lw, lw);
     state.y = clamp(y, -lh, lh);
+    scrollToggle(x, y);
     transfrom();
 }
 

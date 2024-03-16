@@ -1,6 +1,7 @@
-import { canvas, canvasContainer, clearOverlay, octx, overlayCanvas } from "./canvas.js";
+import { canvas, clearOverlay, getScale, getScroll, octx, overlayCanvas } from "./canvas.js";
+import { stopDrag } from "./mouse.js";
 
-const rect = { x: 0, y: 0, w: 0, h: 0 };
+const rect = { x: 0, y: 0, w: 0, h: 0, toggle: false };
 const dash = { width: 2, length: 5 };
 export default rect;
 
@@ -11,6 +12,7 @@ export function setRect(newRect) {
     rect.w = Math.round(w);
     rect.h = Math.round(h);
     drawCrop();
+    stopToggle();
 }
 
 function drawCrop() {
@@ -61,4 +63,39 @@ export function getRectCanvasDataURL() {
     ctx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
 
     return rectCanvas.toDataURL('image/png');
+}
+
+export function toggleDrag() {
+    return (rect.toggle ? finishToggle : startToggle)();
+}
+
+function startToggle() {
+    stopDrag();
+    const [x, y] = getScroll();
+    const s = getScale();
+    setRectStart(
+        canvas.width / 2 + x / s,
+        canvas.height / 2 + y / s,
+    );
+    rect.toggle = true;
+}
+
+export function scrollToggle(x, y) {
+    if (!rect.toggle) return;
+    const s = getScale();
+    setRectEnd(
+        canvas.width / 2 + x / s,
+        canvas.height / 2 + y / s
+    );
+    rect.toggle = true;
+}
+
+function finishToggle() {
+    stopToggle();
+    const { w, h } = getNormalRect();
+    if (w < 1 || h < 1) fitRectToCanvas();
+}
+
+function stopToggle() {
+    rect.toggle = false;
 }

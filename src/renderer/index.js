@@ -13,7 +13,7 @@ window.addEventListener('mouseup', stopDrag);
 window.addEventListener('mouseleave', stopDrag);
 window.addEventListener('wheel', e => {
     const sign = Math.sign(e.deltaY);
-    if (e.ctrlKey) return zoom(sign < 0, getCanvasMouseRelPos(e));
+    if (!e.ctrlKey) return zoom(sign < 0, getCanvasMouseRelPos(e));
     const d = [0, 0];
     d[e.shiftKey ? 0 : 1] = (e.altKey ? 10 : 100) * sign;
     scrollBy(...d);
