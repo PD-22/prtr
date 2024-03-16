@@ -1,5 +1,5 @@
 import * as terminal from "../terminal/index.js";
-import { loadImageOnCanvas, scrollBy, zoom } from "./canvas.js";
+import { loadImageOnCanvas, reset, scrollBy, zoom } from "./canvas.js";
 import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
@@ -89,6 +89,7 @@ export default [
     }),
     ['Ctrl+=', 'Magnify', () => zoom(true)],
     ['Ctrl+-', 'Minify', () => zoom(false)],
+    ['Ctrl+0', 'fit', () => reset()],
 
     ['Escape', 'Deselect', () => { mouse.isHold = false; fitRectToCanvas(); }]
 ];

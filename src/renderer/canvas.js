@@ -87,5 +87,12 @@ export function resizeCanvas(w, h) {
     canvas.width = overlayCanvas.width = w;
     canvas.height = overlayCanvas.height = h;
     fitRectToCanvas();
+    reset();
+}
+
+export function reset() {
+    const w = window.innerWidth / canvas.width;
+    const h = window.innerHeight / canvas.height;
+    setScale(Math.min(w, h));
     setScroll(0, 0);
 }
