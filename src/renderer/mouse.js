@@ -82,7 +82,9 @@ export function zoom(dir, mousePos) {
     // // overlayCanvas.style.width = styleWidth;
     // // overlayCanvas.style.height = styleHeight;
 
-    setScroll(0, 0);
+    const ds = newScale / scale;
+    const [x, y] = getScroll();
+    setScroll(x * ds, y * ds);
     // const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
     // const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
     // if (widthOverflow || heightOverflow) return;
