@@ -3,8 +3,6 @@ body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 
 .checker-background {
@@ -40,16 +38,13 @@ body {
     padding: .25rem .5rem;
 }
 
-body::-webkit-scrollbar {
-    display: none;
-}
-
 .canvas-background {
     position: absolute;
     display: flex;
     width: 100%;
     height: 100%;
     justify-content: center;
+    overflow: hidden;
 }
 
 .canvas-container {
@@ -60,6 +55,10 @@ body::-webkit-scrollbar {
 .overlay-canvas {
     position: absolute;
     image-rendering: pixelated;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 100ms linear;
 }
 
 .terminal {
@@ -72,20 +71,11 @@ body::-webkit-scrollbar {
     outline: none;
     padding: 10px;
     white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: visible;
-    overflow-y: visible;
     resize: none;
     font-family: Consolas, 'Courier New', monospace;
     font-size: 14px;
     line-height: 20px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
     border: none;
-}
-
-.terminal::-webkit-scrollbar {
-    display: none;
 }
 
 

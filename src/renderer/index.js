@@ -1,8 +1,9 @@
-import { canvasBackground } from "./canvas.js";
+import { canvasBackground, scrollBy } from "./canvas.js";
 import { getCanvasMousePos, moveDrag, startDrag, stopDrag, zoom } from "./mouse.js";
 import { resizeCanvas } from "./rect.js";
 import { modifierMatches, onKeyDown } from "./shortcuts.js";
 import * as terminal from "../terminal/index.js";
+import shortcutsMain from "./shortcutsMain.js";
 
 resizeCanvas(0, 0);
 
@@ -15,8 +16,14 @@ canvasBackground.addEventListener('mousemove', moveDrag);
 canvasBackground.addEventListener('mouseup', stopDrag);
 canvasBackground.addEventListener('mouseleave', stopDrag);
 window.addEventListener('wheel', e => {
-    if (!modifierMatches(['ctrl'], e)) return;
-    zoom(Math.sign(e.deltaY) < 0, getCanvasMousePos(e));
+    const dir = Math.sign(e.deltaY) < 0;
+    if (modifierMatches(['ctrl'], e)) {
+        zoom(dir, getCanvasMousePos(e));
+    } else if (modifierMatches(['shift'], e)) {
+        scrollBy(dir ? -100 : 100, 0);
+    } else {
+        scrollBy(0, dir ? -100 : 100);
+    }
 });
 
 // DEBUG

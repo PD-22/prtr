@@ -20,12 +20,19 @@ export async function loadImageOnCanvas(dataURL) {
     ctx.drawImage(image, 0, 0);
 }
 
-export function centerCanvas() {
-    const { height, width } = canvas.getBoundingClientRect();
-    const { innerWidth, innerHeight } = window;
+export function scroll(x, y) {
+    const style = `translate(-50%, -50%) translate(${-x}px, ${-y}px)`;
+    canvas.style.transform = style;
+    overlayCanvas.style.transform = style;
+}
 
-    const x = (width - innerWidth) / 2;
-    const y = (height - innerHeight) / 2;
+export function scrollBy(x, y) {
+    const [x0, y0] = getScroll();
+    scroll(x0 + x, y0 + y);
+}
 
-    window.scroll(x, y);
+export function getScroll() {
+    const str = canvas.style.transform;
+    const [, x, y] = str.match(/(-?\d+)px.*?(-?\d+)px/);
+    return [x, y].map(v => -parseInt(v) || 0);
 }

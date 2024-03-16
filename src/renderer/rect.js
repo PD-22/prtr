@@ -1,4 +1,4 @@
-import { canvas, canvasContainer, centerCanvas, clearOverlay, octx, overlayCanvas } from "./canvas.js";
+import { canvas, canvasContainer, clearOverlay, octx, overlayCanvas, scroll } from "./canvas.js";
 
 const rect = { x: 0, y: 0, w: 0, h: 0 };
 const dash = { width: 2, length: 5 };
@@ -41,7 +41,7 @@ export function resizeCanvas(w, h) {
     canvas.style.height = h + 'px';
 
     fitRectToCanvas();
-    centerCanvas();
+    scroll(0, 0);
 }
 
 export function fitRectToCanvas() {

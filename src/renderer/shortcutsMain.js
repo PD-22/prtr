@@ -1,5 +1,5 @@
 import * as terminal from "../terminal/index.js";
-import { loadImageOnCanvas } from "./canvas.js";
+import { loadImageOnCanvas, scrollBy } from "./canvas.js";
 import mouse, { zoom } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
@@ -83,7 +83,7 @@ export default [
             const amount = _('Ctrl') ? 1 : _('Shift') ? 100 : 10;
             const x = (({ 'Right': 1, 'Left': -1 })[dir] ?? 0) * amount;
             const y = (({ 'Down': 1, 'Up': -1 })[dir] ?? 0) * amount;
-            window.scrollBy(x, y);
+            scrollBy(x, y);
         };
         return [inputs, dir, callback];
     }),
