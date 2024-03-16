@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { canvas, canvasContainer, getScroll, overlayCanvas, scroll, scrollBy } from "./canvas.js";
+import { canvas, canvasContainer, getScale, getScroll, overlayCanvas, setScroll, scrollBy, setScale } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
@@ -42,45 +42,49 @@ export function zoom(dir, mousePos) {
     const zoomNum = 3
     const maxScale = zoomStep ** zoomNum;
     const minScale = 1 / maxScale;
-    const scale = zoomStep ** sign;
+    const numScale = zoomStep ** sign;
 
-    const initWidth = parseInt(canvas.width || 0);
-    const initHeight = parseInt(canvas.height || 0);
-    const eltWidth = parseInt(canvas.style.width || initWidth);
-    const eltHeight = parseInt(canvas.style.height || initHeight);
-    const { innerWidth, innerHeight } = window;
-    const [scrollX, scrollY] = getScroll();
-    const [mx, my] = mousePos ?? [];
+    // const initWidth = parseInt(canvas.width || 0);
+    // const initHeight = parseInt(canvas.height || 0);
+    // const eltWidth = parseInt(canvas.style.width || initWidth);
+    // const eltHeight = parseInt(canvas.style.height || initHeight);
+    // const { innerWidth, innerHeight } = window;
+    // const [scrollX, scrollY] = getScroll();
+    // const [mx, my] = mousePos ?? [];
 
-    const widthScale = eltWidth / initWidth;
-    const heightScale = eltHeight / initHeight;
-    const newWidthScale = clamp(widthScale * scale, minScale, maxScale);
-    const newHeightScale = clamp(heightScale * scale, minScale, maxScale);
-    const newWidth = initWidth * newWidthScale;
-    const newHeight = initHeight * newHeightScale;
+    const scale = getScale();
+    // const widthScale = eltWidth / initWidth;
+    // const heightScale = eltHeight / initHeight;
+    const newScale = clamp(scale * numScale, minScale, maxScale)
+    // const newWidthScale = clamp(widthScale * numScale, minScale, maxScale);
+    // const newHeightScale = clamp(heightScale * numScale, minScale, maxScale);
+    // const newWidth = initWidth * newWidthScale;
+    // const newHeight = initHeight * newHeightScale;
 
-    const centerX = eltWidth / 2 + scrollX;
-    const centerY = eltHeight / 2 + scrollY;
-    const tx = mx == null ? centerX : mx * widthScale;
-    const ty = my == null ? centerY : my * heightScale;
-    const dx = centerX - (centerX - tx) * (1 - eltWidth / newWidth) - eltWidth / 2;
-    const dy = centerY - (centerY - ty) * (1 - eltHeight / newHeight) - eltHeight / 2;
+    // const centerX = eltWidth / 2 + scrollX;
+    // const centerY = eltHeight / 2 + scrollY;
+    // const tx = mx == null ? centerX : mx * widthScale;
+    // const ty = my == null ? centerY : my * heightScale;
+    // const dx = centerX - (centerX - tx) * (1 - eltWidth / newWidth) - eltWidth / 2;
+    // const dy = centerY - (centerY - ty) * (1 - eltHeight / newHeight) - eltHeight / 2;
 
-    if (newWidthScale === widthScale || !newWidth) return;
-    if (newHeightScale === heightScale || !newHeight) return;
+    if (newScale === scale) return;
+    // if (newWidthScale === widthScale || !newWidth) return;
+    // if (newHeightScale === heightScale || !newHeight) return;
 
-    const styleWidth = `${Math.floor(newWidth)}px`;
-    const styleHeight = `${Math.floor(newHeight)}px`;
-    canvasContainer.style.width = styleWidth;
-    canvasContainer.style.height = styleHeight;
-    canvas.style.width = styleWidth;
-    canvas.style.height = styleHeight;
-    overlayCanvas.style.width = styleWidth;
-    overlayCanvas.style.height = styleHeight;
+    setScale(newScale);
+    // const styleWidth = `${Math.floor(newWidth)}px`;
+    // const styleHeight = `${Math.floor(newHeight)}px`;
+    // // canvasContainer.style.width = styleWidth;
+    // // canvasContainer.style.height = styleHeight;
+    // // canvas.style.width = styleWidth;
+    // // canvas.style.height = styleHeight;
+    // // overlayCanvas.style.width = styleWidth;
+    // // overlayCanvas.style.height = styleHeight;
 
-    scroll(0, 0);
-    const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
-    const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
-    if (widthOverflow || heightOverflow) return;
+    setScroll(0, 0);
+    // const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
+    // const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
+    // if (widthOverflow || heightOverflow) return;
     // scrollBy(dx * newWidth / eltWidth, dy * newHeight / eltHeight);
 }

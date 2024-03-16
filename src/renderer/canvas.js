@@ -20,19 +20,35 @@ export async function loadImageOnCanvas(dataURL) {
     ctx.drawImage(image, 0, 0);
 }
 
-export function scroll(x, y) {
-    const style = `translate(-50%, -50%) translate(${-x}px, ${-y}px)`;
-    canvas.style.transform = style;
-    overlayCanvas.style.transform = style;
+const state = { x: 0, y: 0, s: 1 };
+
+function transfrom() {
+    const { x, y, s } = state;
+    const style = `translate(-50%, -50%) translate(${-x}px, ${-y}px) scale(${s})`;
+    canvas.style.transform = overlayCanvas.style.transform = style;
+}
+
+export function getScroll() {
+    const { x, y } = state;
+    return [x, y];
+}
+
+export function setScroll(x, y) {
+    state.x = x;
+    state.y = y;
+    transfrom();
 }
 
 export function scrollBy(x, y) {
     const [x0, y0] = getScroll();
-    scroll(x0 + x, y0 + y);
+    setScroll(x0 + x, y0 + y);
 }
 
-export function getScroll() {
-    const str = canvas.style.transform;
-    const [, x, y] = str.match(/(-?\d+)px.*?(-?\d+)px/);
-    return [x, y].map(v => -parseInt(v) || 0);
+export function getScale() {
+    return state.s;
+}
+
+export function setScale(s) {
+    state.s = s;
+    transfrom();
 }
