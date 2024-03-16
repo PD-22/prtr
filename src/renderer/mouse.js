@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { canvas, canvasContainer, getScale, getScroll, overlayCanvas, setScroll, scrollBy, setScale } from "./canvas.js";
+import { canvas, getScale, getScroll, setScale, setScroll } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
