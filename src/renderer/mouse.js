@@ -6,13 +6,19 @@ const mouse = { isHold: false };
 export default mouse;
 
 export function getCanvasMousePos(e) {
+    const [x, y] = getCanvasMouseRelPos(e);
+    const { width: w, height: h } = canvas;
+    return [clamp(x, 0, w), clamp(y, 0, h)];
+}
+
+export function getCanvasMouseRelPos(e) {
     const bcr = canvas.getBoundingClientRect();
 
     const scaleX = canvas.width / bcr.width;
     const scaleY = canvas.height / bcr.height;
 
-    const x = clamp((e.clientX - bcr.left) * scaleX, 0, canvas.width);
-    const y = clamp((e.clientY - bcr.top) * scaleY, 0, canvas.height);
+    const x = (e.clientX - bcr.left) * scaleX;
+    const y = (e.clientY - bcr.top) * scaleY;
 
     return [x, y];
 }
