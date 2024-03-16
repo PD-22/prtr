@@ -21,10 +21,10 @@ window.addEventListener('wheel', e => {
 
 // DEBUG
 window.addEventListener('mousemove', e => {
-    const [mx, my] = getCanvasMousePos(e);
+    const [mx, my] = getCanvasMousePos(e).map(x => x.toFixed());
     const elt = document.querySelector('.debug-mouse');
-    const mxs = (mx || 0).toString().padEnd(4, ' ');
-    const mys = my || 0;
+    const mxs = 'mx: ' + (mx || 0).padEnd(4, ' ');
+    const mys = 'my: ' + (my || 0);
     elt.textContent = [mxs, mys].join(' ');
 });
 

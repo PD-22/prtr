@@ -22,6 +22,7 @@ export async function loadImageOnCanvas(dataURL) {
 }
 
 const state = { x: 0, y: 0, s: 1 };
+resizeCanvas(0, 0);
 
 function transfrom() {
     const { x, y, s: k } = state;
@@ -63,11 +64,9 @@ export function zoom(dir, mousePos) {
     const limit = 3;
 
     const scale = getScale();
-    const newScale = clamp(
-        scale * step ** (dir ? 1 : -1),
-        step ** -limit,
-        step ** limit
-    );
+    const ratio = Math.log(scale) / Math.log(step);
+    const unclamp = step ** (dir ? Math.floor(ratio) + 1 : Math.ceil(ratio) - 1);
+    const newScale = clamp(unclamp, step ** -limit, step ** limit);
 
     if (newScale === scale) return;
 
