@@ -1,5 +1,5 @@
 import * as terminal from "../terminal/index.js";
-import { canvasBackground, scrollBy, zoom } from "./canvas.js";
+import { scrollBy, zoom } from "./canvas.js";
 import { getCanvasMousePos, getCanvasMouseRelPos, moveDrag, startDrag, stopDrag } from "./mouse.js";
 import { onKeyDown } from "./shortcuts.js";
 
@@ -7,10 +7,10 @@ document.addEventListener('keydown', onKeyDown);
 
 terminal.element.addEventListener('input', terminal.onInput);
 
-canvasBackground.addEventListener('mousedown', startDrag);
-canvasBackground.addEventListener('mousemove', moveDrag);
-canvasBackground.addEventListener('mouseup', stopDrag);
-canvasBackground.addEventListener('mouseleave', stopDrag);
+window.addEventListener('mousedown', startDrag);
+window.addEventListener('mousemove', moveDrag);
+window.addEventListener('mouseup', stopDrag);
+window.addEventListener('mouseleave', stopDrag);
 window.addEventListener('wheel', e => {
     const sign = Math.sign(e.deltaY);
     if (e.ctrlKey) return zoom(sign < 0, getCanvasMouseRelPos(e));

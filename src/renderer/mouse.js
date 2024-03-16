@@ -1,7 +1,9 @@
+import * as terminal from "../terminal/index.js";
 import { clamp } from "../terminal/index.js";
-import { canvas } from "./canvas.js";
+import { canvas, scrollBy } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
+let clientX, clientY;
 const mouse = { isHold: false };
 export default mouse;
 
@@ -24,19 +26,45 @@ export function getCanvasMouseRelPos(e) {
 }
 
 export function startDrag(e) {
-    mouse.isHold = true;
+    if (terminal.state.isOpen) return;
+
+    if (mouse.isHold !== false) return stopDrag();
+
+    mouse.isHold = 'LMR'.split('')[e.button];
     const [x, y] = getCanvasMousePos(e);
-    setRectStart(x, y);
+
+    if (mouse.isHold === 'L') {
+        setRectStart(x, y);
+    } else if (mouse.isHold === 'R') {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
 }
 
 export function moveDrag(e) {
-    if (!mouse.isHold) return;
+    if (terminal.state.isOpen) return;
+
+    if (mouse.isHold === false) return;
     const [x, y] = getCanvasMousePos(e);
-    setRectEnd(x, y);
+
+    if (mouse.isHold === 'L') {
+        setRectEnd(x, y);
+    } else if (mouse.isHold === 'R') {
+        const x = clientX - e.clientX;
+        const y = clientY - e.clientY;
+        scrollBy(x, y, false);
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
 }
 
 export function stopDrag() {
+    if (terminal.state.isOpen) return;
+
+    if (mouse.isHold === 'L') {
+        const { w, h } = getNormalRect();
+        if (w < 1 || h < 1) fitRectToCanvas();
+    }
+
     mouse.isHold = false;
-    const { w, h } = getNormalRect();
-    if (w < 1 || h < 1) return fitRectToCanvas();
 }
