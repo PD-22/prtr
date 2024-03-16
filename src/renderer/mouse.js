@@ -1,5 +1,5 @@
 import { clamp } from "../terminal/index.js";
-import { canvas, canvasContainer, overlayCanvas, scroll, scrollBy } from "./canvas.js";
+import { canvas, canvasContainer, getScroll, overlayCanvas, scroll, scrollBy } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 const mouse = { isHold: false };
@@ -48,7 +48,8 @@ export function zoom(dir, mousePos) {
     const initHeight = parseInt(canvas.height || 0);
     const eltWidth = parseInt(canvas.style.width || initWidth);
     const eltHeight = parseInt(canvas.style.height || initHeight);
-    const { scrollX, scrollY, innerWidth, innerHeight } = window;
+    const { innerWidth, innerHeight } = window;
+    const [scrollX, scrollY] = getScroll();
     const [mx, my] = mousePos ?? [];
 
     const widthScale = eltWidth / initWidth;
@@ -58,8 +59,8 @@ export function zoom(dir, mousePos) {
     const newWidth = initWidth * newWidthScale;
     const newHeight = initHeight * newHeightScale;
 
-    const centerX = scrollX + innerWidth / 2;
-    const centerY = scrollY + innerHeight / 2;
+    const centerX = eltWidth / 2 + scrollX;
+    const centerY = eltHeight / 2 + scrollY;
     const tx = mx == null ? centerX : mx * widthScale;
     const ty = my == null ? centerY : my * heightScale;
     const dx = centerX - (centerX - tx) * (1 - eltWidth / newWidth) - eltWidth / 2;
@@ -81,5 +82,5 @@ export function zoom(dir, mousePos) {
     const widthOverflow = newWidth > innerWidth && innerWidth > eltWidth;
     const heightOverflow = newHeight > innerHeight && innerHeight > eltHeight;
     if (widthOverflow || heightOverflow) return;
-    scrollBy(dx * newWidth / eltWidth, dy * newHeight / eltHeight);
+    // scrollBy(dx * newWidth / eltWidth, dy * newHeight / eltHeight);
 }
