@@ -23,15 +23,10 @@ export async function loadImageOnCanvas(dataURL) {
 
 const state = { x: 0, y: 0, s: 1 };
 
-function transfrom(anim = true) {
+function transfrom() {
     const { x, y, s: k } = state;
-    const center = `translate(-50%, -50%)`;
-    const offset = `translate(${-x}px, ${-y}px)`;
-    const scale = `scale(${k})`;
-
-    const style = (k, v) => canvas.style[k] = overlayCanvas.style[k] = v;
-    style('transition', anim ? '' : 'none');
-    style('transform', [center, offset, scale].join(' '));
+    const style = `translate(-50%, -50%) translate(${-x}px, ${-y}px) scale(${k})`;
+    canvas.style.transform = overlayCanvas.style.transform = style;
 }
 
 export function getScroll() {
@@ -39,27 +34,27 @@ export function getScroll() {
     return [x, y];
 }
 
-export function setScroll(x, y, anim) {
+export function setScroll(x, y) {
     const { innerWidth, innerHeight } = window;
     const lw = canvas.width * state.s / 2 + innerWidth / 2 - 1;
     const lh = canvas.height * state.s / 2 + innerHeight / 2 - 1;
     state.x = clamp(x, -lw, lw);
     state.y = clamp(y, -lh, lh);
-    transfrom(anim);
+    transfrom();
 }
 
-export function scrollBy(x, y, anim) {
+export function scrollBy(x, y) {
     const [x0, y0] = getScroll();
-    setScroll(x0 + x, y0 + y, anim);
+    setScroll(x0 + x, y0 + y);
 }
 
 export function getScale() {
     return state.s;
 }
 
-export function setScale(s, anim) {
+export function setScale(s) {
     state.s = s;
-    transfrom(anim);
+    transfrom();
 }
 
 export function zoom(dir, mousePos) {

@@ -52,7 +52,7 @@ export function moveDrag(e) {
     } else if (mouse.isHold === 'R') {
         const x = clientX - e.clientX;
         const y = clientY - e.clientY;
-        scrollBy(x, y, false);
+        scrollBy(x, y);
         clientX = e.clientX;
         clientY = e.clientY;
     }
