@@ -1,3 +1,4 @@
+import { clamp } from "../terminal/index.js";
 import { resizeCanvas } from "./rect.js";
 
 export const canvasBackground = document.querySelector('.canvas-background');
@@ -34,8 +35,11 @@ export function getScroll() {
 }
 
 export function setScroll(x, y) {
-    state.x = x;
-    state.y = y;
+    const { innerWidth, innerHeight } = window;
+    const lw = canvas.width * state.s / 2 + innerWidth / 2 - 1;
+    const lh = canvas.height * state.s / 2 + innerHeight / 2 - 1;
+    state.x = clamp(x, -lw, lw);
+    state.y = clamp(y, -lh, lh);
     transfrom();
 }
 
