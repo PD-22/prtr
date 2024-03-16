@@ -1,4 +1,4 @@
-import { canvas, canvasContainer, clearOverlay, octx, overlayCanvas, setScroll } from "./canvas.js";
+import { canvas, canvasContainer, clearOverlay, octx, overlayCanvas } from "./canvas.js";
 
 const rect = { x: 0, y: 0, w: 0, h: 0 };
 const dash = { width: 2, length: 5 };
@@ -25,13 +25,6 @@ function drawCrop() {
     octx.setLineDash([dash.length, dash.length]);
     octx.strokeRect(x, y, w, h);
     octx.restore();
-}
-
-export function resizeCanvas(w, h) {
-    canvas.width = overlayCanvas.width = w;
-    canvas.height = overlayCanvas.height = h;
-    fitRectToCanvas();
-    setScroll(0, 0);
 }
 
 export function fitRectToCanvas() {

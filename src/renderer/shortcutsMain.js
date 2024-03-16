@@ -1,6 +1,6 @@
 import * as terminal from "../terminal/index.js";
-import { loadImageOnCanvas, scrollBy } from "./canvas.js";
-import mouse, { zoom } from "./mouse.js";
+import { loadImageOnCanvas, scrollBy, zoom } from "./canvas.js";
+import mouse from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
 

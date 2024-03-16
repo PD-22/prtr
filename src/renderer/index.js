@@ -1,6 +1,5 @@
-import { canvasBackground, scrollBy } from "./canvas.js";
-import { getCanvasMousePos, getCanvasMouseRelPos, moveDrag, startDrag, stopDrag, zoom } from "./mouse.js";
-import { resizeCanvas } from "./rect.js";
+import { canvasBackground, resizeCanvas, scrollBy, zoom } from "./canvas.js";
+import { getCanvasMousePos, getCanvasMouseRelPos, moveDrag, startDrag, stopDrag } from "./mouse.js";
 import { onKeyDown } from "./shortcuts.js";
 import * as terminal from "../terminal/index.js";
 
