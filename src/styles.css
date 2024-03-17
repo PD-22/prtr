@@ -3,6 +3,7 @@ body {
     height: 100vh;
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 
 .checker-background {
@@ -48,9 +49,6 @@ body {
     padding: 10px;
     white-space: pre;
     resize: none;
-    font-family: Consolas, 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 20px;
     border: none;
 }
 
@@ -58,19 +56,31 @@ body {
     display: block;
 }
 
+.terminal,
 .note {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    opacity: 1;
-    font-family: "YouTube Noto", Arial, sans-serif;
+    font-family: Consolas, 'Courier New', monospace;
     font-size: 14px;
+    line-height: 20px;
+}
+
+.note-container {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+
+.note {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
     line-height: 1.5;
     pointer-events: none;
     white-space: pre-line;
     z-index: 1;
+    padding: .125em .25em;
+    max-width: 25vw;
+    height: 1.2rem;
+    overflow: hidden;
 }

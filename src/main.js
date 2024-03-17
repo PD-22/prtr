@@ -13,11 +13,9 @@ app.whenReady().then(async () => {
     await loadWindows();
 });
 
-function status(message, bodyLines) {
-    const indent = lines => lines.map(s => `${' '.repeat(2)}${s}`).join('\n');
-    const result = `${message}${!bodyLines ? '' : `\n${indent(bodyLines)}`}`;
-    console.log(result);
-    mainWindow.webContents.send('status', result);
+function status(message, body) {
+    console.log([message, ...(body?.map(s => `  ${s}`) ?? [])].join('\n'));
+    mainWindow.webContents.send('status', message, body);
 }
 
 function createWindows() {

@@ -20,4 +20,7 @@ window.addEventListener('wheel', e => {
     scrollBy(...d);
 });
 
-api.onStatus(message => { console.log(message); note(message); });
+api.onStatus((message, body) => {
+    console.log([message, ...(body?.map(s => `  ${s}`) ?? [])].join('\n'));
+    note(message, 10000, 3000);
+});

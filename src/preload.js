@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld('api', {
     status: (...args) => ipcRenderer.send('status', ...args),
-    onStatus: callback => ipcRenderer.on('status', (_, value) => callback(value)),
+    onStatus: callback => ipcRenderer.on('status', (_, ...args) => callback(...args)),
     import: () => ipcRenderer.invoke('import'),
     export: dataURL => ipcRenderer.invoke('export', dataURL),
     paste: () => ipcRenderer.invoke('paste'),
