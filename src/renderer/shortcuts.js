@@ -55,7 +55,7 @@ export function remindShortcuts() {
     const shortcuts = getActiveShortcuts();
     const f = ([key, name]) => {
         const keys = Array.isArray(key) ? key : [key];
-        return [name, keys.join(', ')].join(' - ');
+        return [name, keys[0]].join(' - ');
     }
     api.status('Shortcuts', shortcuts.map(f));
 }

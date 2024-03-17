@@ -1,10 +1,6 @@
-const sideCont = document.querySelector('.side-notes');
-const centerCont = document.querySelector('.center-notes');
+const container = document.querySelector('.side-notes');
 
-export default async function note(message, alive = 1000, transition = 300, center = false) {
-    const container = center ? centerCont : sideCont;
-    if (center) centerCont.replaceChildren();
-
+export default async function note(message, alive = 1000, transition = 300) {
     const alertBox = document.createElement('div');
     alertBox.className = 'note';
     alertBox.textContent = message;

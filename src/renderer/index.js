@@ -9,11 +9,9 @@ terminal.element.addEventListener('input', terminal.onInput);
 
 mouseListeners.forEach(([t, l]) => window.addEventListener(t, l));
 
-api.onStatus((message, body) => {
-    const text = [message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n');
+api.onStatus((message, body = []) => {
+    const text = [message, ...body.map(s => '  ' + s)].join('\n');
     console.log(text);
-    if (message === 'Shortcuts')
-        note(text, 3000, 300, true);
-    else
-        note(message, 7000, 3000);
+    const noteMessage = message === 'Shortcuts' ? text : message;
+    note(noteMessage, 7000, 3000);
 });

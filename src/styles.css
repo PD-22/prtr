@@ -73,23 +73,15 @@ body {
     max-width: 25vw;
 }
 
-.center-notes {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    white-space: pre-wrap;
-}
-
 .note {
-    font-size: small;
+    font-size: 12px;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     line-height: 1.5;
     pointer-events: none;
     white-space: pre-line;
     z-index: 1;
-    padding: .125em .25em;
+    padding: .25em .5em;
     overflow: hidden;
     pointer-events: none;
     user-select: none;
