@@ -1,6 +1,6 @@
 import * as terminal from "../terminal/index.js";
 import { scrollBy, zoom } from "./canvas.js";
-import { getCanvasMousePos, getCanvasMouseRelPos, moveDrag, startDrag, stopDrag } from "./mouse.js";
+import { getCanvasMouseRelPos, moveDrag, startDrag, stopDrag } from "./mouse.js";
 import { onKeyDown } from "./shortcuts.js";
 
 document.addEventListener('keydown', onKeyDown);
@@ -17,15 +17,6 @@ window.addEventListener('wheel', e => {
     const d = [0, 0];
     d[e.shiftKey ? 0 : 1] = (e.altKey ? 10 : 100) * sign;
     scrollBy(...d);
-});
-
-// DEBUG
-window.addEventListener('mousemove', e => {
-    const [mx, my] = getCanvasMousePos(e).map(x => x.toFixed());
-    const elt = document.querySelector('.debug-mouse');
-    const mxs = 'mx: ' + (mx || 0).padEnd(4, ' ');
-    const mys = 'my: ' + (my || 0);
-    elt.textContent = [mxs, mys].join(' ');
 });
 
 api.onStatus(console.log);
