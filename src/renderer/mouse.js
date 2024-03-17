@@ -1,6 +1,6 @@
 import * as terminal from "../terminal/index.js";
 import { clamp } from "../terminal/index.js";
-import { canvas, scrollBy } from "./canvas.js";
+import { canvas, scrollBy, zoom } from "./canvas.js";
 import { fitRectToCanvas, getNormalRect, setRectEnd, setRectStart } from "./rect.js";
 
 let clientX, clientY;
@@ -25,7 +25,7 @@ export function getCanvasMouseRelPos(e) {
     return [x, y];
 }
 
-export function startDrag(e) {
+function startDrag(e) {
     if (terminal.state.isOpen) return;
 
     if (mouse.isHold !== false) return stopDrag();
@@ -41,7 +41,7 @@ export function startDrag(e) {
     }
 }
 
-export function moveDrag(e) {
+function moveDrag(e) {
     if (terminal.state.isOpen) return;
 
     if (mouse.isHold === false) return;
@@ -68,3 +68,20 @@ export function stopDrag() {
 
     mouse.isHold = false;
 }
+
+function onWheel(e) {
+    if (terminal.state.isOpen) return;
+    const sign = Math.sign(e.deltaY);
+    if (!e.ctrlKey) return zoom(sign < 0, getCanvasMouseRelPos(e));
+    const d = [0, 0];
+    d[e.shiftKey ? 0 : 1] = (e.altKey ? 10 : 100) * sign;
+    scrollBy(...d);
+}
+
+export const mouseListeners = [
+    ['mousedown', startDrag],
+    ['mousemove', moveDrag],
+    ['mouseup', stopDrag],
+    ['mouseleave', stopDrag],
+    ['wheel', onWheel]
+];
