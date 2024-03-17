@@ -91,4 +91,6 @@ body {
     z-index: 1;
     padding: .125em .25em;
     overflow: hidden;
+    pointer-events: none;
+    user-select: none;
 }
