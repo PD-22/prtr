@@ -21,6 +21,10 @@ window.addEventListener('wheel', e => {
 });
 
 api.onStatus((message, body) => {
-    console.log([message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n'));
-    note(message, 30000, 5000);
+    const text = [message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n');
+    console.log(text);
+    if (message === 'Shortcuts')
+        note(text, 3000, 300, true);
+    else
+        note(message, 3000, 300);
 });

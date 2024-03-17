@@ -1,6 +1,10 @@
-const container = document.querySelector('.note-container');
+const sideCont = document.querySelector('.side-notes');
+const centerCont = document.querySelector('.center-notes');
 
-export default async function note(message, alive = 1000, transition = 300) {
+export default async function note(message, alive = 1000, transition = 300, center = false) {
+    const container = center ? centerCont : sideCont;
+    if (center) centerCont.replaceChildren();
+
     const alertBox = document.createElement('div');
     alertBox.className = 'note';
     alertBox.textContent = message;
@@ -11,6 +15,7 @@ export default async function note(message, alive = 1000, transition = 300) {
     alertBox.style.opacity = '0';
 
     await delay(transition);
+    if (!container.contains(alertBox)) return;
     container.removeChild(alertBox);
 }
 
