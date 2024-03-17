@@ -21,6 +21,10 @@ export async function loadImageOnCanvas(dataURL) {
     ctx.drawImage(image, 0, 0);
 }
 
+const zoomStep = 2;
+export const maxZoom = zoomStep ** 2;
+export const minZoom = 1 / maxZoom;
+
 const state = { x: 0, y: 0, s: 1 };
 resizeCanvas(0, 0);
 
@@ -60,13 +64,10 @@ export function setScale(s) {
 }
 
 export function zoom(dir, mousePos) {
-    const step = 2;
-    const limit = 3;
-
     const scale = getScale();
-    const ratio = Math.log(scale) / Math.log(step);
-    const unclamp = step ** (dir ? Math.floor(ratio) + 1 : Math.ceil(ratio) - 1);
-    const newScale = clamp(unclamp, step ** -limit, step ** limit);
+    const ratio = Math.log(scale) / Math.log(zoomStep);
+    const unclamp = zoomStep ** (dir ? Math.floor(ratio) + 1 : Math.ceil(ratio) - 1);
+    const newScale = clamp(unclamp, minZoom, maxZoom);
 
     if (newScale === scale) return;
 
@@ -93,6 +94,6 @@ export function resizeCanvas(w, h) {
 export function reset() {
     const w = window.innerWidth / canvas.width;
     const h = window.innerHeight / canvas.height;
-    setScale(Math.min(w, h));
+    setScale(Math.min(w, h, maxZoom));
     setScroll(0, 0);
 }
