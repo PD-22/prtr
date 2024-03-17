@@ -4,7 +4,7 @@ import * as terminal from "../terminal/index.js";
 
 const commonShortcuts = [
     ['Tab', 'Toggle', () => terminal.toggle()],
-    ['Alt+/', 'Shortcuts', () => remindShortcuts()],
+    ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],
 ]
 
 export const getActiveShortcuts = () => {
@@ -30,7 +30,7 @@ function handleShortcut(e, shortcut) {
 
 function shortcutMatches(e, str) {
     const [key, mods] = parseShortcut(str);
-    return modifierMatches(mods, e) && e.key.toLowerCase() === key;
+    return modifierMatches(mods, e) && e.code === key;
 }
 
 export function modifierMatches(mods, event) {
@@ -45,7 +45,7 @@ export function modifierMatches(mods, event) {
 }
 
 function parseShortcut(str) {
-    const parts = str.toLowerCase().split('+');
+    const parts = str.split('+');
     const key = parts[parts.length - 1];
     const mods = parts.slice(0, parts.length - 1);
     return [key, mods];

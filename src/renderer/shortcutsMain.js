@@ -4,7 +4,7 @@ import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
 
 export default [
-    ['I', 'Import', async () => {
+    ['KeyI', 'Import', async () => {
         try {
             api.status('Import: START');
             const dataURL = await api.import();
@@ -17,7 +17,7 @@ export default [
             throw error;
         }
     }],
-    ['E', 'Export', async () => {
+    ['KeyE', 'Export', async () => {
         try {
             api.status('Export: START');
             const dataURL = getRectCanvasDataURL();
@@ -32,7 +32,7 @@ export default [
             throw error;
         }
     }],
-    ['P', 'Paste', async () => {
+    ['KeyP', 'Paste', async () => {
         try {
             api.status('Paste: START');
             const dataURL = await api.paste();
@@ -45,7 +45,7 @@ export default [
             throw error;
         }
     }],
-    ['C', 'Crop', async () => {
+    ['KeyC', 'Crop', async () => {
         try {
             api.status('Crop: START');
             const dataURL = getRectCanvasDataURL();
@@ -86,10 +86,10 @@ export default [
         };
         return [inputs, dir, callback];
     }),
-    ['Ctrl+=', 'Magnify', () => zoom(true)],
-    ['Ctrl+-', 'Minify', () => zoom(false)],
-    ['Ctrl+0', 'fit', () => reset()],
+    ['Ctrl+Equal', 'Magnify', () => zoom(true)],
+    ['Ctrl+Minus', 'Minify', () => zoom(false)],
+    ['Ctrl+Digit0', 'fit', () => reset()],
 
-    ['S', 'Select', () => { toggleDrag() }],
+    ['Space', 'Select', () => { toggleDrag() }],
     ['Escape', 'Deselect', () => { fitRectToCanvas(); }],
 ];

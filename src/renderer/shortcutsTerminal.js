@@ -21,14 +21,19 @@ export default [
         writeText(newLines.join('\n'), null, null, true);
     }],
 
-    [['Ctrl+Z', 'Meta+Z'], 'Undo', () => undoHistory()],
-    [['Ctrl+Y', 'Meta+Y', 'Ctrl+Shift+Z', 'Meta+Shift+Z'], 'Redo', () => redoHistory()],
+    [
+        ['Ctrl+KeyZ', 'Meta+KeyZ'],
+        'Undo', () => undoHistory()],
+    [
+        ['Ctrl+KeyY', 'Meta+KeyY', 'Ctrl+Shift+KeyZ', 'Meta+Shift+KeyZ'],
+        'Redo', () => redoHistory()
+    ],
 
     ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
 
-    ['Ctrl+H', 'History', () => logHistory()],
-    ['Ctrl+Shift+H', 'Wipe', () => { clearHistory(); }],
+    ['Ctrl+KeyH', 'History', () => logHistory()],
+    ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
 
     ['Escape', 'Deselect', () => { setSelection(getSelection().caret); }],
 ];
