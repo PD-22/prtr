@@ -103,18 +103,13 @@ function addListeners() {
     });
 
     ipcMain.handle('recoginze', async (_, dataURL) => {
-        status('Recognize: START');
         const config = { load_system_dawg: false, load_freq_dawg: false };
         const worker = await createWorker('eng', undefined, undefined, config);
         const { data: { lines } } = await worker.recognize(dataURL);
         await worker.terminate();
 
         const whitespace = str => str.trim().replace(/\s+/g, ' ');
-        const parsedLines = lines.map(l => l.text).map(whitespace).filter(Boolean);
-        if (!parsedLines?.length) return status('Recognize: EMPTY');
-
-        status('Recognize: DONE', parsedLines);
-        return parsedLines;
+        return lines.map(l => l.text).map(whitespace).filter(Boolean);
     });
 
     ipcMain.handle('scrape', (_, row, username) => {

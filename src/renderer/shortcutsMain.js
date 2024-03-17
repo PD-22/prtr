@@ -64,7 +64,7 @@ export default [
             if (!dataURL) return api.status('Recognize: EMPTY');
 
             const parsedLines = await api.recognize(dataURL);
-            if (!parsedLines) return api.status('Recognize: CANCEL');;
+            if (!parsedLines?.length) return api.status('Recognize: CANCEL');
 
             terminal.writeText(parsedLines.join('\n'), null, null, true);
             terminal.open();

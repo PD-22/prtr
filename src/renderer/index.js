@@ -15,5 +15,5 @@ api.onStatus((message, body) => {
     if (message === 'Shortcuts')
         note(text, 3000, 300, true);
     else
-        note(message, 30000, 3000);
+        note(message, 7000, 3000);
 });
