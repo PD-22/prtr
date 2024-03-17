@@ -21,16 +21,11 @@ export default [
         writeText(newLines.join('\n'), null, null, true);
     }],
 
-    [
-        ['Ctrl+KeyZ', 'Meta+KeyZ'],
-        'Undo', () => undoHistory()],
-    [
-        ['Ctrl+KeyY', 'Meta+KeyY', 'Ctrl+Shift+KeyZ', 'Meta+Shift+KeyZ'],
-        'Redo', () => redoHistory()
-    ],
+    [['Ctrl+KeyZ'], 'Undo', () => undoHistory()],
+    [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], 'Redo', () => redoHistory()],
 
-    ['Ctrl+Shift+ArrowUp', 'Ascending', () => sortData()],
-    ['Ctrl+Shift+ArrowDown', 'Descending', () => sortData(false)],
+    ['Ctrl+ArrowUp', 'Ascending', () => sortData()],
+    ['Ctrl+ArrowDown', 'Descending', () => sortData(false)],
 
     ['Ctrl+KeyH', 'History', () => logHistory()],
     ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],

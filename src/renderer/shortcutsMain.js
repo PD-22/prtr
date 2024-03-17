@@ -88,7 +88,7 @@ export default [
     }),
     ['Ctrl+Equal', 'Magnify', () => zoom(true)],
     ['Ctrl+Minus', 'Minify', () => zoom(false)],
-    ['Ctrl+Digit0', 'fit', () => reset()],
+    ['Ctrl+Digit0', 'Fit', () => reset()],
 
     ['Space', 'Select', () => { toggleDrag() }],
     ['Escape', 'Deselect', () => { fitRectToCanvas(); }],
