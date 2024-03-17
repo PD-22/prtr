@@ -1,3 +1,4 @@
+import note from "./note.js";
 import * as terminal from "../terminal/index.js";
 import { scrollBy, zoom } from "./canvas.js";
 import { getCanvasMouseRelPos, moveDrag, startDrag, stopDrag } from "./mouse.js";
@@ -19,4 +20,4 @@ window.addEventListener('wheel', e => {
     scrollBy(...d);
 });
 
-api.onStatus(console.log);
+api.onStatus(message => { console.log(message); note(message); });

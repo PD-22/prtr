@@ -54,7 +54,23 @@ body {
     border: none;
 }
 
-
 .terminal.is-open {
     display: block;
+}
+
+.note {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    opacity: 1;
+    font-family: "YouTube Noto", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    pointer-events: none;
+    white-space: pre-line;
+    z-index: 1;
 }
