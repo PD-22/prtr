@@ -14,7 +14,7 @@ app.whenReady().then(async () => {
 });
 
 function status(message, body) {
-    console.log([message, ...(body?.map(s => `  ${s}`) ?? [])].join('\n'));
+    console.log([message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n'));
     mainWindow.webContents.send('status', message, body);
 }
 
@@ -53,7 +53,7 @@ async function loadWindows() {
         if (!token) throw new Error("Token missing");
 
         pageLoading.value = false;
-        status(`Prepare: DONE: ${token}`);
+        status('Prepare: DONE', [token]);
     } catch (error) {
         pageLoading.value = null;
         status('Prepare: ERROR');

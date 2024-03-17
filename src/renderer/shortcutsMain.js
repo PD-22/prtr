@@ -26,7 +26,7 @@ export default [
             const filePath = await api.export(dataURL);
             if (!filePath) return api.status('Export: CANCEL');
 
-            api.status(`Export: DONE: "${filePath}"`);
+            api.status('Export: DONE', filePath);
         } catch (error) {
             api.status('Export: ERROR');
             throw error;

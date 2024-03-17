@@ -24,7 +24,7 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    api.status(`Used: ${formatShortcut([matchedInput, name])}`);
+    api.status(formatShortcut([matchedInput, name]));
     callback(e, matchedInput);
 }
 
@@ -54,11 +54,10 @@ function parseShortcut(str) {
 export function formatShortcut(shortcut) {
     const [key, name] = shortcut;
     const keys = Array.isArray(key) ? key : [key];
-    const formattedKeys = keys.map(k => `${k}`).join(', ');
-    return [name, formattedKeys].join(' - ');
+    return [name, keys.join(', ')].join(' - ');
 }
 
 export function remindShortcuts() {
     const shortcuts = getActiveShortcuts();
-    api.status('Shortcuts:', shortcuts.map(formatShortcut));
+    api.status('Shortcuts', shortcuts.map(formatShortcut));
 }

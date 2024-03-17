@@ -73,7 +73,8 @@ body {
 }
 
 .note {
-    background: rgba(0, 0, 0, 0.5);
+    font-size: small;
+    background: rgba(0, 0, 0, 0.8);
     color: white;
     line-height: 1.5;
     pointer-events: none;

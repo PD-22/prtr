@@ -21,6 +21,6 @@ window.addEventListener('wheel', e => {
 });
 
 api.onStatus((message, body) => {
-    console.log([message, ...(body?.map(s => `  ${s}`) ?? [])].join('\n'));
-    note(message, 10000, 3000);
+    console.log([message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n'));
+    note(message, 30000, 5000);
 });
