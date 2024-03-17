@@ -58,7 +58,7 @@ function moveLines(change) {
 function sortData(ascending = true) {
     const parsedLines = getParsedLines().filter(x => x.line);
     const sorted = parsedLines
-        .sort((a, b) => a.username.localeCompare(b.username))
+        .sort((a, b) => (a.username ?? '').localeCompare(b.username ?? ''))
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
