@@ -18,6 +18,7 @@ export function onKeyDown(e) {
 
 function handleShortcut(e, shortcut) {
     const [input, name, callback] = shortcut;
+    if (typeof callback !== "function") return;
 
     const inputs = Array.isArray(input) ? input : [input];
     const matchedInput = inputs.find(input => shortcutMatches(e, input));

@@ -1,5 +1,6 @@
 import * as terminal from "../terminal/index.js";
 import { loadImageOnCanvas, reset, scrollBy, zoom } from "./canvas.js";
+import { mouseDrag, mouseSelect } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
 
@@ -75,6 +76,7 @@ export default [
         }
     }],
 
+    [mouseDrag.input, 'Move'],
     ...['Up', 'Right', 'Down', 'Left'].map(dir => {
         const inputs = [null, 'Ctrl', 'Shift'].map(mod => [mod, `Arrow${dir}`].filter(Boolean).join('+'));
         const callback = e => {
@@ -90,6 +92,6 @@ export default [
     ['Ctrl+Minus', 'Minify', () => zoom(false)],
     ['Ctrl+Digit0', 'Fit', () => reset()],
 
-    ['Space', 'Select', () => { toggleDrag() }],
+    [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
     ['Escape', 'Deselect', () => { fitRectToCanvas(); }],
 ];

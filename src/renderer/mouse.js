@@ -23,22 +23,30 @@ function startDrag(e) {
 
     if (mouse.isHold !== false) return stopDrag();
 
-    mouse.isHold = 'LMR'.split('')[e.button];
+    mouse.isHold = [mouseSelect, null, mouseDrag][e.button]?.key;
 
     clientX = e.clientX;
     clientY = e.clientY;
 }
 
-function moveDrag(e) {
-    if (terminal.state.isOpen) return;
-
-    if (mouse.isHold === false) return;
-    const [px, py] = getCanvasMouseRelPos({ clientX, clientY });
-    const [x, y] = getCanvasMouseRelPos(e);
-
-    if (mouse.isHold === 'L') {
+export const mouseSelect = {
+    key: 'L',
+    input: 'MouseLeft+Drag',
+    move: e => {
+        const [px, py] = getCanvasMouseRelPos({ clientX, clientY });
+        const [x, y] = getCanvasMouseRelPos(e);
         setRect(px, py, x, y);
-    } else if (mouse.isHold === 'R') {
+    },
+    stop: () => {
+        const { w, h } = rect;
+        if (w < 1 || h < 1) fitRectToCanvas();
+    }
+};
+
+export const mouseDrag = {
+    key: 'R',
+    input: 'MouseRight+Drag',
+    move: e => {
         const x = clientX - e.clientX;
         const y = clientY - e.clientY;
         scrollBy(x, y);
@@ -47,14 +55,15 @@ function moveDrag(e) {
     }
 }
 
+function moveDrag(e) {
+    if (terminal.state.isOpen) return;
+    if (mouse.isHold === mouseSelect.key) mouseSelect.move(e);
+    if (mouse.isHold === mouseDrag.key) mouseDrag.move(e);
+}
+
 export function stopDrag() {
     if (terminal.state.isOpen) return;
-
-    if (mouse.isHold === 'L') {
-        const { w, h } = rect;
-        if (w < 1 || h < 1) fitRectToCanvas();
-    }
-
+    if (mouse.isHold === mouseSelect.key) mouseSelect.stop();
     mouse.isHold = false;
 }
 
