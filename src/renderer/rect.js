@@ -1,16 +1,15 @@
+import { clamp } from "../terminal/index.js";
 import { canvas, clearOverlay, getScale, getScroll, octx, overlayCanvas } from "./canvas.js";
 import { stopDrag } from "./mouse.js";
 
-const rect = { x: 0, y: 0, w: 0, h: 0, toggle: false };
+const initRect = { x: 0, y: 0, x2: 0, y2: 0 };
+const rect = { ...initRect };
 const dash = { width: 2, length: 5 };
+let dragging = false;
 export default rect;
 
-export function setRect(newRect) {
-    let { x, y, w, h } = newRect;
-    rect.x = Math.round(x);
-    rect.y = Math.round(y);
-    rect.w = Math.round(w);
-    rect.h = Math.round(h);
+export function setRect(x, y, x2, y2) {
+    Object.assign(rect, getNormalRect({ x, y, x2, y2 }));
     drawCrop();
     stopToggle();
 }
@@ -30,29 +29,38 @@ function drawCrop() {
 }
 
 export function fitRectToCanvas() {
-    setRect({ x: 0, y: 0, w: overlayCanvas.width, h: overlayCanvas.height });
+    setRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 }
 
-export function setRectEnd(x, y) {
-    setRect({ ...rect, w: x - rect.x, h: y - rect.y });
-}
+function getNormalRect(newRect = {}) {
+    let { x, y, x2, y2, w, h } = newRect;
+    x ??= rect.x;
+    y ??= rect.y;
+    x2 ??= rect.x2;
+    y2 ??= rect.y2;
+    w ??= rect.w;
+    h ??= rect.h;
 
-export function setRectStart(x, y) {
-    setRect({ x, y, w: 0, h: 0 });
-}
+    const canvas = document.querySelector('.main-canvas');
+    const cw = canvas.width;
+    const ch = canvas.height;
+    x = Math.round(clamp(x, 0, cw));
+    x2 = Math.round(clamp(x2, 0, cw));
+    y = Math.round(clamp(y, 0, ch));
+    y2 = Math.round(clamp(y2, 0, ch));
 
-export function getNormalRect() {
-    const { x, y, w, h } = rect;
-    return {
-        x: Math.min(x, x + w),
-        w: Math.abs(w),
-        y: Math.min(y, y + h),
-        h: Math.abs(h)
-    };
+    const asc = a => a.toSorted((b, c) => b - c);
+    [x, x2] = asc([x, x2]);
+    [y, y2] = asc([y, y2]);
+
+    w = x2 - x;
+    h = y2 - y;
+
+    return { x, y, x2, y2, w, h };
 }
 
 export function getRectCanvasDataURL() {
-    const { x, y, w, h } = getNormalRect();
+    const { x, y, w, h } = rect;
     if (!w || !h) return;
 
     const rectCanvas = document.createElement('canvas');
@@ -66,36 +74,35 @@ export function getRectCanvasDataURL() {
 }
 
 export function toggleDrag() {
-    return (rect.toggle ? finishToggle : startToggle)();
+    return (dragging ? finishToggle : startToggle)();
 }
 
 function startToggle() {
     stopDrag();
     const [x, y] = getScroll();
     const s = getScale();
-    setRectStart(
-        canvas.width / 2 + x / s,
-        canvas.height / 2 + y / s,
-    );
-    rect.toggle = true;
+    const nx = canvas.width / 2 + x / s;
+    const ny = canvas.height / 2 + y / s;
+    setRect(nx, ny, nx, ny);
+    dragging = [nx, ny];
 }
 
 export function scrollToggle(x, y) {
-    if (!rect.toggle) return;
+    if (!dragging) return;
     const s = getScale();
-    setRectEnd(
-        canvas.width / 2 + x / s,
-        canvas.height / 2 + y / s
-    );
-    rect.toggle = true;
+    const nx = canvas.width / 2 + x / s;
+    const ny = canvas.height / 2 + y / s;
+    const [dx, dy] = dragging;
+    setRect(dx, dy, nx, ny);
+    dragging = [dx, dy];
 }
 
 function finishToggle() {
     stopToggle();
-    const { w, h } = getNormalRect();
+    const { w, h } = rect;
     if (w < 1 || h < 1) fitRectToCanvas();
 }
 
 function stopToggle() {
-    rect.toggle = false;
+    dragging = false;
 }
