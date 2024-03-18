@@ -55,7 +55,11 @@ export function remindShortcuts() {
     const shortcuts = getActiveShortcuts();
     const f = ([key, name]) => {
         const keys = Array.isArray(key) ? key : [key];
-        return [name, keys[0]].join(' - ');
+        const fkey = keys[0]
+            .replace(/\bKey([A-Z])$/, '$1')
+            .replace(/\bDigit([0-9])$/, '$1')
+            .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
+        return [name, fkey].join(' - ');
     }
     api.status('Shortcuts', shortcuts.map(f));
 }
