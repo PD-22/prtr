@@ -80,6 +80,7 @@ body {
     line-height: 1.5;
     pointer-events: none;
     white-space: pre-line;
+    word-break: break-all;
     z-index: 1;
     padding: .25em .5em;
     overflow: hidden;
