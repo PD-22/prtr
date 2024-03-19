@@ -25,7 +25,7 @@ export function onInput() {
 function abortInput() {
     if (!getAbortRows().length) return;
     const newLines = getLines();
-    restore();
+    restore(true);
     cancelInput();
     abortLockedLine(newLines);
     return true;
