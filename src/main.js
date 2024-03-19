@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain, dialog, globalShortcut } = require('electron');
 const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
@@ -8,6 +8,7 @@ const { Observable } = require('./Observable');
 /** @type {BrowserWindow} */ let statsWindow = null;
 const pageLoading = new Observable();
 app.whenReady().then(async () => {
+    addRestartListener();
     createWindows();
     addListeners();
     await loadWindows();
@@ -59,6 +60,13 @@ async function loadWindows() {
         status('Prepare: ERROR');
         throw error;
     }
+}
+
+function addRestartListener() {
+    const restart = () => { app.relaunch(); app.exit(); };
+    const accelerator = "CommandOrControl+R";
+    app.on('browser-window-focus', () => globalShortcut.register(accelerator, restart));
+    app.on('browser-window-blur', () => globalShortcut.unregister(accelerator));
 }
 
 function addListeners() {
