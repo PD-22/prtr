@@ -27,8 +27,8 @@ export default [
     ['Ctrl+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+ArrowDown', 'Descending', () => sortData(false)],
 
-    ['Ctrl+KeyH', 'History', () => logHistory()],
-    ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
+    // ['Ctrl+KeyH', 'History', () => logHistory()],
+    // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
 
     ['Escape', 'Deselect', () => { setSelection(getSelection().caret); }],
 ];

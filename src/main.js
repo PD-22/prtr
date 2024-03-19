@@ -79,8 +79,8 @@ function addListeners() {
     ipcMain.handle('import', async () => {
         const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
             title: 'Import',
-            filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: join(__dirname, "init.png")
+            filters: [{ name: 'Image', extensions: ['png'] }],
+            // defaultPath: join(__dirname, "init.png")
         });
         if (canceled) return;
 
@@ -95,8 +95,8 @@ function addListeners() {
     ipcMain.handle('export', async (_, dataURL) => {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Export',
-            filters: [{ name: 'Images', extensions: ['png'] }],
-            defaultPath: join(__dirname, "output.png")
+            filters: [{ name: 'Image', extensions: ['png'] }],
+            // defaultPath: join(__dirname, "output.png")
         });
         if (canceled) return;
 
