@@ -15,7 +15,7 @@ export default [
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
     ['Alt+ArrowDown', 'Down', () => moveLines(1)],
-    ['Alt+C', 'Clean', () => {
+    ['Alt+KeyC', 'Clean', () => {
         const parsedLines = getParsedLines();
         const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
         writeText(newLines.join('\n'), null, null, true);
