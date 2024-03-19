@@ -44,6 +44,7 @@ async function loadWindows() {
     try {
         status('Prepare: START');
         await mainWindow.loadFile(join(__dirname, 'index.html'));
+        mainWindow.webContents.setZoomFactor(1);
 
         pageLoading.value = true;
         await statsWindow.loadURL('https://prstats.tk');

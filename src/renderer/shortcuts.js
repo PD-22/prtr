@@ -5,6 +5,7 @@ import * as terminal from "../terminal/index.js";
 const commonShortcuts = [
     ['Tab', 'Toggle', () => terminal.toggle()],
     ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],
+    [['Ctrl+Digit0', 'Ctrl+Minus', 'Ctrl+Equal'], null, e => e.preventDefault()],
 ]
 
 export const getActiveShortcuts = () => {
@@ -25,7 +26,7 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    api.status(`"${matchedInput}" - ${name}`);
+    if (name) api.status(`"${matchedInput}" - ${name}`);
     callback(e, matchedInput);
 }
 
@@ -62,5 +63,5 @@ export function remindShortcuts() {
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
         return [name, fkey].join(' - ');
     }
-    api.status('Shortcuts', shortcuts.map(f));
+    api.status('Shortcuts', shortcuts.filter((([_, n]) => n)).map(f));
 }
