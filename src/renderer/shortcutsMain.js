@@ -1,28 +1,11 @@
 import * as terminal from "../terminal/index.js";
+import cancelable, { cancelList } from "./cancelable.js";
 import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
 import { mouseDrag, mouseSelect } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
 
 let dialogOpen = false;
-const onCancelList = new Set();
-function cancelable(promise) {
-    let cancelHandler;
-    const resultPromise = promise.then(result => [false, result]);
-    const cancelPromise = new Promise(resolve => {
-        cancelHandler = () => resolve([true]);
-        onCancelList.add(cancelHandler);
-    });
-    return Promise
-        .race([resultPromise, cancelPromise])
-        .finally(() => onCancelList.delete(cancelHandler));
-}
-const cancelList = () => {
-    const { size } = onCancelList;
-    onCancelList.forEach(f => f());
-    onCancelList.clear();
-    return size;
-};
 
 export default [
     ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
