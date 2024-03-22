@@ -6,6 +6,7 @@ import {
     writeLine,
     writeText
 } from "../terminal/index.js";
+import cancelable from "./cancelable.js";
 import { getParsedLines } from "./shortcutsTerminal.js";
 
 export default async function scrape() {
@@ -34,12 +35,14 @@ export default async function scrape() {
 
 async function scrapeLine({ username, index }) {
     const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
+    const abort = () => api.abortScrape(index);
 
     try {
         write(fkv(username, '...'), true);
-        lockLine(index, () => api.abortScrape(index));
+        lockLine(index, abort);
 
-        const data = await api.scrape(index, username);
+        const [cancel, data] = await cancelable(api.scrape(index, username));
+        if (cancel) abort();
         if (typeof data !== 'number') throw new Error('Scrape failed');
         if (data instanceof Error) throw data;
 

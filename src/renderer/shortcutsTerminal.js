@@ -1,16 +1,16 @@
 import {
-    clearHistory,
     getLines,
     getSelection,
-    logHistory,
     redoHistory,
     setSelection,
     undoHistory,
     writeText
 } from "../terminal/index.js";
+import { cancelList } from "./cancelable.js";
 import scrape from "./scrape.js";
 
 export default [
+    ['Escape', 'Cancel', () => deselect() || cancelList()],
     ['Enter', 'Scrape', scrape],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
@@ -29,8 +29,6 @@ export default [
 
     // ['Ctrl+KeyH', 'History', () => logHistory()],
     // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
-
-    ['Escape', 'Deselect', () => { setSelection(getSelection().caret); }],
 ];
 
 function moveLines(change) {
@@ -104,4 +102,14 @@ function unique(arr, getKey = x => x) {
 
 function whitespace(str) {
     return str.trim().replace(/\s+/g, ' ');
+}
+
+function deselect() {
+    const selection = getSelection();
+    const [x, y] = selection.start;
+    const [x2, y2] = selection.end;
+    if (x === y && x2 === y2) return;
+
+    setSelection(selection.caret);
+    return true;
 }
