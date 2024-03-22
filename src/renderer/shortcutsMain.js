@@ -29,7 +29,7 @@ export default [
     ['KeyI', 'Import', async () => {
         try {
             if (dialogOpen) return api.status('Import: Dialog already open');
-
+            dialogOpen = true;
             const filePath = await api.importDialog();
             if (!filePath) return api.status('Import: Cancel');
 
@@ -46,21 +46,28 @@ export default [
         } catch (error) {
             api.status('Import: ERROR');
             throw error;
+        } finally {
+            dialogOpen = false;
         }
     }],
     ['KeyE', 'Export', async () => {
         try {
-            api.status('Export: START');
             const dataURL = getRectCanvasDataURL();
             if (!dataURL) return api.status('Export: EMPTY');
 
-            const filePath = await api.export(dataURL);
+            if (dialogOpen) return api.status('Import: Dialog already open');
+            dialogOpen = true;
+            const filePath = await api.exportDialog();
             if (!filePath) return api.status('Export: CANCEL');
 
-            api.status('Export: DONE', filePath);
+            api.status('Export: START');
+            await api.exportFile(filePath, dataURL);
+            api.status('Export: DONE', [filePath]);
         } catch (error) {
             api.status('Export: ERROR');
             throw error;
+        } finally {
+            dialogOpen = false;
         }
     }],
     ['KeyP', 'Paste', async () => {
@@ -69,7 +76,10 @@ export default [
             const dataURL = await api.paste();
             if (!dataURL) return api.status('Paste: CANCEL');
 
-            await loadImage(dataURL).then(drawImage);
+            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+            if (cancelLoad) return api.status('Paste: Cancel');
+
+            drawImage(image);
             api.status('Paste: DONE');
         } catch (error) {
             api.status('Paste: ERROR');
@@ -82,7 +92,10 @@ export default [
             const dataURL = getRectCanvasDataURL();
             if (!dataURL) return api.status('Crop: CANCEL');
 
-            await loadImage(dataURL).then(drawImage);
+            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+            if (cancelLoad) return api.status('Crop: Cancel');
+
+            drawImage(image);
             api.status('Crop: DONE');
         } catch (error) {
             api.status('Crop: ERROR');
@@ -94,8 +107,9 @@ export default [
             const dataURL = getRectCanvasDataURL();
             if (!dataURL) return api.status('Recognize: EMPTY');
 
-            const parsedLines = await api.recognize(dataURL);
-            if (!parsedLines?.length) return api.status('Recognize: CANCEL');
+            const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
+            if (cancel) return api.status('Recognize: Cancel');
+            if (!parsedLines?.length) throw new Error('Recognize fail');
 
             terminal.writeText(parsedLines.join('\n'), null, null, true);
             terminal.open();

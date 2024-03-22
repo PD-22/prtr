@@ -92,17 +92,18 @@ function addListeners() {
         return `data:image/png;base64,${base64}`;
     });
 
-    ipcMain.handle('export', async (_, dataURL) => {
+    ipcMain.handle('export-dialog', async () => {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Export',
             filters: [{ name: 'Image', extensions: ['png'] }],
             // defaultPath: join(__dirname, "output.png")
         });
         if (canceled) return;
-
+        return filePath;
+    });
+    ipcMain.handle('export-file', async (_, filePath, dataURL) => {
         const base64 = dataURL.replace(/^data:image\/png;base64,/, '');
         await writeFile(filePath, base64, 'base64');
-        return filePath;
     });
 
     ipcMain.handle('paste', () => {
