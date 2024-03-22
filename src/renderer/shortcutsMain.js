@@ -1,17 +1,47 @@
 import * as terminal from "../terminal/index.js";
-import { loadImageOnCanvas, reset, scrollBy, zoom } from "./canvas.js";
+import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
 import { mouseDrag, mouseSelect } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
 
+let dialogOpen = false;
+const onCancelList = new Set();
+function cancelable(promise) {
+    let cancelHandler;
+    const resultPromise = promise.then(result => [false, result]);
+    const cancelPromise = new Promise(resolve => {
+        cancelHandler = () => resolve([true]);
+        onCancelList.add(cancelHandler);
+    });
+    return Promise
+        .race([resultPromise, cancelPromise])
+        .finally(() => onCancelList.delete(cancelHandler));
+}
+const cancelList = () => {
+    const { size } = onCancelList;
+    onCancelList.forEach(f => f());
+    onCancelList.clear();
+    return size;
+};
+
 export default [
+    ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
     ['KeyI', 'Import', async () => {
         try {
-            api.status('Import: START');
-            const dataURL = await api.import();
-            if (!dataURL) return api.status('Import: CANCEL');
+            if (dialogOpen) return api.status('Import: Dialog already open');
 
-            await loadImageOnCanvas(dataURL);
+            const filePath = await api.importDialog();
+            if (!filePath) return api.status('Import: Cancel');
+
+            api.status('Import: START');
+            const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
+            if (cancelImport) return api.status('Import: Cancel');
+            if (!dataURL) throw new Error('File Read fail');
+
+            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+            if (cancelLoad) return api.status('Import: Cancel');
+
+            drawImage(image);
             api.status('Import: DONE');
         } catch (error) {
             api.status('Import: ERROR');
@@ -39,7 +69,7 @@ export default [
             const dataURL = await api.paste();
             if (!dataURL) return api.status('Paste: CANCEL');
 
-            await loadImageOnCanvas(dataURL);
+            await loadImage(dataURL).then(drawImage);
             api.status('Paste: DONE');
         } catch (error) {
             api.status('Paste: ERROR');
@@ -52,7 +82,7 @@ export default [
             const dataURL = getRectCanvasDataURL();
             if (!dataURL) return api.status('Crop: CANCEL');
 
-            await loadImageOnCanvas(dataURL);
+            await loadImage(dataURL).then(drawImage);
             api.status('Crop: DONE');
         } catch (error) {
             api.status('Crop: ERROR');
@@ -93,5 +123,4 @@ export default [
     ['Ctrl+Digit0', 'Fit', () => reset()],
 
     [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
-    ['Escape', 'Deselect', () => { fitRectToCanvas(); }],
 ];

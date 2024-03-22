@@ -76,19 +76,19 @@ function addListeners() {
 
     ipcMain.on('status', (_, ...args) => { status(...args); });
 
-    ipcMain.handle('import', async () => {
+    ipcMain.handle('import-dialog', async () => {
         const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
             title: 'Import',
             filters: [{ name: 'Image', extensions: ['png'] }],
             // defaultPath: join(__dirname, "init.png")
         });
         if (canceled) return;
-
+        return path;
+    });
+    ipcMain.handle('import-file', async (_, path) => {
         const buffer = await readFile(path);
         const base64 = buffer.toString('base64');
-
         if (!base64.length) return;
-
         return `data:image/png;base64,${base64}`;
     });
 

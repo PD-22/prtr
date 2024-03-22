@@ -12,11 +12,17 @@ export const overlayCanvas = document.querySelector('.overlay-canvas');
 export const octx = overlayCanvas.getContext('2d');
 export const clearOverlay = () => octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-export async function loadImageOnCanvas(dataURL) {
-    const image = new Image();
-    image.src = dataURL;
-    await new Promise(resolve => { image.onload = resolve; });
-
+/** @return {Promise<HTMLImageElement} */
+export async function loadImage(dataURL) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = error => reject(error);
+        image.src = dataURL;
+    });
+}
+/** @param {HTMLImageElement} image */
+export function drawImage(image) {
     resizeCanvas(image.width, image.height);
     ctx.drawImage(image, 0, 0);
 }
