@@ -110,7 +110,7 @@ function deselect() {
     const selection = getSelection();
     const [x, y] = selection.start;
     const [x2, y2] = selection.end;
-    if (x === y && x2 === y2) return;
+    if (x === x2 && y === y2) return;
 
     setSelection(selection.caret);
     return true;

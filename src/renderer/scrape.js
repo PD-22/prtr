@@ -33,6 +33,7 @@ export default async function scrape() {
     }
 }
 
+const ABORT = "ABORT";
 async function scrapeLine({ username, index }) {
     const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
     const abort = () => api.abortScrape(index);
@@ -43,16 +44,17 @@ async function scrapeLine({ username, index }) {
 
         const [cancel, data] = await cancelable(TERMINAL, api.scrape(index, username));
         if (cancel) abort();
-        if (typeof data !== 'number') throw new Error('Scrape failed');
+        if (cancel || data === ABORT) throw new Error(ABORT);
         if (data instanceof Error) throw data;
+        if (typeof data !== 'number') throw new Error('Scrape failed');
 
         api.status(`Scrape: ${fkv(username, data)}`);
         unlockLine(index);
         write(fkv(username, data));
     } catch (error) {
-        const isAbort = error.message === "Error invoking remote method 'scrape': abort";
+        const isAbort = error.message === ABORT;
         if (!isAbort) console.error(error);
-        api.status(`Scrape: ${fkv(username, isAbort ? 'ABORT' : 'ERROR')}`);
+        api.status(`Scrape: ${fkv(username, isAbort ? ABORT : 'ERROR')}`);
 
         unlockLine(index);
         write(username, true);
