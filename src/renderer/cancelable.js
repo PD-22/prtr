@@ -1,20 +1,25 @@
-const onCancelList = new Set();
+const cancelType = new Map();
 
-export default function cancelable(promise) {
+export function cancelable(type, promise) {
     let cancelHandler;
     const resultPromise = promise.then(result => [false, result]);
     const cancelPromise = new Promise(resolve => {
         cancelHandler = () => resolve([true]);
-        onCancelList.add(cancelHandler);
+        cancelType.set(cancelHandler, type);
     });
     return Promise
         .race([resultPromise, cancelPromise])
-        .finally(() => onCancelList.delete(cancelHandler));
+        .finally(() => cancelType.delete(cancelHandler));
 }
 
-export const cancelList = () => {
-    const { size } = onCancelList;
-    onCancelList.forEach(f => f());
-    onCancelList.clear();
-    return size;
-};
+export function cancelList(targetType) {
+    const entries = cancelType.entries();
+    const { length } = entries;
+    for (let [cancel, type] of entries) {
+        if (type === targetType) {
+            cancel?.();
+            cancelType.delete(cancel);
+        }
+    }
+    return length;
+}

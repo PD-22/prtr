@@ -1,9 +1,13 @@
 import * as terminal from "../terminal/index.js";
-import cancelable, { cancelList } from "./cancelable.js";
 import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
 import { mouseDrag, mouseSelect } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
+import * as c from "./cancelable.js";
+
+const MAIN = 'MAIN';
+const cancelable = p => c.cancelable(MAIN, p);
+const cancelList = () => c.cancelList(MAIN);
 
 let dialogOpen = false;
 

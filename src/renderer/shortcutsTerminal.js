@@ -9,8 +9,10 @@ import {
 import { cancelList } from "./cancelable.js";
 import scrape from "./scrape.js";
 
+export const TERMINAL = 'TERMINAL';
+
 export default [
-    ['Escape', 'Cancel', () => deselect() || cancelList()],
+    ['Escape', 'Cancel', () => deselect() || cancelList(TERMINAL)],
     ['Enter', 'Scrape', scrape],
 
     ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
