@@ -331,7 +331,7 @@ export default function testTerminal() {
         [" - 100",                 /**/[null,       /**/null,          /**/'100']],
     ].forEach(args => testParseUser(...args));
 
-    api.status('Terminal: TEST: DONE');
+    api.status('Terminal: Test done');
 }
 
 function shortcut(name) {

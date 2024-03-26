@@ -14,7 +14,7 @@ app.whenReady().then(async () => {
     await loadWindows();
 });
 
-function status(message, body) {
+function echoStatus(message, body) {
     console.log([message, ...(body?.map?.(s => `  ${s}`) ?? [])].join('\n'));
     mainWindow.webContents.send('status', message, body);
 }
@@ -41,10 +41,12 @@ function createWindows() {
 }
 
 async function loadWindows() {
+    const status = (message, body) => echoStatus(`Setup: ${message}`, body);
     try {
-        status('Prepare: START');
+        status('Start');
         await mainWindow.loadFile(join(__dirname, 'index.html'));
         mainWindow.webContents.setZoomFactor(1);
+        // mainWindow.webContents.openDevTools(); // TEMP
 
         pageLoading.value = true;
         await statsWindow.loadURL('https://prstats.tk');
@@ -55,10 +57,10 @@ async function loadWindows() {
         if (!token) throw new Error("Token missing");
 
         pageLoading.value = false;
-        status('Prepare: DONE', [token]);
+        status('Done');
     } catch (error) {
         pageLoading.value = null;
-        status('Prepare: ERROR');
+        status('Error');
         throw error;
     }
 }
@@ -74,7 +76,7 @@ function addListeners() {
     app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
-    ipcMain.on('status', (_, ...args) => { status(...args); });
+    ipcMain.on('status', (_, ...args) => { echoStatus(...args); });
 
     ipcMain.handle('import-dialog', async () => {
         const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
@@ -89,6 +91,7 @@ function addListeners() {
         const buffer = await readFile(path);
         const base64 = buffer.toString('base64');
         if (!base64.length) return;
+        // await new Promise(f => setTimeout(f, 2000)); // TEMP
         return `data:image/png;base64,${base64}`;
     });
 
@@ -106,7 +109,8 @@ function addListeners() {
         await writeFile(filePath, base64, 'base64');
     });
 
-    ipcMain.handle('paste', () => {
+    ipcMain.handle('paste', async () => {
+        // await new Promise(f => setTimeout(f, 2000)); // TEMP
         const image = clipboard.readImage();
         if (image.isEmpty()) return;
         return image.toDataURL('image/png');
@@ -139,7 +143,7 @@ function addListeners() {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);
-                resolve('ABORT');
+                resolve('abort');
             });
         });
 

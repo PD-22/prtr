@@ -13,65 +13,65 @@ let pending = false;
 
 export default [
     ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
-    action('KeyI', 'Import', async () => {
+    action('KeyI', 'Import', async status => {
         const filePath = await api.importDialog();
-        if (!filePath) return api.status('Import: Cancel');
+        if (!filePath) return status('Cancel');
 
-        api.status('Import: START');
+        status('Start');
         const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
-        if (cancelImport) return api.status('Import: Cancel');
+        if (cancelImport) return status('Cancel');
         if (!dataURL) throw new Error('File Read fail');
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return api.status('Import: Cancel');
+        if (cancelLoad) return status('Cancel');
 
         drawImage(image);
-        api.status('Import: DONE');
+        status('Done');
     }),
-    action('KeyE', 'Export', async () => {
+    action('KeyE', 'Export', async status => {
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return api.status('Export: EMPTY');
+        if (!dataURL) return status('Empty');
 
         const filePath = await api.exportDialog();
-        if (!filePath) return api.status('Export: CANCEL');
+        if (!filePath) return status('Cancel');
 
-        api.status('Export: START');
+        status('Start');
         await api.exportFile(filePath, dataURL);
-        api.status('Export: DONE', [filePath]);
+        status('Done', [filePath]);
     }),
-    action('KeyP', 'Paste', async () => {
-        api.status('Paste: START');
+    action('KeyP', 'Paste', async status => {
+        status('Start');
         const dataURL = await api.paste();
-        if (!dataURL) return api.status('Paste: CANCEL');
+        if (!dataURL) return status('Cancel');
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return api.status('Paste: Cancel');
+        if (cancelLoad) return status('Cancel');
 
         drawImage(image);
-        api.status('Paste: DONE');
+        status('Done');
     }),
-    action('KeyC', 'Crop', async () => {
-        api.status('Crop: START');
+    action('KeyC', 'Crop', async status => {
+        status('Start');
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return api.status('Crop: CANCEL');
+        if (!dataURL) return status('Cancel');
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return api.status('Crop: Cancel');
+        if (cancelLoad) return status('Cancel');
 
         drawImage(image);
-        api.status('Crop: DONE');
+        status('Done');
     }),
-    action('Enter', 'Recognize', async () => {
+    action('Enter', 'Recognize', async status => {
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return api.status('Recognize: EMPTY');
+        if (!dataURL) return status('Empty');
 
         const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
-        if (cancel) return api.status('Recognize: Cancel');
-        if (!parsedLines?.length) return api.status('Recognize: EMPTY');
+        if (cancel) return status('Cancel');
+        if (!parsedLines?.length) return status('Empty');
 
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
-        api.status('Recognize: DONE');
+        status('Done');
     }),
 
     [mouseDrag.input, 'Move'],
@@ -94,14 +94,15 @@ export default [
 ];
 
 function action(input, name, acb) {
-    const status = rest => api.status(`${name}: ${rest}`);
+    const status = message => api.status(`${name}: ${message}`);
+    const statusPending = () => status(`${name === pending ? '' : `${pending} `}pending`);
     const callback = async () => {
-        if (pending) return status(`Pending: ${pending}`);
+        if (pending) return statusPending();
         try {
             pending = name;
-            await acb();
+            await acb(status);
         } catch (error) {
-            status('ERROR');
+            status('Error');
             throw error;
         } finally {
             pending = false;

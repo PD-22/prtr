@@ -62,7 +62,7 @@ export function remindShortcuts() {
             .replace(/\bKey([A-Z])$/, '$1')
             .replace(/\bDigit([0-9])$/, '$1')
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
-        return [name, fkey].join(' - ');
+        return `${name} - "${fkey}"`;
     }
     api.status(SHORTCUTS, shortcuts.filter((([_, n]) => n)).map(f));
 }
