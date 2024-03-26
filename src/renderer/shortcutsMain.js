@@ -9,103 +9,70 @@ const MAIN = 'MAIN';
 const cancelable = p => c.cancelable(MAIN, p);
 const cancelList = () => c.cancelList(MAIN);
 
-let dialogOpen = false;
+let pending = false;
 
 export default [
     ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
-    ['KeyI', 'Import', async () => {
-        try {
-            if (dialogOpen) return api.status('Import: Dialog already open');
-            dialogOpen = true;
-            const filePath = await api.importDialog();
-            if (!filePath) return api.status('Import: Cancel');
+    action('KeyI', 'Import', async () => {
+        const filePath = await api.importDialog();
+        if (!filePath) return api.status('Import: Cancel');
 
-            api.status('Import: START');
-            const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
-            if (cancelImport) return api.status('Import: Cancel');
-            if (!dataURL) throw new Error('File Read fail');
+        api.status('Import: START');
+        const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
+        if (cancelImport) return api.status('Import: Cancel');
+        if (!dataURL) throw new Error('File Read fail');
 
-            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-            if (cancelLoad) return api.status('Import: Cancel');
+        const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+        if (cancelLoad) return api.status('Import: Cancel');
 
-            drawImage(image);
-            api.status('Import: DONE');
-        } catch (error) {
-            api.status('Import: ERROR');
-            throw error;
-        } finally {
-            dialogOpen = false;
-        }
-    }],
-    ['KeyE', 'Export', async () => {
-        try {
-            const dataURL = getRectCanvasDataURL();
-            if (!dataURL) return api.status('Export: EMPTY');
+        drawImage(image);
+        api.status('Import: DONE');
+    }),
+    action('KeyE', 'Export', async () => {
+        const dataURL = getRectCanvasDataURL();
+        if (!dataURL) return api.status('Export: EMPTY');
 
-            if (dialogOpen) return api.status('Import: Dialog already open');
-            dialogOpen = true;
-            const filePath = await api.exportDialog();
-            if (!filePath) return api.status('Export: CANCEL');
+        const filePath = await api.exportDialog();
+        if (!filePath) return api.status('Export: CANCEL');
 
-            api.status('Export: START');
-            await api.exportFile(filePath, dataURL);
-            api.status('Export: DONE', [filePath]);
-        } catch (error) {
-            api.status('Export: ERROR');
-            throw error;
-        } finally {
-            dialogOpen = false;
-        }
-    }],
-    ['KeyP', 'Paste', async () => {
-        try {
-            api.status('Paste: START');
-            const dataURL = await api.paste();
-            if (!dataURL) return api.status('Paste: CANCEL');
+        api.status('Export: START');
+        await api.exportFile(filePath, dataURL);
+        api.status('Export: DONE', [filePath]);
+    }),
+    action('KeyP', 'Paste', async () => {
+        api.status('Paste: START');
+        const dataURL = await api.paste();
+        if (!dataURL) return api.status('Paste: CANCEL');
 
-            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-            if (cancelLoad) return api.status('Paste: Cancel');
+        const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+        if (cancelLoad) return api.status('Paste: Cancel');
 
-            drawImage(image);
-            api.status('Paste: DONE');
-        } catch (error) {
-            api.status('Paste: ERROR');
-            throw error;
-        }
-    }],
-    ['KeyC', 'Crop', async () => {
-        try {
-            api.status('Crop: START');
-            const dataURL = getRectCanvasDataURL();
-            if (!dataURL) return api.status('Crop: CANCEL');
+        drawImage(image);
+        api.status('Paste: DONE');
+    }),
+    action('KeyC', 'Crop', async () => {
+        api.status('Crop: START');
+        const dataURL = getRectCanvasDataURL();
+        if (!dataURL) return api.status('Crop: CANCEL');
 
-            const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-            if (cancelLoad) return api.status('Crop: Cancel');
+        const [cancelLoad, image] = await cancelable(loadImage(dataURL));
+        if (cancelLoad) return api.status('Crop: Cancel');
 
-            drawImage(image);
-            api.status('Crop: DONE');
-        } catch (error) {
-            api.status('Crop: ERROR');
-            throw error;
-        }
-    }],
-    ['Enter', 'Recognize', async () => {
-        try {
-            const dataURL = getRectCanvasDataURL();
-            if (!dataURL) return api.status('Recognize: EMPTY');
+        drawImage(image);
+        api.status('Crop: DONE');
+    }),
+    action('Enter', 'Recognize', async () => {
+        const dataURL = getRectCanvasDataURL();
+        if (!dataURL) return api.status('Recognize: EMPTY');
 
-            const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
-            if (cancel) return api.status('Recognize: Cancel');
-            if (!parsedLines?.length) throw new Error('Recognize fail');
+        const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
+        if (cancel) return api.status('Recognize: Cancel');
+        if (!parsedLines?.length) return api.status('Recognize: EMPTY');
 
-            terminal.writeText(parsedLines.join('\n'), null, null, true);
-            terminal.open();
-            api.status('Recognize: DONE');
-        } catch (error) {
-            api.status('Recognize: ERROR');
-            throw error;
-        }
-    }],
+        terminal.writeText(parsedLines.join('\n'), null, null, true);
+        terminal.open();
+        api.status('Recognize: DONE');
+    }),
 
     [mouseDrag.input, 'Move'],
     ...['Up', 'Right', 'Down', 'Left'].map(dir => {
@@ -125,3 +92,20 @@ export default [
 
     [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
 ];
+
+function action(input, name, acb) {
+    const status = rest => api.status(`${name}: ${rest}`);
+    const callback = async () => {
+        if (pending) return status(`Pending: ${pending}`);
+        try {
+            pending = name;
+            await acb();
+        } catch (error) {
+            status('ERROR');
+            throw error;
+        } finally {
+            pending = false;
+        }
+    };
+    return [input, name, callback];
+}
