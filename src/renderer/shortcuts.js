@@ -2,10 +2,9 @@ import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
 import * as terminal from "../terminal/index.js";
 
-export const SHORTCUTS = 'Shortcuts';
 const commonShortcuts = [
+    ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],
     ['Tab', 'Toggle', () => terminal.toggle()],
-    ['Alt+Slash', SHORTCUTS, () => remindShortcuts()],
     [['Ctrl+Digit0', 'Ctrl+Minus', 'Ctrl+Equal'], null, e => e.preventDefault()],
 ]
 
@@ -64,5 +63,5 @@ export function remindShortcuts() {
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
         return `${name} - "${fkey}"`;
     }
-    api.status(SHORTCUTS, shortcuts.filter((([_, n]) => n)).map(f));
+    api.status(null, shortcuts.filter((([_, n]) => n)).map(f));
 }

@@ -12,11 +12,7 @@ import scrape from "./scrape.js";
 export const TERMINAL = 'TERMINAL';
 
 export default [
-    ['Escape', 'Cancel', () => deselect() || cancelList(TERMINAL)],
     ['Enter', 'Scrape', scrape],
-
-    ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
-    ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Alt+KeyC', 'Clean', () => {
         const parsedLines = getParsedLines();
         const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
@@ -26,11 +22,14 @@ export default [
     [['Ctrl+KeyZ'], 'Undo', () => undoHistory()],
     [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], 'Redo', () => redoHistory()],
 
+    ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
+    ['Alt+ArrowDown', 'Down', () => moveLines(1)],
     ['Ctrl+ArrowUp', 'Ascending', () => sortData()],
     ['Ctrl+ArrowDown', 'Descending', () => sortData(false)],
 
     // ['Ctrl+KeyH', 'History', () => logHistory()],
     // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
+    ['Escape', 'Cancel', () => deselect() || cancelList(TERMINAL)],
 ];
 
 function moveLines(change) {

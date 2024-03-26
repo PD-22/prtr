@@ -31,7 +31,7 @@ function startDrag(e) {
 
 export const mouseSelect = {
     key: 'L',
-    input: 'MouseLeft+Drag',
+    input: 'DragLeft',
     move: e => {
         const [px, py] = getCanvasMouseRelPos({ clientX, clientY });
         const [x, y] = getCanvasMouseRelPos(e);
@@ -45,7 +45,7 @@ export const mouseSelect = {
 
 export const mouseDrag = {
     key: 'R',
-    input: 'MouseRight+Drag',
+    input: 'DragRight',
     move: e => {
         const x = clientX - e.clientX;
         const y = clientY - e.clientY;
@@ -67,10 +67,21 @@ export function stopDrag() {
     mouse.isHold = false;
 }
 
+export const mouseZoom = {
+    in: {
+        input: 'WheelUp',
+        zoom: e => zoom(true, getCanvasMouseRelPos(e))
+    },
+    out: {
+        input: 'WheelDown',
+        zoom: e => zoom(false, getCanvasMouseRelPos(e))
+    }
+};
+
 function onWheel(e) {
     if (terminal.state.isOpen) return;
     const sign = Math.sign(e.deltaY);
-    if (!e.ctrlKey) return zoom(sign < 0, getCanvasMouseRelPos(e));
+    if (!e.ctrlKey) return (sign < 0 ? mouseZoom.in : mouseZoom.out).zoom(e);
     const d = [0, 0];
     d[e.shiftKey ? 0 : 1] = (e.altKey ? 10 : 100) * sign;
     scrollBy(...d);

@@ -1,9 +1,9 @@
 import * as terminal from "../terminal/index.js";
+import * as c from "./cancelable.js";
 import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
-import { mouseDrag, mouseSelect } from "./mouse.js";
+import { mouseDrag, mouseSelect, mouseZoom } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
-import * as c from "./cancelable.js";
 
 const MAIN = 'MAIN';
 const cancelable = p => c.cancelable(MAIN, p);
@@ -12,7 +12,6 @@ const cancelList = () => c.cancelList(MAIN);
 let pending = false;
 
 export default [
-    ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
     action('KeyI', 'Import', async status => {
         const filePath = await api.importDialog();
         if (!filePath) return status('Cancel');
@@ -71,10 +70,15 @@ export default [
 
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
-        status('Done');
+        status('Done', terminal.getLines());
     }),
 
     [mouseDrag.input, 'Move'],
+    [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
+    [[mouseZoom.in.input, 'Ctrl+Equal'], 'Magnify', () => zoom(true)],
+    [[mouseZoom.out.input, 'Ctrl+Minus'], 'Minify', () => zoom(false)],
+    ['Ctrl+Digit0', 'Fit', () => reset()],
+
     ...['Up', 'Right', 'Down', 'Left'].map(dir => {
         const inputs = [null, 'Ctrl', 'Shift'].map(mod => [mod, `Arrow${dir}`].filter(Boolean).join('+'));
         const callback = e => {
@@ -84,17 +88,13 @@ export default [
             const y = (({ 'Down': 1, 'Up': -1 })[dir] ?? 0) * amount;
             scrollBy(x, y);
         };
-        return [inputs, dir, callback];
+        return [inputs, null, callback];
     }),
-    ['Ctrl+Equal', 'Magnify', () => zoom(true)],
-    ['Ctrl+Minus', 'Minify', () => zoom(false)],
-    ['Ctrl+Digit0', 'Fit', () => reset()],
-
-    [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
+    ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
 ];
 
 function action(input, name, acb) {
-    const status = message => api.status(`${name}: ${message}`);
+    const status = (message, body) => api.status(`${name}: ${message}`, body);
     const statusPending = () => status(`${name === pending ? '' : `${pending} `}pending`);
     const callback = async () => {
         if (pending) return statusPending();
