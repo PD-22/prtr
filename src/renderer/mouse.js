@@ -1,6 +1,6 @@
 import * as terminal from "../terminal/index.js";
 import { canvas, scrollBy, zoom } from "./canvas.js";
-import rect, { fitRectToCanvas, setRect } from "./rect.js";
+import { finishToggle, setRect } from "./rect.js";
 
 let clientX, clientY;
 const mouse = { isHold: false };
@@ -37,10 +37,7 @@ export const mouseSelect = {
         const [x, y] = getCanvasMouseRelPos(e);
         setRect(px, py, x, y);
     },
-    stop: () => {
-        const { w, h } = rect;
-        if (w < 1 || h < 1) fitRectToCanvas();
-    }
+    stop: finishToggle
 };
 
 export const mouseDrag = {

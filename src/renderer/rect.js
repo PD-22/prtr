@@ -97,10 +97,20 @@ export function scrollToggle(x, y) {
     dragging = [dx, dy];
 }
 
-function finishToggle() {
+export function finishToggle() {
     stopToggle();
-    const { w, h } = rect;
-    if (w < 1 || h < 1) fitRectToCanvas();
+
+    const { x, x2, y, y2, w, h } = rect;
+    const l = dash.length;
+    if (w < l || h < l) return fitRectToCanvas();
+
+    const z = 2 * l;
+    if (w < z || h < z) setRect(
+        (x + x2 - z) / 2,
+        (y + y2 - z) / 2,
+        (x + x2 + z) / 2,
+        (y + y2 + z) / 2,
+    )
 }
 
 function stopToggle() {
