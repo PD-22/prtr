@@ -7,9 +7,7 @@ import {
     writeText
 } from "../terminal/index.js";
 import { cancelList } from "./cancelable.js";
-import scrape from "./scrape.js";
-
-export const TERMINAL = 'TERMINAL';
+import scrape, { SCRAPE } from "./scrape.js";
 
 export default [
     ['Enter', 'Scrape', scrape],
@@ -29,7 +27,7 @@ export default [
 
     // ['Ctrl+KeyH', 'History', () => logHistory()],
     // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
-    ['Escape', 'Cancel', () => deselect() || cancelList(TERMINAL)],
+    ['Escape', 'Cancel', () => deselect() || cancelList(SCRAPE)],
 ];
 
 function moveLines(change) {

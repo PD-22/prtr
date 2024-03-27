@@ -2,7 +2,7 @@ import {
     applySnapshot,
     generateSnapshot,
     commitInput,
-    abortLockedLine,
+    abortLockedLines,
     applyEntries,
     pushHistory,
     redoHistory,
@@ -16,7 +16,7 @@ import {
 function write(snapshotDict, skipHistory, skipSelection) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
     commitInput();
-    if (abortLockedLine(applyEntries(snapshotDict))) return;
+    if (abortLockedLines(applyEntries(snapshotDict))) return;
     if (!pushHistory(snapshotDict)) return;
     redoHistory(skipSelection);
 }

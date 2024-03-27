@@ -15,7 +15,7 @@ export function getAbortRows(newLines = getLines()) {
     return Array.from(lockedLines).map(format).filter(rowChanged);
 }
 
-export function abortLockedLine(newLines) {
+export function abortLockedLines(newLines) {
     const abortRows = getAbortRows(newLines);
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);

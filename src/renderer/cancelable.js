@@ -13,14 +13,11 @@ export function cancelable(type, promise, onCancel) {
 }
 
 export function cancelList(targetType) {
-    const entries = cancelType.entries();
-    let result = false;
-    for (let [cancel, type] of entries) {
-        result = true;
-        if (type === targetType) {
-            cancel?.();
-            cancelType.delete(cancel);
-        }
-    }
-    return result;
+    const entries = Array.from(cancelType.entries());
+    const targets = entries.filter(([, type]) => type === targetType);
+    targets.forEach(([cancel]) => {
+        cancel?.();
+        cancelType.delete(cancel);
+    });
+    return targets.length;
 }

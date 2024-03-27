@@ -7,7 +7,9 @@ import {
     writeText
 } from "../terminal/index.js";
 import { cancelable } from "./cancelable.js";
-import { TERMINAL, getParsedLines } from "./shortcutsTerminal.js";
+import { getParsedLines } from "./shortcutsTerminal.js";
+
+export const SCRAPE = 'SCRAPE';
 
 const status = (message, body) => api.status(`Scrape: ${message}`, body);
 
@@ -25,7 +27,7 @@ export default async function scrape() {
 
         status('Start', filteredLines.map(x => x.username));
         const promise = Promise.allSettled(filteredLines.map(scrapeLine));
-        const [cancel] = await cancelable(TERMINAL, promise);
+        const [cancel] = await cancelable(SCRAPE, promise);
         if (cancel) return status('Cancel');
 
         if (state.isOpen) return;
@@ -54,7 +56,7 @@ async function scrapeLine({ username, index }) {
                 init();
                 status(fkv(username, 'Abort'));
             })),
-            cancelable(TERMINAL, api.scrape(index, username), init)
+            cancelable(SCRAPE, api.scrape(index, username), init)
         );
 
         if (abort || cancel) return;

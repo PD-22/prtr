@@ -1,5 +1,5 @@
 import {
-    abortLockedLine,
+    abortLockedLines,
     element,
     getAbortRows,
     getLines,
@@ -27,7 +27,7 @@ function abortInput() {
     const newLines = getLines();
     restore(true);
     cancelInput();
-    abortLockedLine(newLines);
+    abortLockedLines(newLines);
     return true;
 }
 
