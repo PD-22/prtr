@@ -6,6 +6,7 @@ import {
     writeLine,
     writeText
 } from "../terminal/index.js";
+import { race } from "./cancelable.js";
 import { cancelable } from "./cancelable.js";
 import { getParsedLines } from "./shortcutsTerminal.js";
 
@@ -38,11 +39,6 @@ export default async function scrape() {
     }
 }
 
-const util = async (...ps) => {
-    const [r, i] = await Promise.race(ps.map(async (p, i) => [(await p), i])); i
-    return Array.from({ length: ps.length }).toSpliced(i, 1, r)
-};
-
 async function scrapeLine({ username, index }) {
     const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
     const init = () => { unlockLine(index); write(username, true); };
@@ -50,7 +46,7 @@ async function scrapeLine({ username, index }) {
     try {
         write(fkv(username, '...'), true);
 
-        const [abort, [cancel, data] = []] = await util(
+        const [abort, [cancel, data] = []] = await race(
             new Promise(resolve => lockLine(index, () => {
                 resolve(true);
                 init();

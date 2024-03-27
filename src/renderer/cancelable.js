@@ -1,15 +1,17 @@
 const cancelType = new Map();
 
-export function cancelable(type, promise, onCancel) {
+export async function cancelable(type, promise, onCancel) {
     let cancelHandler;
-    const resultPromise = promise.then(result => [false, result]);
-    const cancelPromise = new Promise(resolve => {
-        cancelHandler = () => { resolve([true]); onCancel?.(); };
+    try {
+        return await race(new Promise(cancelExecutor), promise);
+    } finally {
+        cancelType.delete(cancelHandler);
+    }
+
+    function cancelExecutor(resolve) {
+        cancelHandler = () => { resolve(true); onCancel?.(); };
         cancelType.set(cancelHandler, type);
-    });
-    return Promise
-        .race([resultPromise, cancelPromise])
-        .finally(() => cancelType.delete(cancelHandler));
+    }
 }
 
 export function cancelList(targetType) {
@@ -20,4 +22,10 @@ export function cancelList(targetType) {
         cancelType.delete(cancel);
     });
     return targets.length;
+}
+
+export async function race(...promises) {
+    const indexPromises = promises.map(async (p, i) => [(await p), i]);
+    const [result, index] = await Promise.race(indexPromises);
+    return Array(promises.length).toSpliced(index, 1, result);
 }
