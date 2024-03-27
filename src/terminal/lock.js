@@ -1,4 +1,4 @@
-import { getLine, lockedLines, getLines, setValue } from "./index.js";
+import { getLine, getLines, lockedLines, setValue } from "./index.js";
 
 export function lockLine(row, onPrevent) {
     const line = getLine(row);
@@ -22,6 +22,6 @@ export function abortLockedLine(newLines) {
 
     setValue(lines.join('\n'), true);
 
-    abortRows.forEach(([, , onPrevent]) => onPrevent?.());
+    abortRows.forEach(([row, , onPrevent]) => { unlockLine(row); onPrevent?.(); });
     return Boolean(abortRows.length);
 }

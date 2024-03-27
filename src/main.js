@@ -145,7 +145,7 @@ function addListeners() {
             const abortChannel = `scrape:abort:${row}`;
             ipcMain.once(abortChannel, () => {
                 statsWindow.webContents.send(abortChannel);
-                resolve('abort');
+                resolve();
             });
         });
 

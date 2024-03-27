@@ -1,10 +1,10 @@
 const cancelType = new Map();
 
-export function cancelable(type, promise) {
+export function cancelable(type, promise, onCancel) {
     let cancelHandler;
     const resultPromise = promise.then(result => [false, result]);
     const cancelPromise = new Promise(resolve => {
-        cancelHandler = () => resolve([true]);
+        cancelHandler = () => { resolve([true]); onCancel?.(); };
         cancelType.set(cancelHandler, type);
     });
     return Promise
@@ -14,12 +14,13 @@ export function cancelable(type, promise) {
 
 export function cancelList(targetType) {
     const entries = cancelType.entries();
-    const { length } = entries;
+    let result = false;
     for (let [cancel, type] of entries) {
+        result = true;
         if (type === targetType) {
             cancel?.();
             cancelType.delete(cancel);
         }
     }
-    return length;
+    return result;
 }

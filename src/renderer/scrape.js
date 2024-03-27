@@ -36,19 +36,28 @@ export default async function scrape() {
     }
 }
 
-const ABORT = 'abort';
-const CANCEL = 'cancel';
+const util = async (...ps) => {
+    const [r, i] = await Promise.race(ps.map(async (p, i) => [(await p), i])); i
+    return Array.from({ length: ps.length }).toSpliced(i, 1, r)
+};
+
 async function scrapeLine({ username, index }) {
     const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
-    const abort = () => api.abortScrape(index);
+    const init = () => { unlockLine(index); write(username, true); };
 
     try {
         write(fkv(username, '...'), true);
-        lockLine(index, abort);
 
-        const [cancel, data] = await cancelable(TERMINAL, api.scrape(index, username));
-        if (cancel) { abort(); throw new Error(CANCEL); }
-        if (data === ABORT) throw new Error(ABORT);
+        const [abort, [cancel, data] = []] = await util(
+            new Promise(resolve => lockLine(index, () => {
+                resolve(true);
+                init();
+                status(fkv(username, 'Abort'));
+            })),
+            cancelable(TERMINAL, api.scrape(index, username), init)
+        );
+
+        if (abort || cancel) return;
         if (data instanceof Error) throw data;
         if (typeof data !== 'number') throw new Error('Scrape failed');
 
@@ -56,15 +65,12 @@ async function scrapeLine({ username, index }) {
         unlockLine(index);
         write(fkv(username, data));
     } catch (error) {
-        unlockLine(index);
-        write(username, true);
-
-        if (error.message === CANCEL) return;
-        if (error.message === ABORT) return status(fkv(username, error.message));
-        status(fkv(username, 'error'));
+        init();
+        status(fkv(username, 'Error'));
         console.error(error);
     } finally {
         unlockLine(index);
+        api.abortScrape(index);
     }
 }
 

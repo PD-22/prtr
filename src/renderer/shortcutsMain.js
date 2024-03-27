@@ -4,6 +4,7 @@ import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
 import { mouseDrag, mouseSelect, mouseZoom } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { modifierMatches } from "./shortcuts.js";
+import { TERMINAL } from "./shortcutsTerminal.js";
 
 const MAIN = 'MAIN';
 const cancelable = p => c.cancelable(MAIN, p);
@@ -68,6 +69,7 @@ export default [
         if (cancel) return status('Cancel');
         if (!parsedLines?.length) return status('Empty');
 
+        c.cancelList(TERMINAL);
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
         status('Done', terminal.getLines());
