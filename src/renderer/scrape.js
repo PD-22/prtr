@@ -6,13 +6,13 @@ import {
     writeLine,
     writeText
 } from "../terminal/index.js";
-import { race } from "./cancelable.js";
-import { cancelable } from "./cancelable.js";
+import createCancelable from "./cancelable.js";
 import { getParsedLines } from "./shortcutsTerminal.js";
 
-export const SCRAPE = 'SCRAPE';
-
 const status = (message, body) => api.status(`Scrape: ${message}`, body);
+
+const [cancelable, cancel] = createCancelable();
+export const cancelScrape = cancel;
 
 export default async function scrape() {
     try {
@@ -28,7 +28,7 @@ export default async function scrape() {
 
         status('Start', filteredLines.map(x => x.username));
         const promise = Promise.allSettled(filteredLines.map(scrapeLine));
-        const [cancel] = await cancelable(SCRAPE, promise);
+        const [cancel] = await cancelable([promise]);
         if (cancel) return status('Cancel');
 
         if (state.isOpen) return;
@@ -46,15 +46,11 @@ async function scrapeLine({ username, index }) {
     try {
         write(fkv(username, '...'), true);
 
-        const [abort, [cancel, data] = []] = await race(
-            new Promise(resolve => lockLine(index, () => {
-                resolve(true);
-                init();
-                status(fkv(username, 'Abort'));
-            })),
-            cancelable(SCRAPE, api.scrape(index, username), init)
-        );
+        const abortPromise = new Promise(r => lockLine(index, () => { init(); r(true); }));
+        const scrapePromise = api.scrape(index, username);
+        const [cancel, abort, data] = await cancelable([abortPromise, scrapePromise], init);
 
+        if (abort) status(fkv(username, 'Abort'));
         if (abort || cancel) return;
         if (data instanceof Error) throw data;
         if (typeof data !== 'number') throw new Error('Scrape failed');

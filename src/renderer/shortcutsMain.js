@@ -1,14 +1,13 @@
 import * as terminal from "../terminal/index.js";
-import * as c from "./cancelable.js";
+import createCancelable from "./cancelable.js";
 import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
 import { mouseDrag, mouseSelect, mouseZoom } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
+import { cancelScrape } from "./scrape.js";
 import { modifierMatches } from "./shortcuts.js";
-import { SCRAPE } from "./scrape.js";
 
-const MAIN = 'MAIN';
-const cancelable = p => c.cancelable(MAIN, p);
-const cancelList = () => c.cancelList(MAIN);
+const [_cancelable, cancel] = createCancelable();
+const cancelable = (...a) => _cancelable(a);
 
 let pending = false;
 
@@ -69,7 +68,7 @@ export default [
         if (cancel) return status('Cancel');
         if (!parsedLines?.length) return status('Empty');
 
-        c.cancelList(SCRAPE);
+        cancelScrape();
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
         status('Done', terminal.getLines());
@@ -92,7 +91,7 @@ export default [
         };
         return [inputs, null, callback];
     }),
-    ['Escape', 'Cancel', () => cancelList() || fitRectToCanvas()],
+    ['Escape', 'Cancel', () => cancel() || fitRectToCanvas()],
 ];
 
 function action(input, name, acb) {

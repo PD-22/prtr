@@ -1,6 +1,6 @@
+import * as terminal from "../terminal/index.js";
 import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
-import * as terminal from "../terminal/index.js";
 
 const commonShortcuts = [
     ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],

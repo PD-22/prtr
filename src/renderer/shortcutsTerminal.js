@@ -6,8 +6,7 @@ import {
     undoHistory,
     writeText
 } from "../terminal/index.js";
-import { cancelList } from "./cancelable.js";
-import scrape, { SCRAPE } from "./scrape.js";
+import scrape, { cancelScrape } from "./scrape.js";
 
 export default [
     ['Enter', 'Scrape', scrape],
@@ -27,7 +26,7 @@ export default [
 
     // ['Ctrl+KeyH', 'History', () => logHistory()],
     // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
-    ['Escape', 'Cancel', () => deselect() || cancelList(SCRAPE)],
+    ['Escape', 'Cancel', () => deselect() || cancelScrape()],
 ];
 
 function moveLines(change) {

@@ -1,30 +1,24 @@
-const cancelType = new Map();
+export default function createCancelable() {
+    const set = new Set();
 
-export async function cancelable(type, promise, onCancel) {
-    let cancelHandler;
-    try {
-        return await race(new Promise(cancelExecutor), promise);
-    } finally {
-        cancelType.delete(cancelHandler);
+    function cancelable(promises, onCancel) {
+        let resolve;
+        const executor = r => set.add(resolve = () => r(onCancel?.()));
+        const promise = new Promise(executor).then(() => true);
+        return race(promise, ...promises).finally(() => set.delete(resolve));
     }
 
-    function cancelExecutor(resolve) {
-        cancelHandler = () => { resolve(true); onCancel?.(); };
-        cancelType.set(cancelHandler, type);
+    function cancel() {
+        const { size } = set;
+        set.forEach(f => f());
+        set.clear();
+        return size;
     }
+
+    return [cancelable, cancel];
 }
 
-export function cancelList(targetType) {
-    const entries = Array.from(cancelType.entries());
-    const targets = entries.filter(([, type]) => type === targetType);
-    targets.forEach(([cancel]) => {
-        cancel?.();
-        cancelType.delete(cancel);
-    });
-    return targets.length;
-}
-
-export async function race(...promises) {
+async function race(...promises) {
     const indexPromises = promises.map(async (p, i) => [(await p), i]);
     const [result, index] = await Promise.race(indexPromises);
     return Array(promises.length).toSpliced(index, 1, result);
