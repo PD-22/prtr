@@ -6,28 +6,31 @@ import {
     undoHistory,
     writeText
 } from "../terminal/index.js";
-import scrape, { cancelScrape } from "./scrape.js";
+import scrape, { cancelScrape as cancel } from "./scrape.js";
 
 export default [
     ['Enter', 'Scrape', scrape],
-    ['Alt+KeyC', 'Clean', () => {
-        const parsedLines = getParsedLines();
-        const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
-        writeText(newLines.join('\n'), null, null, true);
-    }],
+    ['Alt+KeyC', 'Clean', () => cancel() | clean()],
 
     [['Ctrl+KeyZ'], 'Undo', () => undoHistory()],
     [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], 'Redo', () => redoHistory()],
 
-    ['Alt+ArrowUp', 'Up', () => moveLines(-1)],
-    ['Alt+ArrowDown', 'Down', () => moveLines(1)],
-    ['Ctrl+ArrowUp', 'Ascending', () => sortData()],
-    ['Ctrl+ArrowDown', 'Descending', () => sortData(false)],
+    ['Ctrl+ArrowUp', 'Ascending', () => cancel() | sortData(true)],
+    ['Ctrl+ArrowDown', 'Descending', () => cancel() | sortData(false)],
 
     // ['Ctrl+KeyH', 'History', () => logHistory()],
     // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
-    ['Escape', 'Cancel', () => deselect() || cancelScrape()],
+    ['Alt+ArrowUp', null, () => moveLines(-1)],
+    ['Alt+ArrowDown', null, () => moveLines(+1)],
+
+    ['Escape', 'Cancel', () => deselect() || cancel()],
 ];
+
+function clean() {
+    const parsedLines = getParsedLines();
+    const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
+    writeText(newLines.join('\n'), null, null, true);
+}
 
 function moveLines(change) {
     const lines = getLines();
