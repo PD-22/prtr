@@ -64,8 +64,9 @@ export default function testTerminal() {
     writeLine("B", 1);                                  /**/test('A\nB\nB\nC', [1, 1]);
     writeLine("Q", 2);                                  /**/test('A\nB\nQ\nC', [2, 1]);
     setSelection([3, 0], [3, 1], 'backward');
-    shortcut('Up');                                             /**/test('A\nB\nC\nQ', [2, 0], [2, 1], 'backward');
-    setSelection([2, 0], [2, 1]); shortcut('Down');     /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
+    shortcut('Alt+ArrowUp');                            /**/test('A\nB\nC\nQ', [2, 0], [2, 1], 'backward');
+    setSelection([2, 0], [2, 1]);
+    shortcut('Alt+ArrowDown');                          /**/test('A\nB\nQ\nC', [3, 0], [3, 1]);
 
     // NOOP
     writeLines({ 0: 'C', 1: 'D', 2: 'E', 3: 'F' });     /**/test('C\nD\nE\nF', [3, 1]);
@@ -100,30 +101,30 @@ export default function testTerminal() {
     writeText('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
     test('  Username\n[ASD]  Username1\n[ASD] Username2  \n[ASD] UserName3   -   ...\n[ASD]    Username123\n[ASD] Username-Name  -    123\n  Username4\n   [ASD] UserName5  - 123');
 
-    shortcut('Clean');
+    shortcut('Alt+KeyC');
     test('Username\nUsername1\nUsername2\nUserName3\nUsername123\nUsername-Name\nUsername4\nUserName5');
 
-    shortcut('Ascending');
+    shortcut('Ctrl+ArrowUp');
     test('Username\nUsername-Name\nUsername1\nUsername123\nUsername2\nUserName3\nUsername4\nUserName5', /* [5, 9] */);
 
-    shortcut('Descending');
+    shortcut('Ctrl+ArrowDown');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername');
 
-    shortcut('Up');
+    shortcut('Alt+ArrowUp');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', [6, 8]);
 
-    shortcut('Down');
+    shortcut('Alt+ArrowDown');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername');
 
     // NOOP
-    shortcut('Down');
+    shortcut('Alt+ArrowDown');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername');
     setSelection([0, 0]);
-    shortcut('Up');
+    shortcut('Alt+ArrowUp');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername-Name\nUsername', [0, 0]);
 
     setSelection([7, 8]);
-    shortcut('Up');
+    shortcut('Alt+ArrowUp');
     test('UserName5\nUsername4\nUserName3\nUsername2\nUsername123\nUsername1\nUsername\nUsername-Name', [6, 8]);
 
     writeText('User1\nUser2');                          /**/test('User1\nUser2');
@@ -334,8 +335,10 @@ export default function testTerminal() {
     api.status('Terminal: Test done');
 }
 
-function shortcut(name) {
-    shortcutsTerminal.find(x => x[1] === name)[2]();
+function shortcut(targetInput) {
+    shortcutsTerminal.forEach(([input, , f]) => {
+        if (input === targetInput) f();
+    });
 }
 
 export function assert(expected, actual, name) {
