@@ -42,9 +42,11 @@ export function logHistory() {
     const lockedKeys = Array.from(lockedLines.keys());
     const locked = lockedKeys.length > 0 && (indent + `locked: ${lockedKeys}`);
 
+    const inputLoading = indent + `inputLoading: ${state.inputLoading}`;
+
     const logs = [
         `History:`, historyStr, historyIndexStr,
-        valueStr, committedStr, selStr, locked
+        valueStr, committedStr, selStr, locked, inputLoading
     ];
     console.log(logs.filter(Boolean).join('\n'));
 }

@@ -29,7 +29,7 @@ export const state = {
 };
 setValue(state.historyBase);
 
-// testTerminal();
+testTerminal();
 
 export function toggle() {
     (state.isOpen ? close : open)();

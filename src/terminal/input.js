@@ -52,11 +52,16 @@ export function mockInput(text, selection, preCommit) {
     const { start, end, dir } = selection ?? {};
     setSelection(start, end, dir);
     onInput();
-    if (preCommit?.(cancelInput) === false) return;
+    if (preCommit === false) return stopTimer();
+    preCommit?.();
     commitInput();
 }
 
 function cancelInput() {
     state.inputLoading = false;
+    return stopTimer();
+}
+
+function stopTimer() {
     return clearTimeout(state.inputTimer);
 }

@@ -27,6 +27,16 @@ import {
 } from "./index.js";
 
 export default function testTerminal() {
+    try {
+        testTerminalBody();
+        api.status('Terminal: Test done');
+    } catch (error) {
+        api.status('Terminal: Test fail');
+        console.error(error);
+    }
+}
+
+function testTerminalBody() {
     open();                                             /**/test('', [0, 0]);
     writeText('X\nY\nZ\nA');                            /**/test('X\nY\nZ\nA', [3, 1]);
     writeLine('N', 3);                                  /**/test('X\nY\nZ\nN', [3, 1]);
@@ -310,6 +320,33 @@ export default function testTerminal() {
     mockInput('Q\nW\nE\nR\nT\nY', null, () => undoHistory());
     test('A\nD\nC', [1, 1]);
 
+    // scrape before input commit
+    open();
+    writeText('Alpha');
+    clearHistory();
+    test('Alpha');
+
+    writeLine('Alpha - ...', 0, true, true);
+    test2({ text: 'Alpha - ...', commited: 'Alpha', start: [0, 5] });
+    lockLine(0, () => {
+        unlockLine(0);
+        writeLine('Alpha', 0, true, true);
+    });
+
+    mockInput('Alpha - ...\nBeta', null, false);
+    assert(state.inputLoading, true);
+    test2({ text: 'Alpha - ...\nBeta', commited: 'Alpha' });
+
+    unlockLine(0);
+    writeLine('Alpha - 123', 0, undefined, true);
+    assert(state.inputLoading, false);
+    test('Alpha - 123', [0, 4]); // Actual
+    // test('Alpha - 123\nBeta'); // Expected
+
+    logHistory();
+    test('Alpha - 123', [0, 4]); testHistory(['Alpha'], ['Alpha - ...\nBeta'], ['Alpha - 123']); // Actual
+    // test('Alpha - 123\nBeta'); testHistory(['Alpha'], ['Alpha\nBeta'], ['Alpha - 123\nBeta']); // Expected
+
     restore(); writeText(''); clearHistory(); logHistory(); close();
 
     const testParseUser = (input, expected) => assert(expected, Object.values(parseUser(input)));
@@ -331,8 +368,6 @@ export default function testTerminal() {
         ["- 100",                  /**/[null,       /**/null,          /**/'100']],
         [" - 100",                 /**/[null,       /**/null,          /**/'100']],
     ].forEach(args => testParseUser(...args));
-
-    api.status('Terminal: Test done');
 }
 
 function shortcut(targetInput) {
