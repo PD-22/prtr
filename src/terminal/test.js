@@ -336,8 +336,6 @@ function testTerminalBody() {
     unlockLine(0);
     assert(state.inputLoading, false);
     test('Alpha - 123\nBeta');
-    logHistory();
-    test('Alpha - 123\nBeta');
     testHistory(['Alpha'], ['Alpha\nBeta'], ['Alpha - 123\nBeta', [0, 11]]);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
