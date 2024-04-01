@@ -320,32 +320,25 @@ function testTerminalBody() {
     mockInput('Q\nW\nE\nR\nT\nY', null, () => undoHistory());
     test('A\nD\nC', [1, 1]);
 
-    // scrape before input commit
-    open();
     writeText('Alpha');
     clearHistory();
     test('Alpha');
-
     writeLine('Alpha - ...', 0, true, true);
     test2({ text: 'Alpha - ...', commited: 'Alpha', start: [0, 5] });
     lockLine(0, () => {
         unlockLine(0);
         writeLine('Alpha', 0, true, true);
     });
-
     mockInput('Alpha - ...\nBeta', null, false);
     assert(state.inputLoading, true);
     test2({ text: 'Alpha - ...\nBeta', commited: 'Alpha' });
-
+    writeLine('Alpha - 123', 0, undefined, true, true);
     unlockLine(0);
-    writeLine('Alpha - 123', 0, undefined, true);
     assert(state.inputLoading, false);
-    test('Alpha - 123', [0, 4]); // Actual
-    // test('Alpha - 123\nBeta'); // Expected
-
+    test('Alpha - 123\nBeta');
     logHistory();
-    test('Alpha - 123', [0, 4]); testHistory(['Alpha'], ['Alpha - ...\nBeta'], ['Alpha - 123']); // Actual
-    // test('Alpha - 123\nBeta'); testHistory(['Alpha'], ['Alpha\nBeta'], ['Alpha - 123\nBeta']); // Expected
+    test('Alpha - 123\nBeta');
+    testHistory(['Alpha'], ['Alpha\nBeta'], ['Alpha - 123\nBeta', [0, 11]]);
 
     restore(); writeText(''); clearHistory(); logHistory(); close();
 

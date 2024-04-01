@@ -40,8 +40,10 @@ export default async function scrape() {
 }
 
 async function scrapeLine({ username, index }) {
-    const write = (line, skipHistory) => writeLine(line, index, skipHistory, true);
-    const init = () => { unlockLine(index); write(username, true); };
+    const write = (line, skipHistory, skipLock) => writeLine(
+        line, index, skipHistory, true, skipLock
+    );
+    const init = () => { write(username, true); unlockLine(index); };
 
     try {
         write(fkv(username, '...'), true);
@@ -56,8 +58,7 @@ async function scrapeLine({ username, index }) {
         if (typeof data !== 'number') throw new Error('Scrape failed');
 
         status(fkv(username, data));
-        unlockLine(index);
-        write(fkv(username, data));
+        write(fkv(username, data), undefined, true);
     } catch (error) {
         init();
         status(fkv(username, 'Error'));

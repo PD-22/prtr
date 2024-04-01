@@ -13,20 +13,21 @@ import {
     caretToPos
 } from "./index.js";
 
-function write(snapshotDict, skipHistory, skipSelection) {
+function write(snapshotDict, skipHistory, skipSelection, skipLock) {
     if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), null, skipSelection);
     commitInput();
-    if (abortLockedLines(applyEntries(snapshotDict))) return;
+    if (abortLockedLines(applyEntries(snapshotDict)) && !skipLock) return;
     if (!pushHistory(snapshotDict)) return;
     redoHistory(skipSelection);
 }
 
-export function writeLine(text, row, skipHistory, skipSelection) {
+export function writeLine(text, row, skipHistory, skipSelection, skipLock) {
     row ??= getLines().length;
-    return writeLines({ [row]: text }, skipHistory, skipSelection);
+    return writeLines({ [row]: text }, skipHistory, skipSelection, skipLock);
 }
 
-export function writeLines(rowTextDict, skipHistory, skipSelection) {
+export function writeLines(rowTextDict, skipHistory, skipSelection, skipLock) {
+    commitInput();
     const lines = getLines();
     const changesRow = ([row, text]) => lines[row] !== text;
     const entries = parseSnapshot(rowTextDict).entries.filter(changesRow);
@@ -35,7 +36,7 @@ export function writeLines(rowTextDict, skipHistory, skipSelection) {
     const size = Math.max(prevSize, ...entries.map(([row]) => row + 1));
 
     const newDict = Object.fromEntries(fillSnaps(entries).concat(entries));
-    write({ size, ...newDict }, skipHistory, skipSelection);
+    write({ size, ...newDict }, skipHistory, skipSelection, skipLock);
 }
 
 /** @param {[Number, any][]} rowTextPairs */
@@ -47,12 +48,13 @@ function fillSnaps(rowTextPairs) {
     return Array.from({ length }, mapfn);
 }
 
-export function writeText(text, selection, skipHistory, skipSelection) {
+export function writeText(text, selection, skipHistory, skipSelection, skipLock) {
+    commitInput();
     const { start, end, dir } = selection ?? {};
     const lines = getLines(text);
     const size = lines.length;
     const dictionary = Object.fromEntries(lines.map((text, row) => [row, text]));
-    write({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection);
+    write({ size, start, end, dir, ...dictionary }, skipHistory, skipSelection, skipLock);
 }
 
 export function removeLines(startRow, endRow = startRow + 1, skipHistory) {
