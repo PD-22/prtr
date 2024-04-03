@@ -17,7 +17,7 @@ export function onInput() {
     state.inputLoading = true;
     state.lastOnInputSelection = getSelection();
 
-    if (abortInput()) return;
+    if (abortInput()) return setSelection(state.lastOnInputSelection);
 
     state.inputTimer = setTimeout(commitInput, inputDebounce);
 }
