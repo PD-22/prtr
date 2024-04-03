@@ -18,8 +18,6 @@ export default [
     ['Ctrl+ArrowUp', 'Ascending', () => cancel() | sortData(true)],
     ['Ctrl+ArrowDown', 'Descending', () => cancel() | sortData(false)],
 
-    // ['Ctrl+KeyH', 'History', () => logHistory()],
-    // ['Ctrl+Shift+KeyH', 'Wipe', () => { clearHistory(); }],
     ['Alt+ArrowUp', null, () => moveLines(-1)],
     ['Alt+ArrowDown', null, () => moveLines(+1)],
 

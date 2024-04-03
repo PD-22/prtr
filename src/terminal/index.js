@@ -1,5 +1,3 @@
-import testTerminal from "./test.js";
-
 export * from "./write.js";
 export * from "./checkout.js";
 import { commitInput } from "./input.js";
@@ -28,8 +26,6 @@ export const state = {
     inputLoading: false
 };
 setValue(state.historyBase);
-
-testTerminal();
 
 export function toggle() {
     (state.isOpen ? close : open)();

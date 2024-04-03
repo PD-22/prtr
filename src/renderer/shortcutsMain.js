@@ -33,7 +33,6 @@ export default [
         if (!filePath) return 'Cancel';
 
         await api.exportFile(filePath, dataURL);
-        // status('Done', [filePath]);
     }),
     action('KeyP', 'Paste', async () => {
         const dataURL = await api.paste();
@@ -64,7 +63,6 @@ export default [
         cancelScrape();
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
-        // status('Done', terminal.getLines());
     }),
 
     [mouseDrag.input, 'Move'],

@@ -49,7 +49,6 @@ async function loadWindows() {
         status('Start');
         await mainWindow.loadFile(join(__dirname, 'index.html'));
         mainWindow.webContents.setZoomFactor(1);
-        // mainWindow.webContents.openDevTools(); // TEMP
 
         pageLoading.value = true;
         await statsWindow.loadURL('https://prstats.tk');
@@ -85,7 +84,6 @@ function addListeners() {
         const { canceled, filePaths: [path] } = await dialog.showOpenDialog({
             title: 'Import',
             filters: [{ name: 'Image', extensions: ['png'] }],
-            // defaultPath: join(__dirname, "init.png")
         });
         if (canceled) return;
         return path;
@@ -94,7 +92,6 @@ function addListeners() {
         const buffer = await readFile(path);
         const base64 = buffer.toString('base64');
         if (!base64.length) return;
-        // await new Promise(f => setTimeout(f, 2000)); // TEMP
         return `data:image/png;base64,${base64}`;
     });
 
@@ -102,7 +99,6 @@ function addListeners() {
         const { canceled, filePath } = await dialog.showSaveDialog({
             title: 'Export',
             filters: [{ name: 'Image', extensions: ['png'] }],
-            // defaultPath: join(__dirname, "output.png")
         });
         if (canceled) return;
         return filePath;
@@ -113,7 +109,6 @@ function addListeners() {
     });
 
     ipcMain.handle('paste', async () => {
-        // await new Promise(f => setTimeout(f, 2000)); // TEMP
         const image = clipboard.readImage();
         if (image.isEmpty()) return;
         return image.toDataURL('image/png');

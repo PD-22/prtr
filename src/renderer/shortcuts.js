@@ -18,7 +18,7 @@ export function onKeyDown(e) {
 }
 
 function handleShortcut(e, shortcut) {
-    const [input, name, callback] = shortcut;
+    const [input, _name, callback] = shortcut;
     if (typeof callback !== "function") return;
 
     const inputs = Array.isArray(input) ? input : [input];
@@ -26,7 +26,6 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    // if (name) api.status(`"${matchedInput}" - ${name}`);
     callback(e, matchedInput);
 }
 
