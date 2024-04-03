@@ -16,12 +16,12 @@ app.whenReady().then(async () => {
     await loadWindows();
 });
 
-function echoStatus(message, body = [], ...rest) {
+function echoStatus(message, body = [], permanent, id, alive) {
     if (body && !Array.isArray(body)) body = [body];
     const lines = message ? body.map(s => '  ' + s) : body;
     const text = [message, ...lines].filter(Boolean).join('\n');
     console.log(text);
-    mainWindow.webContents.send('status', message, body, ...rest);
+    mainWindow.webContents.send('status', message, body, permanent, id, alive);
 }
 
 function createWindows() {

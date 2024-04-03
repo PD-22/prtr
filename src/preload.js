@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld('api', {
-    status: (...args) => ipcRenderer.send('status', ...args),
+    status: (message, body, permanent, id, alive) => ipcRenderer.send('status', message, body, permanent, id, alive),
     onStatus: callback => ipcRenderer.on('status', (_, ...args) => callback(...args)),
     importDialog: () => ipcRenderer.invoke('import-dialog'),
     importFile: path => ipcRenderer.invoke('import-file', path),
