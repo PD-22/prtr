@@ -18,22 +18,19 @@ export default [
 
         const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
         if (cancelImport) return false;
-        if (!dataURL) throw new Error('File Read fail');
+        if (!dataURL) throw new Error('Empty');
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
         if (cancelLoad) return false;
 
         drawImage(image);
     }),
-    action('KeyE', 'Export', async () => {
-        const dataURL = getRectCanvasDataURL();
-        if (!dataURL) throw new Error('Empty');
-
+    action('KeyE', 'Export', async (dataURL) => {
         const filePath = await api.exportDialog();
         if (!filePath) return false;
 
         await api.exportFile(filePath, dataURL);
-    }),
+    }, getRectCanvasDataURL),
     action('KeyP', 'Paste', async () => {
         const dataURL = await api.paste();
         if (!dataURL) return false;
@@ -52,10 +49,7 @@ export default [
 
         drawImage(image);
     }),
-    action('Enter', 'Recognize', async () => {
-        const dataURL = getRectCanvasDataURL();
-        if (!dataURL) throw new Error('Empty');
-
+    action('Enter', 'Recognize', async (dataURL) => {
         const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
         if (cancel) return false;
         if (!parsedLines?.length) throw new Error('Empty');
@@ -63,7 +57,7 @@ export default [
         cancelScrape();
         terminal.writeText(parsedLines.join('\n'), null, null, true);
         terminal.open();
-    }),
+    }, getRectCanvasDataURL),
 
     [mouseDrag.input, 'Move'],
     [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
@@ -86,14 +80,18 @@ export default [
 ];
 
 const actionId = 'action';
-function action(input, name, acb) {
+function action(input, name, acb, prepare) {
     const status = (message, ...rest) => api.status(`${name}: ${message}`, ...rest);
     const callback = async () => {
         if (pending) return;
+
+        const args = prepare?.();
+        if (prepare && args === undefined) return;
+
         try {
             api.status(`${name}...`, undefined, true, actionId);
             pending = name;
-            const message = await acb() === false ? 'Cancel' : 'Done';
+            const message = await acb(args) === false ? 'Cancel' : 'Done';
             status(message, undefined, undefined, actionId);
         } catch (error) {
             const message = ['Error', error.message.split('\n')[0]].join(': ');
