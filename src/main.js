@@ -14,11 +14,12 @@ app.whenReady().then(async () => {
     await loadWindows();
 });
 
-function echoStatus(message, body = []) {
+function echoStatus(message, body = [], permanent) {
+    if (body && !Array.isArray(body)) body = [body];
     const lines = message ? body.map(s => '  ' + s) : body;
     const text = [message, ...lines].filter(Boolean).join('\n');
     console.log(text);
-    mainWindow.webContents.send('status', message, body);
+    mainWindow.webContents.send('status', message, body, permanent);
 }
 
 function createWindows() {
@@ -43,7 +44,7 @@ function createWindows() {
 }
 
 async function loadWindows() {
-    const status = (message, body) => echoStatus(`Setup: ${message}`, body);
+    const status = (message, ...rest) => echoStatus(`Setup: ${message}`, ...rest);
     try {
         status('Start');
         await mainWindow.loadFile(join(__dirname, 'index.html'));
@@ -62,7 +63,7 @@ async function loadWindows() {
         status('Done');
     } catch (error) {
         pageLoading.value = null;
-        status('Error');
+        status('Error', undefined, true);
         throw error;
     }
 }

@@ -88,3 +88,8 @@ body {
     pointer-events: none;
     user-select: none;
 }
+
+.note.permanent {
+    background: rgba(0, 0, 0, 1);
+    order: 1;
+}

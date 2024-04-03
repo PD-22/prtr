@@ -9,9 +9,9 @@ terminal.element.addEventListener('input', terminal.onInput);
 
 mouseListeners.forEach(([t, l]) => window.addEventListener(t, l));
 
-api.onStatus((message, body = []) => {
+api.onStatus((message, body = [], permanent) => {
     const lines = message ? body.map(s => '  ' + s) : body;
     const text = [message, ...lines].filter(Boolean).join('\n');
     console.log(text);
-    note(message ?? text, 7000, 3000);
+    note(message ?? text, permanent ? Infinity : 7000, 3000);
 });

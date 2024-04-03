@@ -5,6 +5,7 @@ export default async function note(message, alive = 1000, transition = 300) {
     alertBox.className = 'note';
     alertBox.textContent = message;
     container.appendChild(alertBox);
+    if (alive === Infinity) return alertBox.classList.add('permanent');
 
     await delay(alive);
     alertBox.style.transition = `opacity ${transition}ms`;
