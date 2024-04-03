@@ -3,15 +3,18 @@ import { mouseListeners } from "./mouse.js";
 import note from "./note.js";
 import { onKeyDown } from "./shortcuts.js";
 
-document.addEventListener('keydown', onKeyDown);
+try {
+    document.addEventListener('keydown', onKeyDown);
+    terminal.element.addEventListener('input', terminal.onInput);
+    mouseListeners.forEach(([t, l]) => window.addEventListener(t, l));
 
-terminal.element.addEventListener('input', terminal.onInput);
-
-mouseListeners.forEach(([t, l]) => window.addEventListener(t, l));
-
-api.onStatus((message, body = [], permanent, id, alive) => {
-    const lines = message ? body.map(s => '  ' + s) : body;
-    const text = [message, ...lines].filter(Boolean).join('\n');
-    console.log(text);
-    note(message ?? text, permanent ? Infinity : alive, id);
-});
+    api.onStatus((message, body = [], permanent, id, alive) => {
+        const lines = message ? body.map(s => '  ' + s) : body;
+        const text = [message, ...lines].filter(Boolean).join('\n');
+        console.log(text);
+        note(message ?? text, permanent ? Infinity : alive, id);
+    })
+} catch (error) {
+    note('Error', Infinity);
+    throw error;
+}
