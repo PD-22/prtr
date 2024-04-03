@@ -14,51 +14,51 @@ let pending = false;
 export default [
     action('KeyI', 'Import', async () => {
         const filePath = await api.importDialog();
-        if (!filePath) return 'Cancel';
+        if (!filePath) return false;
 
         const [cancelImport, dataURL] = await cancelable(api.importFile(filePath));
-        if (cancelImport) return 'Cancel';
+        if (cancelImport) return false;
         if (!dataURL) throw new Error('File Read fail');
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return 'Cancel';
+        if (cancelLoad) return false;
 
         drawImage(image);
     }),
     action('KeyE', 'Export', async () => {
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return 'Empty';
+        if (!dataURL) throw new Error('Empty');
 
         const filePath = await api.exportDialog();
-        if (!filePath) return 'Cancel';
+        if (!filePath) return false;
 
         await api.exportFile(filePath, dataURL);
     }),
     action('KeyP', 'Paste', async () => {
         const dataURL = await api.paste();
-        if (!dataURL) return 'Cancel';
+        if (!dataURL) return false;
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return 'Cancel';
+        if (cancelLoad) return false;
 
         drawImage(image);
     }),
     action('KeyC', 'Crop', async () => {
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return 'Cancel';
+        if (!dataURL) return false;
 
         const [cancelLoad, image] = await cancelable(loadImage(dataURL));
-        if (cancelLoad) return 'Cancel';
+        if (cancelLoad) return false;
 
         drawImage(image);
     }),
     action('Enter', 'Recognize', async () => {
         const dataURL = getRectCanvasDataURL();
-        if (!dataURL) return 'Empty';
+        if (!dataURL) throw new Error('Empty');
 
         const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
-        if (cancel) return 'Cancel';
-        if (!parsedLines?.length) return 'Empty';
+        if (cancel) return false;
+        if (!parsedLines?.length) throw new Error('Empty');
 
         cancelScrape();
         terminal.writeText(parsedLines.join('\n'), null, null, true);
@@ -88,16 +88,16 @@ export default [
 const actionId = 'action';
 function action(input, name, acb) {
     const status = (message, ...rest) => api.status(`${name}: ${message}`, ...rest);
-    const statusPending = () => status(`${name === pending ? '' : `${pending} `}pending`);
     const callback = async () => {
-        if (pending) return statusPending();
+        if (pending) return;
         try {
             api.status(`${name}...`, undefined, true, actionId);
             pending = name;
-            const result = await acb(status);
-            status(result ?? 'Done', undefined, undefined, actionId);
+            const message = await acb() === false ? 'Cancel' : 'Done';
+            status(message, undefined, undefined, actionId);
         } catch (error) {
-            status('Error');
+            const message = ['Error', error.message.split('\n')[0]].join(': ');
+            status(message, undefined, undefined, actionId);
             throw error;
         } finally {
             pending = false;
