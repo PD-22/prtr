@@ -1,14 +1,14 @@
-export * from "./write.js";
 export * from "./checkout.js";
-import { commitInput } from "./input.js";
 export * from "./input.js";
 export * from "./lock.js";
-export * from "./select.js";
-export * from "./value.js";
-import { setValue, getValue, getLines } from "./value.js";
-import { parseSnapshot } from "./snapshot.js";
-export * from "./snapshot.js";
 export * from "./logHistory.js";
+export * from "./select.js";
+export * from "./snapshot.js";
+export * from "./value.js";
+export * from "./write.js";
+import { commitInput } from "./input.js";
+import { parseSnapshot } from "./snapshot.js";
+import { getLines, getValue, setValue } from "./value.js";
 
 /** @type {HTMLTextAreaElement} */
 export const element = document.querySelector('textarea.terminal');
@@ -26,6 +26,7 @@ export const state = {
     inputLoading: false
 };
 setValue(state.historyBase);
+// testTerminal();
 
 export function toggle() {
     (state.isOpen ? close : open)();

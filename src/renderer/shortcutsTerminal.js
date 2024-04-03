@@ -27,7 +27,7 @@ export default [
 function clean() {
     const parsedLines = getParsedLines();
     const newLines = unique(parsedLines.map(x => x.username).filter(Boolean));
-    writeText(newLines.join('\n'), null, null, true);
+    writeText(newLines.join('\n'), undefined, undefined, true);
 }
 
 function moveLines(change) {
@@ -54,7 +54,7 @@ function sortData(ascending = true) {
         .sort((a, b) => (b.data ?? 0) - (a.data ?? 0));
     if (!ascending) sorted.reverse();
     const lines = sorted.map(x => x.line);
-    writeText(lines.join('\n'), null, null, true);
+    writeText(lines.join('\n'), undefined, undefined, true);
 }
 
 export function getParsedLines() {

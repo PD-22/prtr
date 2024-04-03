@@ -66,7 +66,7 @@ export function redoHistory(skipSelection) {
 
     if (state.inputLoading) return;
     if (newIndex > history.length - 1) return restore();
-    applySnapshot(history[state.historyIndex], null, skipSelection);
+    applySnapshot(history[state.historyIndex], undefined, skipSelection);
 }
 
 export function restore(skipSelection, skipLock) {

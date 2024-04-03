@@ -36,7 +36,7 @@ export function generateSnapshot(dict, value) {
     const cleanEntries = parseSnapshot(dictionary).entries;
 
     end ??= start;
-    if (start == null) {
+    if (start == undefined) {
         const newLines = applyEntries({ size, ...dictionary });
         const rows = cleanEntries.map(([row]) => row);
         const lastRow = rows.length ? Math.max(...rows) : size - 1;

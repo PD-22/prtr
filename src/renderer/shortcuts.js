@@ -62,5 +62,5 @@ export function remindShortcuts() {
         return `${name} - "${fkey}"`;
     }
     const body = shortcuts.filter((([_, n]) => n)).map(f);
-    api.status(null, body, undefined, 'remind', 10000);
+    api.status(undefined, body, undefined, 'remind', 10000);
 }

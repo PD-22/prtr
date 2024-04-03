@@ -210,7 +210,7 @@ function testTerminalBody() {
     assert(false, getLockedLines().has(1));
     restore();
     test('Alpha - 100\nBeta', [0, 11]);
-    writeText('Alpha\nBeta\nCharlie', null, null, true);
+    writeText('Alpha\nBeta\nCharlie', undefined, undefined, true);
     test('Alpha\nBeta\nCharlie', [0, 5]);
 
     restore();
@@ -297,19 +297,19 @@ function testTerminalBody() {
     testHistory(['Alpha\nBeta - 123\nCharlie']);
 
     writeText('ABC'); clearHistory(); restore();
-    writeText('ABC 123', null, true);
+    writeText('ABC 123', undefined, true);
 
     undoHistory();
     test('ABC');
 
-    writeText('ABC 123', null, true);
+    writeText('ABC 123', undefined, true);
     redoHistory();
     test('ABC');
 
-    mockInput('ABC 123', null, () => undoHistory());
+    mockInput('ABC 123', undefined, () => undoHistory());
     testHistory(['ABC']);
 
-    mockInput('ABC 123', null, () => redoHistory());
+    mockInput('ABC 123', undefined, () => redoHistory());
     testHistory(['ABC'], ['ABC 123']);
 
     clearHistory();
@@ -317,7 +317,7 @@ function testTerminalBody() {
     writeLine('B', 1);
     writeLine('C', 2);
     writeLine('D', 1);
-    mockInput('Q\nW\nE\nR\nT\nY', null, () => undoHistory());
+    mockInput('Q\nW\nE\nR\nT\nY', undefined, () => undoHistory());
     test('A\nD\nC', [1, 1]);
 
     writeText('Alpha');
@@ -329,7 +329,7 @@ function testTerminalBody() {
         unlockLine(0);
         writeLine('Alpha', 0, true, true);
     });
-    mockInput('Alpha - ...\nBeta', null, false);
+    mockInput('Alpha - ...\nBeta', undefined, false);
     assert(state.inputLoading, true);
     test2({ text: 'Alpha - ...\nBeta', commited: 'Alpha' });
     writeLine('Alpha - 123', 0, undefined, true, true);

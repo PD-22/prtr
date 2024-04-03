@@ -18,7 +18,7 @@ export default async function scrape() {
     try {
         const parsedLines = getParsedLines();
         const lines = parsedLines.map(x => fkv(x.username, x.data));
-        writeText(lines.join('\n'), null, null, true);
+        writeText(lines.join('\n'), undefined, undefined, true);
 
         const filteredLines = parsedLines
             .map((o, index) => ({ ...o, index }))

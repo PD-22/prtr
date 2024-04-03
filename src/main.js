@@ -32,6 +32,7 @@ function createWindows() {
         fullscreen: true
     })
     mainWindow.on('closed', () => { mainWindow = null });
+    // mainWindow.webContents.openDevTools();
 
     statsWindow = new BrowserWindow({
         parent: mainWindow,

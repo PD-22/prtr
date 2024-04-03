@@ -55,7 +55,7 @@ export default [
         if (!parsedLines?.length) throw new Error('Empty');
 
         cancelScrape();
-        terminal.writeText(parsedLines.join('\n'), null, null, true);
+        terminal.writeText(parsedLines.join('\n'), undefined, undefined, true);
         terminal.open();
     }, getRectCanvasDataURL),
 
