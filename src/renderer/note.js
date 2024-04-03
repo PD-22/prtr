@@ -1,9 +1,11 @@
 const container = document.querySelector('.side-notes');
+const transition = 300;
 
-export default async function note(message, alive = 1000, transition = 300) {
+export default async function note(message, alive = 3000, id) {
     const alertBox = document.createElement('div');
     alertBox.className = 'note';
     alertBox.textContent = message;
+    if (id) container.querySelectorAll('#' + (alertBox.id = id)).forEach(e => e.remove());
     container.appendChild(alertBox);
     if (alive === Infinity) return alertBox.classList.add('permanent');
 

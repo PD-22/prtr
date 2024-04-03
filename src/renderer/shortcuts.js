@@ -26,7 +26,7 @@ function handleShortcut(e, shortcut) {
     if (!matchedInput) return;
 
     e.preventDefault();
-    if (name) api.status(`"${matchedInput}" - ${name}`);
+    // if (name) api.status(`"${matchedInput}" - ${name}`);
     callback(e, matchedInput);
 }
 
@@ -63,5 +63,5 @@ export function remindShortcuts() {
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
         return `${name} - "${fkey}"`;
     }
-    api.status(null, shortcuts.filter((([_, n]) => n)).map(f));
+    api.status(null, shortcuts.filter((([_, n]) => n)).map(f), undefined, 'remind');
 }
