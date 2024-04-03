@@ -63,5 +63,6 @@ export function remindShortcuts() {
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
         return `${name} - "${fkey}"`;
     }
-    api.status(null, shortcuts.filter((([_, n]) => n)).map(f), undefined, 'remind');
+    const body = shortcuts.filter((([_, n]) => n)).map(f);
+    api.status(null, body, undefined, 'remind', 5000);
 }
