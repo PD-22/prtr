@@ -1,8 +1,10 @@
-const { app, BrowserWindow, clipboard, ipcMain, dialog, globalShortcut } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain, dialog, globalShortcut, Menu } = require('electron');
 const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
+
+Menu.setApplicationMenu(null);
 
 /** @type {BrowserWindow} */ let mainWindow = null;
 /** @type {BrowserWindow} */ let statsWindow = null;
@@ -27,8 +29,7 @@ function createWindows() {
         webPreferences: {
             preload: join(__dirname, 'preload.js')
         },
-        fullscreen: true,
-        frame: false
+        fullscreen: true
     })
     mainWindow.on('closed', () => { mainWindow = null });
 
@@ -75,6 +76,10 @@ function addRestartListener() {
 }
 
 function addListeners() {
+    globalShortcut.register('F11', () => {
+        if (!mainWindow.isFocused()) return;
+        mainWindow.setFullScreen(!mainWindow.isFullScreen());
+    });
     app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 

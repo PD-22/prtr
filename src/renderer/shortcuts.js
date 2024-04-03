@@ -5,7 +5,6 @@ import shortcutsTerminal from "./shortcutsTerminal.js";
 const commonShortcuts = [
     ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],
     ['Tab', 'Toggle', () => terminal.toggle()],
-    [['Ctrl+Digit0', 'Ctrl+Minus', 'Ctrl+Equal'], null, e => e.preventDefault()],
 ]
 
 export const getActiveShortcuts = () => {
