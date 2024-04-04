@@ -1,8 +1,6 @@
-import { lockLine, open, unlockLine, writeLine, writeText } from "../terminal/index.js";
+import { lockLine, open, state, unlockLine, writeLine, writeText } from "../terminal/index.js";
 import createCancelable from "./cancelable.js";
 import { getParsedLines } from "./shortcutsTerminal.js";
-
-const status = (message, body) => api.status(`Scrape: ${message}`, body);
 
 const [cancelable, cancel] = createCancelable();
 export const cancelScrape = cancel;
@@ -21,7 +19,9 @@ function enqueue(...promises) {
     return length;
 }
 
+const name = 'Scrape'
 export default async function scrape() {
+    const status = (message, permanent) => api.status(message, undefined, permanent, name);
     try {
         const parsedLines = getParsedLines();
         const lines = parsedLines.map(x => fkv(x.username, x.data));
@@ -31,18 +31,18 @@ export default async function scrape() {
             .map((o, index) => ({ ...o, index }))
             .filter(o => o.username && !o.data);
 
-        if (!filteredLines.length) return status('Empty');
+        if (!filteredLines.length) return;
 
         if (enqueue(...filteredLines.map(scrapeLine))) return;
 
-        status('Start');
+        status(`${name}...`, true);
         const [cancel] = await cancelable([process()]);
-        if (cancel) return status('Cancel');
+        if (cancel) return status(`${name} Cancel`);
 
-        status('Done');
+        status(undefined, true);
         open();
     } catch (error) {
-        status('Error');
+        status(`${name} Error`);
         throw error;
     }
 }
@@ -51,6 +51,7 @@ async function scrapeLine({ username, index }) {
     const write = (text, { skipHistory, skipSelection = true, skipLock }) =>
         writeLine(text, index, skipHistory, skipSelection, skipLock);
     const init = () => { write(username, { skipHistory: true }); unlockLine(index); };
+    const status = message => api.status(`${name} ${message}`);
 
     try {
         write(fkv(username, '...'), { skipHistory: true });
@@ -62,9 +63,9 @@ async function scrapeLine({ username, index }) {
         if (abort) status(fkv(username, 'Abort'));
         if (abort || cancel) return;
         if (data instanceof Error) throw data;
-        if (typeof data !== 'number') throw new Error('Scrape failed');
+        if (typeof data !== 'number') throw new Error(`${name} fail`);
 
-        status(fkv(username, data));
+        if (!state.isOpen) status(fkv(username, data));
         write(fkv(username, data), { skipLock: true });
     } catch (error) {
         init();

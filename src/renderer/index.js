@@ -11,7 +11,7 @@ try {
     api.onStatus((message, body = [], permanent, id, alive) => {
         const lines = message ? body.map(s => '  ' + s) : body;
         const text = [message, ...lines].filter(Boolean).join('\n');
-        console.log(text);
+        if (text) console.log(text);
         note(message ?? text, permanent ? Infinity : alive, id);
     })
 } catch (error) {
