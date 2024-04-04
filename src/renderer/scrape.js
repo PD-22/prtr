@@ -1,11 +1,4 @@
-import {
-    lockLine,
-    open,
-    state,
-    unlockLine,
-    writeLine,
-    writeText
-} from "../terminal/index.js";
+import { lockLine, open, unlockLine, writeLine, writeText } from "../terminal/index.js";
 import createCancelable from "./cancelable.js";
 import { getParsedLines } from "./shortcutsTerminal.js";
 
@@ -13,6 +6,20 @@ const status = (message, body) => api.status(`Scrape: ${message}`, body);
 
 const [cancelable, cancel] = createCancelable();
 export const cancelScrape = cancel;
+
+const pending = [];
+async function process() {
+    while (pending.length) {
+        const { length } = pending;
+        await Promise.allSettled(pending);
+        pending.splice(0, length);
+    }
+}
+function enqueue(...promises) {
+    const { length } = pending;
+    pending.push(...promises);
+    return length;
+}
 
 export default async function scrape() {
     try {
@@ -26,12 +33,13 @@ export default async function scrape() {
 
         if (!filteredLines.length) return status('Empty');
 
-        status('Start', filteredLines.map(x => x.username));
-        const promise = Promise.allSettled(filteredLines.map(scrapeLine));
-        const [cancel] = await cancelable([promise]);
+        if (enqueue(...filteredLines.map(scrapeLine))) return;
+
+        status('Start');
+        const [cancel] = await cancelable([process()]);
         if (cancel) return status('Cancel');
 
-        if (state.isOpen) return;
+        status('Done');
         open();
     } catch (error) {
         status('Error');
