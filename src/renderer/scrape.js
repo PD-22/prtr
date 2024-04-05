@@ -68,9 +68,10 @@ async function scrapeLine({ username, index }) {
         if (!state.isOpen) status(fkv(username, data));
         write(fkv(username, data), { skipLock: true });
     } catch (error) {
-        init();
-        status(fkv(username, 'Error'));
         console.error(error);
+        status(fkv(username, 'Error'));
+        init();
+        throw error;
     } finally {
         unlockLine(index);
         api.abortScrape(index);

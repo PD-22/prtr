@@ -31,7 +31,7 @@ export default function testTerminal() {
         testTerminalBody();
         api.status('Terminal: Test done');
     } catch (error) {
-        api.status('Terminal: Test fail');
+        api.status('Terminal: Test fail', undefined, true);
         console.error(error);
     }
 }

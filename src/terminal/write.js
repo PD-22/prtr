@@ -11,9 +11,9 @@ import {
 } from "./index.js";
 
 function write(snapshotDict, skipHistory, skipSelection, skipLock) {
-    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), undefined, skipSelection);
     commitInput();
     if (abortLockedLines(applyEntries(snapshotDict)) && !skipLock) return;
+    if (skipHistory) return applySnapshot(generateSnapshot(snapshotDict), undefined, skipSelection);
     if (!pushHistory(snapshotDict)) return;
     redoHistory(skipSelection);
 }

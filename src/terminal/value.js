@@ -17,7 +17,7 @@ function calculateLines(index = state.historyIndex) {
 }
 
 export function setValue(newValue, skipSelection) {
-    if (getAbortRows(getLines(newValue)).length) throw new Error('Locked line');
+    if (getAbortRows(getLines(newValue)).length) return;
 
     if (!skipSelection) return element.value = newValue;
 
