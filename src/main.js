@@ -32,6 +32,10 @@ function createWindows() {
         fullscreen: true
     })
     mainWindow.on('closed', () => { mainWindow = null });
+    mainWindow.on('focus', () => globalShortcut.register('F11',
+        () => mainWindow.setFullScreen(!mainWindow.isFullScreen())
+    ));
+    mainWindow.on('blur', () => globalShortcut.unregisterAll());
     // mainWindow.webContents.openDevTools();
 
     statsWindow = new BrowserWindow({
@@ -78,12 +82,8 @@ function addRestartListener() {
 }
 
 function addListeners() {
-    globalShortcut.register('F11', () => {
-        if (!mainWindow.isFocused()) return;
-        mainWindow.setFullScreen(!mainWindow.isFullScreen());
-    });
     app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-    app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+    app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindows(); });
 
     ipcMain.on('status', (_, ...args) => { echoStatus(...args); });
 
