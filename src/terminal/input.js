@@ -1,8 +1,7 @@
 import {
-    abortLockedLines,
+    abortLockedRows,
     element,
     getAbortRows,
-    getLines,
     getSelection,
     getValue,
     inputDebounce,
@@ -17,17 +16,18 @@ export function onInput() {
     state.inputLoading = true;
     state.lastOnInputSelection = getSelection();
 
-    if (abortInput()) return setSelection(state.lastOnInputSelection);
+    if (abortInput()) return;
 
     state.inputTimer = setTimeout(commitInput, inputDebounce);
 }
 
 function abortInput() {
-    if (!getAbortRows().length) return;
-    const newLines = getLines();
+    const abortRows = getAbortRows();
+    if (!abortRows.length) return;
     restore(true);
     cancelInput();
-    abortLockedLines(newLines);
+    abortLockedRows(abortRows);
+    setSelection([abortRows.at(-1)[0], Infinity]);
     return true;
 }
 

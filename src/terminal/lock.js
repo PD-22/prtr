@@ -16,7 +16,10 @@ export function getAbortRows(newLines = getLines()) {
 }
 
 export function abortLockedLines(newLines) {
-    const abortRows = getAbortRows(newLines);
+    return abortLockedRows(getAbortRows(newLines));
+}
+
+export function abortLockedRows(abortRows) {
     const lines = getLines();
     abortRows.forEach(([row, line]) => lines[row] = line);
 
