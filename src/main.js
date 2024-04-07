@@ -50,14 +50,11 @@ function createWindows() {
 }
 
 async function loadWindows() {
-    const name = 'Setup';
-    const status = (message, permanent) => echoStatus(message, undefined, permanent, name);
     try {
         await mainWindow.loadFile(join(__dirname, 'index.html'));
         mainWindow.webContents.setZoomFactor(1);
 
         pageLoading.value = true;
-        status(`${name}...`, true, name);
         await statsWindow.loadURL('https://prstats.tk');
 
         const path = join(__dirname, 'postload-stats.js');
@@ -66,10 +63,9 @@ async function loadWindows() {
         if (!token) throw new Error("Token missing");
 
         pageLoading.value = false;
-        status(undefined, undefined, name);
     } catch (error) {
         pageLoading.value = null;
-        status(`${name}: Error`, true, name);
+        echoStatus('Error: Restart', undefined, true);
         throw error;
     }
 }

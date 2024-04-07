@@ -19,7 +19,7 @@ async function getUserTime(username, token, signal) {
     const foundUser = searchResults.find(x => x.icon === 'user' && x.label === username);
     if (!foundUser) throw new Error(`User "${username}" not found`);
 
-    const userPageUrl = foundUser.value.replace('http', 'https');
+    const userPageUrl = foundUser.value.replace('http://', 'https://');
     return await extractUserTime(userPageUrl, signal);
 }
 
@@ -28,7 +28,7 @@ async function extractUserTime(userPageUrl, signal) {
     const allElements = Array.from(document.getElementsByTagName("*"));
     const inGameTimeElt = allElements.find(elt => elt.textContent === "IN-GAME TIME");
     const timeElement = inGameTimeElt.previousElementSibling.querySelector('abbr');
-    return parseInt(timeElement.title);
+    return Math.abs(parseInt(timeElement.title));
 }
 
 async function fetchPage(url, signal) {
