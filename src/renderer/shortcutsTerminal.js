@@ -9,20 +9,19 @@ import {
 import scrape, { cancelScrape as cancel } from "./scrape.js";
 
 export default [
-    ['Enter', 'Search', scrape],
-    ['Alt+KeyC', 'Clean', () => cancel() | clean()],
+    ['Escape', 'Esc', 'Cancel', () => deselect() || cancel()],
+    ['Enter', 'Enter', 'Search', scrape],
+    ['Ctrl+Delete', 'Ctrl+Del', 'Clean', () => cancel() | clean()],
 
-    [['Ctrl+KeyZ'], null, () => undoHistory()],
-    [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], null, () => redoHistory()],
+    [['Ctrl+KeyZ'], null, null, () => undoHistory()],
+    [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], null, null, () => redoHistory()],
 
-    ['Ctrl+ArrowUp', null, () => cancel() | sortData(true)],
-    ['Ctrl+ArrowDown', null, () => cancel() | sortData(false)],
+    ['Ctrl+ArrowDown', null, null, () => cancel() | sortData(true)],
+    ['Ctrl+ArrowUp', null, null, () => cancel() | sortData(false)],
 
-    ['Alt+ArrowUp', null, () => moveLines(-1)],
-    ['Alt+ArrowDown', null, () => moveLines(+1)],
-    ['Ctrl+KeyL', null, () => console.clear()],
-
-    ['Escape', null, () => deselect() || cancel()],
+    ['Alt+ArrowUp', null, null, () => moveLines(-1)],
+    ['Alt+ArrowDown', null, null, () => moveLines(+1)],
+    ['Ctrl+KeyL', null, null, () => console.clear()],
 ];
 
 function clean() {

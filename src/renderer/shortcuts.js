@@ -3,16 +3,13 @@ import note from "./note.js";
 import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
 
-let remindOpen = false;
 const commonShortcuts = [
-    ['F1', 'Shortcuts', () => {
-        note(remindOpen ? undefined : formatShortcuts(), Infinity, 'remind');
-        remindOpen = !remindOpen;
-    }],
-    ['Tab', 'Terminal', () => terminal.toggle()],
+    ['F1', 'F1', 'Info', toggleShortcuts],
+    ['Tab', 'Tab', 'Switch', () => terminal.toggle()],
 ];
+setTimeout(toggleShortcuts);
 
-export const getActiveShortcuts = () => {
+export function getActiveShortcuts() {
     const openShortcuts = terminal.state.isOpen ? shortcutsTerminal : shortcutsMain;
     return commonShortcuts.concat(openShortcuts);
 }
@@ -22,7 +19,7 @@ export function onKeyDown(e) {
 }
 
 function handleShortcut(e, shortcut) {
-    const [input, _name, callback] = shortcut;
+    const [input, , , callback] = shortcut;
     if (typeof callback !== "function") return;
 
     const inputs = Array.isArray(input) ? input : [input];
@@ -56,17 +53,17 @@ function parseShortcut(str) {
     return [key, mods];
 }
 
+let remindOpen = false;
+function toggleShortcuts() {
+    note(remindOpen ? undefined : formatShortcuts(), Infinity, 'remind');
+    remindOpen = !remindOpen;
+}
+
 export function formatShortcuts() {
-    const shortcuts = getActiveShortcuts();
-    const f = ([key, name]) => {
-        const keys = Array.isArray(key) ? key : [key];
-        const fkey = keys[0]
-            .replace(/\bKey([A-Z])$/, '$1')
-            .replace(/\bDigit([0-9])$/, '$1')
-            .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
-        return `${name} - "${fkey}"`;
-    }
-    return shortcuts.filter((([_, n]) => n)).map(f).join('\n');
+    return getActiveShortcuts()
+        .filter((([, , name]) => name))
+        .map((([input, displayInput, name]) => [name, displayInput || input].join(' - ')))
+        .join('\n');
 }
 
 export function updateRemind() {
