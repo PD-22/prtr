@@ -99,18 +99,9 @@ export function scrollToggle(x, y) {
 
 export function finishToggle() {
     stopToggle();
-
-    const { x, x2, y, y2, w, h } = rect;
-    const l = dash.length;
+    const { w, h } = rect;
+    const l = 2 * dash.length;
     if (w < l || h < l) return fitRectToCanvas();
-
-    const z = 2 * l;
-    if (w < z || h < z) setRect(
-        (x + x2 - z) / 2,
-        (y + y2 - z) / 2,
-        (x + x2 + z) / 2,
-        (y + y2 + z) / 2,
-    )
 }
 
 function stopToggle() {
