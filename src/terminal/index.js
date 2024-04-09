@@ -6,6 +6,7 @@ export * from "./select.js";
 export * from "./snapshot.js";
 export * from "./value.js";
 export * from "./write.js";
+import { updateRemind } from "../renderer/shortcuts.js";
 import { commitInput } from "./input.js";
 import { parseSnapshot } from "./snapshot.js";
 import { getLines, getValue, setValue } from "./value.js";
@@ -36,12 +37,14 @@ export function open() {
     state.isOpen = true;
     element.classList.add('is-open');
     setTimeout(() => element.focus());
+    updateRemind();
 }
 
 export function close() {
     commitInput();
     state.isOpen = false;
     element.classList.remove('is-open');
+    updateRemind();
 }
 
 export function clearHistory() {

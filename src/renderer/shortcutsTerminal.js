@@ -9,19 +9,20 @@ import {
 import scrape, { cancelScrape as cancel } from "./scrape.js";
 
 export default [
-    ['Enter', 'Scrape', scrape],
+    ['Enter', 'Search', scrape],
     ['Alt+KeyC', 'Clean', () => cancel() | clean()],
 
-    [['Ctrl+KeyZ'], 'Undo', () => undoHistory()],
-    [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], 'Redo', () => redoHistory()],
+    [['Ctrl+KeyZ'], null, () => undoHistory()],
+    [['Ctrl+KeyY', 'Ctrl+Shift+KeyZ'], null, () => redoHistory()],
 
-    ['Ctrl+ArrowUp', 'Ascending', () => cancel() | sortData(true)],
-    ['Ctrl+ArrowDown', 'Descending', () => cancel() | sortData(false)],
+    ['Ctrl+ArrowUp', null, () => cancel() | sortData(true)],
+    ['Ctrl+ArrowDown', null, () => cancel() | sortData(false)],
 
     ['Alt+ArrowUp', null, () => moveLines(-1)],
     ['Alt+ArrowDown', null, () => moveLines(+1)],
+    ['Ctrl+KeyL', null, () => console.clear()],
 
-    ['Escape', 'Cancel', () => deselect() || cancel()],
+    ['Escape', null, () => deselect() || cancel()],
 ];
 
 function clean() {

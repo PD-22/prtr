@@ -1,11 +1,16 @@
 import * as terminal from "../terminal/index.js";
+import note from "./note.js";
 import shortcutsMain from "./shortcutsMain.js";
 import shortcutsTerminal from "./shortcutsTerminal.js";
 
+let remindOpen = false;
 const commonShortcuts = [
-    ['Alt+Slash', 'Shortcuts', () => remindShortcuts()],
-    ['Tab', 'Toggle', () => terminal.toggle()],
-]
+    ['F1', 'Shortcuts', () => {
+        note(remindOpen ? undefined : formatShortcuts(), Infinity, 'remind');
+        remindOpen = !remindOpen;
+    }],
+    ['Tab', 'Terminal', () => terminal.toggle()],
+];
 
 export const getActiveShortcuts = () => {
     const openShortcuts = terminal.state.isOpen ? shortcutsTerminal : shortcutsMain;
@@ -51,7 +56,7 @@ function parseShortcut(str) {
     return [key, mods];
 }
 
-export function remindShortcuts() {
+export function formatShortcuts() {
     const shortcuts = getActiveShortcuts();
     const f = ([key, name]) => {
         const keys = Array.isArray(key) ? key : [key];
@@ -61,6 +66,10 @@ export function remindShortcuts() {
             .replace(/\bArrow([A-Z][a-z]+)$/, '$1');
         return `${name} - "${fkey}"`;
     }
-    const body = shortcuts.filter((([_, n]) => n)).map(f);
-    api.status(undefined, body, undefined, 'remind', 10000);
+    return shortcuts.filter((([_, n]) => n)).map(f).join('\n');
+}
+
+export function updateRemind() {
+    if (!remindOpen) return;
+    note(formatShortcuts(), Infinity, 'remind');
 }

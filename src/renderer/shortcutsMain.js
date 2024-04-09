@@ -1,7 +1,7 @@
 import * as terminal from "../terminal/index.js";
 import createCancelable from "./cancelable.js";
 import { drawImage, loadImage, reset, scrollBy, zoom } from "./canvas.js";
-import { mouseDrag, mouseSelect, mouseZoom } from "./mouse.js";
+import { mouseZoom } from "./mouse.js";
 import { fitRectToCanvas, getRectCanvasDataURL, toggleDrag } from "./rect.js";
 import { cancelScrape } from "./scrape.js";
 import { modifierMatches } from "./shortcuts.js";
@@ -12,7 +12,16 @@ const cancelable = (...a) => _cancelable(a);
 let pending = false;
 
 export default [
-    action('KeyI', 'Import', async () => {
+    action('Enter', 'Scan', async (dataURL) => {
+        const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
+        if (cancel) return;
+        if (!parsedLines?.length) throw new Error('Empty');
+
+        cancelScrape();
+        terminal.writeText(parsedLines.join('\n'), undefined, undefined, true);
+        terminal.open();
+    }, getRectCanvasDataURL),
+    action('KeyI', null, async () => {
         const filePath = await api.importDialog();
         if (!filePath) return;
 
@@ -25,7 +34,7 @@ export default [
 
         drawImage(image);
     }),
-    action('KeyE', 'Export', async (dataURL) => {
+    action('KeyE', null, async (dataURL) => {
         const filePath = await api.exportDialog();
         if (!filePath) return;
 
@@ -40,7 +49,7 @@ export default [
 
         drawImage(image);
     }),
-    action('KeyC', 'Crop', async () => {
+    action('KeyC', null, async () => {
         const dataURL = getRectCanvasDataURL();
         if (!dataURL) return;
 
@@ -49,21 +58,11 @@ export default [
 
         drawImage(image);
     }),
-    action('Enter', 'Recognize', async (dataURL) => {
-        const [cancel, parsedLines] = await cancelable(api.recognize(dataURL));
-        if (cancel) return;
-        if (!parsedLines?.length) throw new Error('Empty');
 
-        cancelScrape();
-        terminal.writeText(parsedLines.join('\n'), undefined, undefined, true);
-        terminal.open();
-    }, getRectCanvasDataURL),
-
-    [mouseDrag.input, 'Move'],
-    [[mouseSelect.input, 'Space'], 'Select', () => { toggleDrag() }],
-    [[mouseZoom.in.input, 'Ctrl+Equal'], 'Magnify', () => zoom(true)],
-    [[mouseZoom.out.input, 'Ctrl+Minus'], 'Minify', () => zoom(false)],
-    ['Ctrl+Digit0', 'Fit', () => reset()],
+    ['Space', null, () => { toggleDrag() }],
+    [[mouseZoom.in.input, 'Ctrl+Equal'], null, () => zoom(true)],
+    [[mouseZoom.out.input, 'Ctrl+Minus'], null, () => zoom(false)],
+    ['Ctrl+Digit0', null, () => reset()],
 
     ...['Up', 'Right', 'Down', 'Left'].map(dir => {
         const inputs = [null, 'Ctrl', 'Shift'].map(mod => [mod, `Arrow${dir}`].filter(Boolean).join('+'));
@@ -76,7 +75,7 @@ export default [
         };
         return [inputs, null, callback];
     }),
-    ['Escape', 'Cancel', () => cancel() || fitRectToCanvas()],
+    ['Escape', null, () => cancel() || fitRectToCanvas()],
 ];
 
 const actionId = 'action';

@@ -91,6 +91,5 @@ body {
 }
 
 .note.permanent {
-    background: rgba(0, 0, 0, 1);
     order: 1;
 }
