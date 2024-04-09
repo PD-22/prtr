@@ -3,8 +3,7 @@ import { canvas, scrollBy, zoom } from "./canvas.js";
 import { finishToggle, setRect } from "./rect.js";
 
 let clientX, clientY;
-const mouse = { isHold: false };
-export default mouse;
+let isHold = false;
 
 export function getCanvasMouseRelPos({ clientX, clientY }) {
     const bcr = canvas.getBoundingClientRect();
@@ -21,17 +20,17 @@ export function getCanvasMouseRelPos({ clientX, clientY }) {
 function startDrag(e) {
     if (terminal.state.isOpen) return;
 
-    if (mouse.isHold !== false) return stopDrag();
+    if (isHold !== false) return stopDrag();
 
-    mouse.isHold = [mouseSelect, null, mouseDrag][e.button]?.key;
+    isHold = e.button;
 
     clientX = e.clientX;
     clientY = e.clientY;
 }
 
 export const mouseSelect = {
-    key: 'L',
-    input: 'DragLeft',
+    key: 0,
+    input: 'MouseRight',
     move: e => {
         const [px, py] = getCanvasMouseRelPos({ clientX, clientY });
         const [x, y] = getCanvasMouseRelPos(e);
@@ -41,8 +40,8 @@ export const mouseSelect = {
 };
 
 export const mouseDrag = {
-    key: 'R',
-    input: 'DragRight',
+    key: 2,
+    input: 'MouseLeft',
     move: e => {
         const x = clientX - e.clientX;
         const y = clientY - e.clientY;
@@ -54,14 +53,14 @@ export const mouseDrag = {
 
 function moveDrag(e) {
     if (terminal.state.isOpen) return;
-    if (mouse.isHold === mouseSelect.key) mouseSelect.move(e);
-    if (mouse.isHold === mouseDrag.key) mouseDrag.move(e);
+    if (isHold === mouseSelect.key) mouseSelect.move(e);
+    if (isHold === mouseDrag.key) mouseDrag.move(e);
 }
 
 export function stopDrag() {
     if (terminal.state.isOpen) return;
-    if (mouse.isHold === mouseSelect.key) mouseSelect.stop();
-    mouse.isHold = false;
+    if (isHold === mouseSelect.key) mouseSelect.stop();
+    isHold = false;
 }
 
 export const mouseZoom = {
