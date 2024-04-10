@@ -4,40 +4,34 @@ npm i
 npm run start
 ```
 
-### Global shortcuts:
-- **F1**: Toggle shortcuts reminder
-- **Tab**: Switch between canvas and terminal
-- **Escape**: Cancel loading actions
+Global shortcut | Description
+-|-
+<kbd>F1</kbd> | Toggle shortcuts reminder
+<kbd>Tab</kbd> | Switch between canvas and terminal
+<kbd>Escape</kbd> | Cancel loading actions
+<kbd>F11</kbd> | Toggle Fullscreen
 
-### Canvas shortcuts:
-- **Escape**: Reset canvas selection
-- **Enter**: Read text from the displayed image and paste it to the terminal
-- **P**: Paste image from clipboard
-- **I**: Import image from files
-- **E**: Export image to a file
-- **C**: Crop image from selection
-- **RightMouse, Arrows**: Move the screen on the canvas
-    - Press right mouse button and drag
-    - Alternatively use arrow keys (Shift - fast, Ctrl - slow)
-- **MouseWheel, +/-**: Zoom in and out of the canvas
-- **0**: Reset zoom to 100%
-- **LeftMouse**: Select rectangle
-    - press left mouse button and drag to select a rectangle
-    - alternatively press space to toggle selection using arrow keys
+Canvas shortcuts | Description
+-|-
+<kbd>Escape</kbd> | Reset canvas selection
+<kbd>Enter</kbd> | Read text from the displayed image and paste it to the terminal
+<kbd>P</kbd> | Paste image from clipboard
+<kbd>I</kbd> | Import image from files
+<kbd>E</kbd> | Export image to a file
+<kbd>C</kbd> | Crop image from selection
+<kbd>RightMouse</kbd>, <kbd>↑ ↓ → ←</kbd> | Move the screen on the canvas
+<kbd>MouseWheel</kbd>, <kbd>+</kbd>, <kbd>-</kbd> | Zoom in and out of the canvas
+<kbd>0</kbd> | Reset zoom to 100%
+<kbd>LeftMouse</kbd>, <kbd>Space</kbd> | Select rectangle (after <kbd>space</kbd> use <kbd>↑ ↓ → ←</kbd>)
 
-### Terminal shortcuts:
-- **Escape**: Deselect terminal text or cancel all loading lines
-- **Enter**: Search player in-game times
-    - cleans all the lines by removing clan tag
-    - displays loading three dots "..." for each line
-    - searches for each players in-game time
-    - to cancel individual line try to edit that line
-    - to cancel all lines press "Escape"
-    - when search is complete the dots are replaced with the result
-- **Ctrl+Delete**: Clean all lines, parsing player names
-- **Ctrl+Z**: Undo history
-- **Ctrl+Y, Ctrl+Shift+Z**: Redo history
-- **Ctrl+ArrowDown**: Sort data ascending
-- **Ctrl+ArrowUp**: Sort data descending
-- **Alt+ArrowUp**: Move line up
-- **Alt+ArrowDown**: Move line down
+Terminal shortcuts | Description
+-|-
+<kbd>Escape</kbd> | Deselect terminal text cancel all loading lines
+<kbd>Enter</kbd> | Search player in-game times (cancel line by editing it)
+<kbd>Ctrl</kbd>+<kbd>Delete</kbd> | Parse player names
+<kbd>Ctrl</kbd>+<kbd>Z</kbd> | Undo history
+<kbd>Ctrl</kbd>+<kbd>Y</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> | Redo history
+<kbd>Ctrl</kbd>+<kbd>↓</kbd> | Sort lines ascending
+<kbd>Ctrl</kbd>+<kbd>↑</kbd> | Sort lines descending
+<kbd>Alt</kbd>+<kbd>↑</kbd> | Move line up
+<kbd>Alt</kbd>+<kbd>↓</kbd> | Move line down
