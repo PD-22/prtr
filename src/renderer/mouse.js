@@ -59,7 +59,7 @@ function moveDrag(e) {
 export function stopDrag(e) {
     if (terminal.state.isOpen) return;
     finishToggle()
-    if (e.clientX === clientX && e.clientY === clientY) fitRectToCanvas();
+    if (e && e.clientX === clientX && e.clientY === clientY) fitRectToCanvas();
     isHold = false;
 }
 
