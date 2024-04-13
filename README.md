@@ -4,7 +4,7 @@ npm i
 npm run start
 ```
 
-Global shortcut | Description
+Global shortcuts | Description
 -|-
 <kbd>F1</kbd> | Toggle shortcuts reminder
 <kbd>Tab</kbd> | Switch between canvas and terminal
@@ -35,3 +35,5 @@ Terminal shortcuts | Description
 <kbd>Ctrl</kbd>+<kbd>↑</kbd> | Sort lines descending
 <kbd>Alt</kbd>+<kbd>↑</kbd> | Move line up
 <kbd>Alt</kbd>+<kbd>↓</kbd> | Move line down
+
+![alt text](capture.gif)
