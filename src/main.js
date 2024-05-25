@@ -55,7 +55,7 @@ async function loadWindows() {
         mainWindow.webContents.setZoomFactor(1);
 
         pageLoading.value = true;
-        await statsWindow.loadURL('https://prstats.tk');
+        await statsWindow.loadURL('https://prstats.realitymod.com');
 
         const path = join(__dirname, 'postload-stats.js');
         const code = await readFile(path, 'utf8');
