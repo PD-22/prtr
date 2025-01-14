@@ -1,14 +1,11 @@
-`PRTR` is an `Electron.js` app that quickly retrieves player info from the `Project Reality` video game.
-It uses the `Tesseract.js` library for screenshot-to-text conversion and scrapes player in-game time from the `PRstats` website.
+# PRTR (Project Reality Tesseract)
+
+`Electron.js` app that quickly retrieves player info from the `Project Reality` video game. `Tesseract.js` library used for screenshot-to-text conversion to scrape player in-game time from the `PRstats` website.
 
 ![PRTR Demo](capture.gif)
 
-```
-git clone https://github.com/PD-22/prtr.git
-cd prtr
-npm install
-npm run start
-```
+## Usage
+Go to the [releases](https://github.com/PD-22/prtr/releases) page and download the latest exe file installer.
 
 Global shortcuts | Description
 -|-
@@ -41,3 +38,11 @@ Terminal shortcuts | Description
 <kbd>Ctrl</kbd>+<kbd>↑</kbd> | Sort lines descending
 <kbd>Alt</kbd>+<kbd>↑</kbd> | Move line up
 <kbd>Alt</kbd>+<kbd>↓</kbd> | Move line down
+
+## Development
+```
+git clone https://github.com/PD-22/prtr.git
+cd prtr
+npm install
+npm run start
+```
