@@ -5,4 +5,3 @@ temp
 *.traineddata
 *.png
 out/
-forge.config.js

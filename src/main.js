@@ -1,8 +1,11 @@
+const squirrel = require('electron-squirrel-startup');
 const { app, BrowserWindow, clipboard, ipcMain, dialog, globalShortcut, Menu } = require('electron');
 const { join } = require('path');
 const { createWorker } = require('tesseract.js');
 const { writeFile, readFile } = require('fs/promises');
 const { Observable } = require('./Observable');
+
+if (squirrel || process.argv[1] === '--squirrel-firstrun') app.quit();
 
 Menu.setApplicationMenu(null);
 
@@ -29,7 +32,7 @@ function createWindows() {
         webPreferences: {
             preload: join(__dirname, 'preload.js')
         },
-        fullscreen: true
+        // fullscreen: true
     })
     mainWindow.on('closed', () => { mainWindow = null });
     mainWindow.on('focus', () => globalShortcut.register('F11',
@@ -55,7 +58,8 @@ async function loadWindows() {
         mainWindow.webContents.setZoomFactor(1);
 
         pageLoading.value = true;
-        await statsWindow.loadURL('https://prstats.realitymod.com');
+        // await statsWindow.loadURL('https://prstats.realitymod.com');
+        await statsWindow.loadURL('about:blank');
 
         const path = join(__dirname, 'postload-stats.js');
         const code = await readFile(path, 'utf8');

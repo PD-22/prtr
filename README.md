@@ -7,6 +7,8 @@
 ## Usage
 Go to the [releases](https://github.com/PD-22/prtr/releases) page and download the latest exe file installer.
 
+Notice: Currently the [prstats](http://prstats.realitymod.com) website is unavailable so a mock data is used.
+
 Global shortcuts | Description
 -|-
 <kbd>F1</kbd> | Toggle shortcuts reminder
